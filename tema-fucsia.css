@@ -1,0 +1,248 @@
+/* =========================================================
+   HAY — V1.33: tema fucsia (pantallas Inicio y Mi perfil aprobadas el 02/11/2026)
+   Se carga DESPUÉS de components.css y solo cambia la apariencia: ningún
+   data-* ni la lógica de app.js dependen de este archivo.
+   Colores: fucsia #E8336F (marca), azul #178DBA (acción), verde #4FB82E,
+   amarillo #FFC627, tinta #1B2A4E. Sobre fucsia y azul el texto va en blanco;
+   sobre verde y amarillo, en tinta.
+   ========================================================= */
+
+/* ---------- Texto sobre fucsia: blanco ---------- */
+.tone-pink { color: #ffffff !important; }
+.btn--pink,
+.badge--new,
+.chip--pink.is-active,
+.chip-row .chip--pink.is-active { color: #ffffff; }
+
+/* ---------- Logo HAY: una letra de cada color, con borde blanco ---------- */
+.hay-wordmark { gap: 0; }
+.hay-wordmark > span {
+  width: auto;
+  height: auto;
+  background: none !important;
+  border-radius: 0;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-style: italic;
+  font-size: var(--wm);
+  letter-spacing: -0.02em;
+  -webkit-text-stroke: calc(var(--wm) * 0.06) #ffffff;
+  paint-order: stroke fill;
+  text-shadow: 0 calc(var(--wm) * 0.08) 0 var(--hay-navy);
+}
+.hay-wordmark > span:nth-child(1) { color: #22c3e6; }
+.hay-wordmark > span:nth-child(2) { color: #ffe01b; }
+.hay-wordmark > span:nth-child(3) { color: #5fd13a; }
+.hay-wordmark--lift > span:nth-child(2) { transform: none; }
+
+/* ---------- Cabecera fucsia (Inicio y Mi perfil) ---------- */
+.screen--fucsia-top .statusbar {
+  background: var(--hay-fucsia);
+  color: #ffffff;
+}
+.fucsia-header {
+  flex-shrink: 0;
+  background: var(--hay-fucsia);
+  color: #ffffff;
+  border-radius: 0 0 32px 32px;
+  padding: var(--space-3) var(--space-5) var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.fucsia-header .screen-title { color: #ffffff; font-weight: 900; }
+.fucsia-header .home-location {
+  background: transparent;
+  color: #ffffff;
+  font-weight: 800;
+  padding: 0 4px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.icon-btn--white {
+  width: 48px;
+  height: 48px;
+  background: #ffffff;
+  color: var(--hay-navy);
+  box-shadow: 0 6px 16px rgba(27, 42, 78, 0.18);
+}
+.icon-btn--white:hover { background: #ffffff; }
+.searchbar--white {
+  background: #ffffff;
+  border-color: #ffffff;
+  min-height: 52px;
+  box-shadow: 0 6px 16px rgba(27, 42, 78, 0.14);
+}
+.searchbar--white .text-faint { color: var(--color-text-faint); font-weight: 600; }
+
+/* Inicio */
+.home-header .flex-between { gap: var(--space-2); }
+
+/* Mi perfil: título y engranaje en la cabecera; la foto se monta sobre su borde */
+.profile-header {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 92px;
+}
+.profile-header + .screen-content { margin-top: -84px; }
+.profile-hero {
+  background: none;
+  padding: 0;
+  overflow: visible;
+}
+.profile-hero::before,
+.profile-hero::after { display: none; }
+.profile-hero .rating-pill { background: #ffffff; box-shadow: 0 2px 8px rgba(27, 42, 78, 0.08); }
+.profile-hero .text-faint { color: var(--color-text-faint); }
+
+/* ---------- Foto de perfil ---------- */
+.avatar--lg {
+  width: 150px;
+  height: 150px;
+  font-size: 52px;
+  border-radius: 50%;
+  border: 7px solid #ffffff;
+  box-sizing: border-box;
+}
+.avatar--fucsia {
+  background: var(--hay-fucsia);
+  color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgba(232, 51, 111, 0.35);
+}
+.avatar--photo {
+  background: #ffffff;
+  overflow: hidden;
+  padding: 0;
+}
+.avatar--photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+.avatar--lg.avatar--photo { box-shadow: 0 12px 28px rgba(232, 51, 111, 0.35); }
+.avatar-cam {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--hay-yellow);
+  color: var(--hay-navy);
+  border: 3px solid #ffffff;
+  cursor: pointer;
+}
+
+/* ---------- Botones de foto (Publicar y Editar perfil) ---------- */
+.photo-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.photo-actions .btn { width: 100%; }
+.photo-rules {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--hay-fucsia-dark);
+  background: var(--hay-pink-highlight);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  text-align: center;
+}
+
+/* ---------- Todos / Personas / Negocios: un color cada uno, mismo tamaño ---------- */
+.pill-row--color .pill {
+  min-height: 46px;
+  border-radius: var(--radius-full);
+  border: 3px solid transparent;
+  font-weight: 800;
+  font-size: 15px;
+}
+.pill-row--color .pill:nth-child(3n + 1) { background: var(--hay-turquoise); color: #ffffff; }
+.pill-row--color .pill:nth-child(3n + 2) { background: var(--hay-green); color: var(--hay-navy); }
+.pill-row--color .pill:nth-child(3n + 3) { background: var(--hay-yellow); color: var(--hay-navy); }
+.pill-row--color .pill.is-selected { border-color: var(--hay-navy); }
+.pill-row--color .pill.is-selected::before { content: '✓'; margin-right: 6px; }
+
+/* ---------- Categorías: colores alternados, misma altura ---------- */
+.chip-row--color .chip {
+  min-height: 46px;
+  border: 3px solid transparent;
+  font-weight: 800;
+  font-size: 15px;
+}
+.chip-row.chip-row--color .chip:nth-child(4n + 1) { background: var(--hay-fucsia); color: #ffffff; }
+.chip-row.chip-row--color .chip:nth-child(4n + 2) { background: var(--hay-turquoise); color: #ffffff; }
+.chip-row.chip-row--color .chip:nth-child(4n + 3) { background: var(--hay-green); color: var(--hay-navy); }
+.chip-row.chip-row--color .chip:nth-child(4n + 4) { background: var(--hay-yellow); color: var(--hay-navy); }
+.chip-row.chip-row--color .chip.is-active { border-color: var(--hay-navy); }
+
+/* ---------- Opciones del perfil: tarjetas blancas con sombra suave ---------- */
+.option-row {
+  background: #ffffff;
+  box-shadow: 0 4px 14px rgba(27, 42, 78, 0.08);
+}
+.option-row:hover { background: #ffffff; box-shadow: 0 6px 18px rgba(27, 42, 78, 0.12); }
+.option-row .list-row__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+/* ---------- Barra de abajo: cada ícono con su color ---------- */
+.tabbar__item svg { stroke-width: 2.4; }
+.tabbar__item:nth-child(1) { color: var(--hay-fucsia-dark); }
+.tabbar__item:nth-child(2) { color: var(--hay-turquoise-active); }
+.tabbar__item:nth-child(4) { color: var(--hay-green-active); }
+.tabbar__item:nth-child(5) { color: #946600; }
+.tabbar__item:nth-child(1) svg { stroke: var(--hay-fucsia); }
+.tabbar__item:nth-child(2) svg { stroke: var(--hay-turquoise); }
+.tabbar__item:nth-child(4) svg { stroke: #2e8a1a; }
+.tabbar__item:nth-child(5) svg { stroke: var(--hay-gold); }
+.tabbar__item.is-active span { font-weight: 900; }
+.tabbar__item:nth-child(1).is-active svg { background: var(--hay-pink-highlight); }
+.tabbar__item:nth-child(2).is-active svg { background: var(--hay-turquoise-highlight); }
+.tabbar__item:nth-child(4).is-active svg { background: var(--hay-green-highlight); }
+.tabbar__item:nth-child(5).is-active svg { background: var(--hay-yellow-highlight); }
+.tabbar__item--fab { color: var(--hay-navy); }
+
+/* En el teléfono la barra de estado simulada se oculta, pero su espacio (zona segura de
+   arriba) sigue fucsia en las pantallas con cabecera fucsia. */
+.phone--app .screen--fucsia-top .statusbar { visibility: visible; }
+.phone--app .screen--fucsia-top .statusbar > * { visibility: hidden; }
+.photo-error {
+  color: var(--hay-red);
+  background: var(--hay-red-highlight);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ---------- V1.34: sin botones blancos ---------- */
+/* Botones secundarios (Galería, Crear cuenta, Limpiar…): verde con texto tinta */
+.btn--outline {
+  background: var(--hay-green);
+  border-color: var(--hay-green);
+  color: var(--hay-navy);
+}
+.btn--outline:hover { background: var(--hay-green-hover); border-color: var(--hay-green-hover); }
+.btn--outline svg { stroke: var(--hay-navy); }
+/* Botones redondos de la cabecera fucsia (campana, configuración): amarillos */
+.icon-btn--white,
+.icon-btn--white:hover { background: var(--hay-yellow); color: var(--hay-navy); }
+/* «Publicar» del bloque azul de Inicio: amarillo */
+.promo-block__btn { background: var(--hay-yellow); color: var(--hay-navy); }
+/* Corazón de las tarjetas: círculo fucsia claro */
+.ph-art .product-card__fav { background: var(--hay-pink-highlight); }
+.ph-art .product-card__fav svg { stroke: var(--hay-fucsia); }
+/* Botones redondos (volver, cerrar, filtros…): azul claro en vez de gris */
+.icon-btn { background: var(--hay-turquoise-highlight); color: var(--hay-navy); }
+.icon-btn:hover { background: #c6e8f6; }
+/* Casillas vacías de fotos: fucsia claro */
+.photo-slot--empty { background: var(--hay-pink-highlight); border-color: #f4a9c3; color: var(--hay-fucsia-dark); }

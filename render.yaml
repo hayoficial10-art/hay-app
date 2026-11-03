@@ -1,0 +1,37 @@
+# V1.29 — configuración para publicar HAY en Render (render.com) con
+# "New > Blueprint". Crea:
+#   - el servidor web (hay-app)
+#   - la base de datos PostgreSQL (hay-db), ya conectada por DATABASE_URL
+#   - un disco de 1 GB para las fotos (mientras no se use un CDN S3/R2)
+# Solo falta completar ADMIN_EMAIL en el panel. IDENTITY_KEY se genera sola.
+services:
+  - type: web
+    name: hay-app
+    runtime: node
+    plan: starter
+    buildCommand: echo "sin dependencias que instalar"
+    startCommand: node backend/server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATA_DIR
+        value: /var/data
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hay-db
+          property: connectionString
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: IDENTITY_KEY
+        generateValue: true
+    disk:
+      name: hay-data
+      mountPath: /var/data
+      sizeGB: 1
+
+databases:
+  - name: hay-db
+    plan: basic-256mb
+    databaseName: hay
+    user: hay

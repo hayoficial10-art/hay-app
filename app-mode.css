@@ -1,0 +1,35 @@
+/* V1.27 — modo app real (app.html): la pantalla ocupa todo el teléfono.
+   En una computadora se ve centrada con el marco de color, como en el
+   prototipo. */
+html, body.app-mode {
+  height: 100%;
+  margin: 0;
+  background: var(--color-surface-offset);
+  overscroll-behavior: none;
+}
+.app-root {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+@media (max-width: 520px) {
+  .app-root { display: block; }
+  .phone.phone--app {
+    width: 100vw;
+    height: 100dvh;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+  .phone--app .phone__screen { border-radius: 0; }
+  .phone--app .phone__notch { display: none; }
+  /* la barra de estado simulada (9:41) sobra en un teléfono real */
+  .phone--app .statusbar { visibility: hidden; height: max(12px, env(safe-area-inset-top)); }
+  .phone--app .tabbar { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .phone--app .tabbar::after { display: none; }
+}
+@media (min-width: 521px) {
+  .phone.phone--app { height: min(844px, calc(100dvh - 32px)); }
+}

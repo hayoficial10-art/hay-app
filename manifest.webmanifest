@@ -1,0 +1,75 @@
+{
+  "name": "HAY — Lo tienes, publícalo, véndelo",
+  "short_name": "HAY",
+  "description": "Compra y vende lo que ya no usas, cerca de ti.",
+  "lang": "es",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFFFFF",
+  "theme_color": "#E8336F",
+  "icons": [
+    {
+      "src": "assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "id": "/app.html",
+  "categories": [
+    "shopping",
+    "lifestyle"
+  ],
+  "dir": "ltr",
+  "screenshots": [
+    {
+      "src": "assets/screens/pantalla-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Inicio: lo que hay cerca de ti"
+    },
+    {
+      "src": "assets/screens/pantalla-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Detalle del producto"
+    },
+    {
+      "src": "assets/screens/pantalla-3.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Publica en minutos con fotos"
+    },
+    {
+      "src": "assets/screens/pantalla-4.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Chatea y negocia ofertas"
+    },
+    {
+      "src": "assets/screens/pantalla-5.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tu perfil y reputación"
+    }
+  ]
+}

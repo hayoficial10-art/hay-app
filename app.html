@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>HAY — Lo tienes, publícalo, véndelo</title>
+<meta name="description" content="HAY: compra y vende lo que ya no usas, cerca de ti." />
+<meta name="theme-color" content="#E8336F" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="assets/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="stylesheet" href="css/tokens.css" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/components.css" />
+<link rel="stylesheet" href="css/tema-fucsia.css" />
+<link rel="stylesheet" href="css/app-mode.css" />
+<!-- V1.27: la misma app, en modo real (una sola pantalla a tamaño completo). -->
+<script>window.HAY_APP_MODE = true;</script>
+</head>
+<body class="app-mode">
+<main id="screensGrid" class="app-root" data-testid="app-root"></main>
+<noscript>HAY necesita JavaScript activado para funcionar.</noscript>
+<script src="js/icons.js"></script>
+<script src="js/api.js"></script>
+<script src="js/moderacion.js"></script>
+<script src="js/partials.js"></script>
+<script src="js/screens-onboarding.js"></script>
+<script src="js/screens-main.js"></script>
+<script src="js/screens-publish.js"></script>
+<script src="js/screens-transaction.js"></script>
+<script src="js/screens-account.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
