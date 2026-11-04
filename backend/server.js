@@ -44,7 +44,7 @@ const { createStorage } = require('./storage');
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.35';
+const APP_VERSION = '1.37';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -1142,8 +1142,19 @@ async function handle(req, res) {
     const sel = decodeImageDataUrl(body.selfiePhoto, { minBytes: 2000 });
     if (sel.error) return sendJSON(res, 400, { error: 'Selfie: ' + sel.error });
     const old = user.identity;
+    // V1.37: resultado de la selfie en vivo y de la comparación de caras (lo calcula el teléfono)
+    const c = body.check && typeof body.check === 'object' ? body.check : null;
+    const check = c ? {
+      liveness: Boolean(c.liveness),
+      retos: Array.isArray(c.retos) ? c.retos.slice(0, 3).map((x) => String(x).slice(0, 20)) : [],
+      distancia: typeof c.distancia === 'number' && Number.isFinite(c.distancia) ? Math.round(c.distancia * 1000) / 1000 : null,
+      coincide: Boolean(c.coincide),
+      nota: c.nota ? String(c.nota).slice(0, 200) : null,
+    } : null;
     user.identity = {
       status: 'submitted',
+      check,
+      needsReview: !(check && check.liveness && check.coincide),
       cedulaFile: await saveIdentityFile(user.id, 'cedula', ced.buf),
       selfieFile: await saveIdentityFile(user.id, 'selfie', sel.buf),
       submittedAt: new Date().toISOString(),
@@ -1182,7 +1193,7 @@ async function handle(req, res) {
     if (!user) return sendJSON(res, 401, { error: 'Debes iniciar sesión' });
     if (!user.isAdmin) return sendJSON(res, 403, { error: 'Solo moderadores' });
     const list = (await store.users.withIdentity())
-      .map((u) => ({ userId: u.id, email: u.email, status: u.identity.status, submittedAt: u.identity.submittedAt }))
+      .map((u) => ({ userId: u.id, email: u.email, status: u.identity.status, submittedAt: u.identity.submittedAt, check: u.identity.check || null }))
       .sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
     return sendJSON(res, 200, { identities: list });
   }
