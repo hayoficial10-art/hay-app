@@ -1,0 +1,153 @@
+/* avisos.css — V1.35: número de no leídos, aviso de mensaje, mapa real,
+   aviso de verificación pendiente, versión visible. */
+
+/* Número rojo en Mensajes y en la campana */
+.tabbar__item,
+[data-testid="btn-notifications"] { position: relative; }
+.unread-badge {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 22px);
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--hay-red);
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #fff;
+  pointer-events: none;
+}
+[data-testid="btn-notifications"] .unread-badge { top: -4px; right: -4px; }
+
+/* Aviso de mensaje nuevo (arriba de la pantalla) */
+.hay-toast {
+  position: fixed;
+  z-index: 9999;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(440px, calc(100% - 24px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: none;
+  border-radius: 16px;
+  background: var(--hay-navy);
+  color: #fff;
+  text-align: left;
+  box-shadow: 0 10px 30px rgba(27, 42, 78, 0.35);
+  font-family: inherit;
+  cursor: pointer;
+  animation: hay-toast-in 0.25s ease-out;
+  transition: opacity 0.35s, transform 0.35s;
+}
+.hay-toast.is-out { opacity: 0; transform: translate(-50%, -20px); }
+@keyframes hay-toast-in { from { opacity: 0; transform: translate(-50%, -20px); } }
+.hay-toast__icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--hay-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hay-toast__icon svg { width: 20px; height: 20px; stroke: var(--hay-navy); fill: none; }
+.hay-toast__body { display: flex; flex-direction: column; min-width: 0; font-size: 14px; }
+.hay-toast__body strong { font-size: 15px; }
+.hay-toast__body span { opacity: 0.9; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Mapa real (OpenStreetMap) */
+.osm-map {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-surface-2);
+}
+.osm-map iframe { width: 100%; height: 100%; border: 0; display: block; }
+.osm-map__credit {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--hay-navy);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.gps-msg { font-size: 13px; font-weight: 700; color: var(--color-text-muted); }
+.gps-msg.is-error { color: var(--color-error); }
+
+/* Ubicación de la cabecera de Inicio: ahora es un botón */
+button.home-location {
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Aviso "Falta tu verificación de seguridad" */
+.identity-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid var(--hay-yellow-active);
+  border-radius: 16px;
+  background: var(--hay-yellow-highlight);
+  color: var(--hay-navy);
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+}
+.identity-banner__icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--hay-yellow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.identity-banner__icon svg { width: 22px; height: 22px; stroke: var(--hay-navy); fill: none; }
+.identity-banner__text { display: flex; flex-direction: column; min-width: 0; font-size: 13px; line-height: 1.35; }
+.identity-banner__text strong { font-size: 15px; }
+.identity-banner__go {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--hay-turquoise);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+/* Versión de la app */
+.app-version {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+/* Fila de notificación no leída */
+.notif-row { width: 100%; border: none; background: none; text-align: left; font-family: inherit; cursor: pointer; }
+.notif-row.is-unread { background: var(--hay-turquoise-highlight); border-radius: 14px; }
