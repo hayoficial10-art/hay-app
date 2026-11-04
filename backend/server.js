@@ -1,5 +1,5 @@
 /**
- * HAY — Backend (V1.29)
+ * HAY — Backend (V1.35)
  * -----------------------------------------------------------------
  * Servidor HTTP hecho SOLO con módulos nativos de Node.js, sin
  * dependencias de npm: se publica y se corre sin "npm install".
@@ -23,6 +23,9 @@
  *   IDENTITY_KEY          clave para cifrar fotos de cédula/selfie
  *   REQUIRE_IDENTITY      "false" para no exigir verificación (solo pruebas)
  *   S3_* / PHOTOS_PUBLIC_URL  almacenamiento de fotos (ver storage.js)
+ *   V1.35 — correos (bienvenida, verificación completada, aviso al admin):
+ *   MAIL_FROM + RESEND_API_KEY | BREVO_API_KEY | SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS
+ *   PUBLIC_URL            dirección pública de la app (para los enlaces de los correos)
  *
  * Endpoints: ver PUBLICAR.md y los VERSION.md de cada versión.
  */
@@ -33,12 +36,15 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const zlib = require('zlib');
 const { createStore } = require('./store');
+const mailer = require('./mailer');
 const { createStorage } = require('./storage');
 
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
+const APP_VERSION = '1.35';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -57,6 +63,7 @@ const IDENTITY_KEY = process.env.IDENTITY_KEY
   : null;
 const MAX_PHOTOS = 6;
 const MAX_PHOTO_BYTES = 1.5 * 1024 * 1024;
+const MAX_THUMB_BYTES = 250 * 1024; // V1.35: miniatura de cada foto (para las tarjetas del feed)
 const FEED_MAX_LIMIT = 50;
 const LEGACY_FEED_LIMIT = 300; // pedido sin "limit" (galería de prototipo)
 
@@ -194,6 +201,78 @@ async function savePhotos(dataUrls) {
   return { urls };
 }
 
+// V1.35: miniaturas (~480 px) que el teléfono genera junto a cada foto.
+// thumbData[i] corresponde a urls[i]. Devuelve { url de la foto: url de la miniatura }.
+// Una miniatura inválida o faltante no impide publicar: esa tarjeta usa la foto grande.
+async function saveThumbs(urls, thumbData) {
+  const out = {};
+  if (!Array.isArray(thumbData)) return out;
+  for (let i = 0; i < urls.length && i < thumbData.length; i++) {
+    const r = decodeImageDataUrl(thumbData[i]);
+    if (r.error || r.buf.length > MAX_THUMB_BYTES) continue;
+    const name = crypto.randomBytes(12).toString('hex') + '-t.' + PHOTO_TYPES[r.mime];
+    out[urls[i]] = await photoStorage.put(name, r.buf, r.mime);
+  }
+  return out;
+}
+
+// V1.35: ubicación aproximada de una publicación (redondeada a ~1 km, por privacidad)
+function roundCoord(v, min, max) {
+  const n = Number(v);
+  if (v === null || v === undefined || v === '' || Number.isNaN(n) || n < min || n > max) return null;
+  return Math.round(n * 100) / 100;
+}
+
+// V1.35: nombre de la zona a partir de coordenadas (OpenStreetMap / Nominatim).
+// Nominatim pide máx. 1 consulta por segundo y un User-Agent propio: se
+// espacian las consultas y se guardan las respuestas.
+const GEO_CACHE = new Map();
+let GEO_NEXT_SLOT = 0;
+function reverseGeocode(lat, lng) {
+  const key = lat.toFixed(2) + ',' + lng.toFixed(2);
+  if (GEO_CACHE.has(key)) return Promise.resolve(GEO_CACHE.get(key));
+  const wait = Math.max(0, GEO_NEXT_SLOT - Date.now());
+  GEO_NEXT_SLOT = Date.now() + wait + 1100;
+  return new Promise((resolve) => setTimeout(resolve, wait)).then(() => new Promise((resolve, reject) => {
+    const req = https.get(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&accept-language=es&lat=${lat}&lon=${lng}`,
+      { timeout: 8000, headers: { 'User-Agent': `HAY-app/${APP_VERSION} (marketplace; ${process.env.PUBLIC_URL || 'hay-app.onrender.com'})` } },
+      (res) => {
+        let body = '';
+        res.on('data', (c) => (body += c));
+        res.on('end', () => {
+          if (res.statusCode !== 200) return reject(new Error('el servicio de mapas respondió ' + res.statusCode));
+          try {
+            const a = (JSON.parse(body) || {}).address || {};
+            const local = a.suburb || a.neighbourhood || a.quarter || a.village || a.hamlet || a.town || a.city_district || a.city || a.municipality || '';
+            const big = a.city || a.town || a.municipality || a.county || a.state || '';
+            const zone = [local, big !== local ? big : '', a.state && a.state !== big ? a.state : ''].filter(Boolean).slice(0, 2).join(', ');
+            if (GEO_CACHE.size > 5000) GEO_CACHE.clear();
+            GEO_CACHE.set(key, zone);
+            resolve(zone);
+          } catch (e) {
+            reject(new Error('respuesta inesperada del servicio de mapas'));
+          }
+        });
+      }
+    );
+    req.on('timeout', () => req.destroy(new Error('el servicio de mapas no respondió')));
+    req.on('error', reject);
+  }));
+}
+
+// V1.35: correos automáticos (no detienen la respuesta si fallan)
+function appUrlFor(req) {
+  return process.env.PUBLIC_URL || (req.headers.host ? 'https://' + req.headers.host + '/' : '');
+}
+function sendWelcomeEmails(req, user, method) {
+  const appUrl = appUrlFor(req);
+  mailer.sendMail({ to: user.email, ...mailer.welcomeEmail({ name: user.businessName, appUrl, identityPending: REQUIRE_IDENTITY }) });
+  for (const admin of ADMIN_EMAILS) {
+    if (admin !== user.email) mailer.sendMail({ to: admin, ...mailer.adminNewUserEmail({ email: user.email, accountType: user.accountType, businessName: user.businessName, method }) });
+  }
+}
+
 // V1.33: borra del disco una foto guardada localmente (/uploads/...); las de S3/R2 quedan.
 function removeLocalPhoto(url) {
   if (!url || photoStorage.kind !== 'local' || !String(url).startsWith('/uploads/')) return;
@@ -307,19 +386,46 @@ function serveStatic(req, res, pathname) {
   }
   const full = path.resolve(baseDir, rel);
   if (!full.startsWith(path.resolve(baseDir) + path.sep)) return false;
-  if (!fs.existsSync(full) || !fs.statSync(full).isFile()) return false;
+  let st;
+  try { st = fs.statSync(full); } catch (e) { return false; }
+  if (!st.isFile()) return false;
   const ext = path.extname(full).toLowerCase();
-  res.writeHead(200, {
+  // V1.35: ETag → si el teléfono ya tiene el archivo, responde "304 sin cambios"
+  // (antes se volvían a descargar todos los .js y .css en cada apertura).
+  const etag = `"${st.size.toString(36)}-${Math.floor(st.mtimeMs).toString(36)}"`;
+  const headers = {
     'Content-Type': MIME[ext] || 'application/octet-stream',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
+    ETag: etag,
+    Vary: 'Accept-Encoding',
     // V1.33: los modelos de revisión de fotos (vendor/, ~9,5 MB) se guardan 30 días en el teléfono
     'Cache-Control': top === 'uploads' ? 'public, max-age=31536000, immutable' : top === 'vendor' ? 'public, max-age=2592000' : 'no-cache',
-  });
+  };
+  if (req.headers['if-none-match'] === etag) {
+    res.writeHead(304, headers);
+    res.end();
+    return true;
+  }
+  // V1.35: texto comprimido con gzip (los .js y .css pesan ~4 veces menos)
+  const gzipOk = COMPRESSIBLE.has(ext) && st.size < 4e6 && /\bgzip\b/.test(req.headers['accept-encoding'] || '');
+  if (gzipOk) {
+    let cached = GZIP_CACHE.get(full);
+    if (!cached || cached.etag !== etag) {
+      cached = { etag, buf: zlib.gzipSync(fs.readFileSync(full), { level: 9 }) };
+      GZIP_CACHE.set(full, cached);
+    }
+    res.writeHead(200, { ...headers, 'Content-Encoding': 'gzip', 'Content-Length': cached.buf.length });
+    res.end(req.method === 'HEAD' ? undefined : cached.buf);
+    return true;
+  }
+  res.writeHead(200, { ...headers, 'Content-Length': st.size });
   if (req.method === 'HEAD') return res.end(), true;
   fs.createReadStream(full).pipe(res);
   return true;
 }
+const COMPRESSIBLE = new Set(['.html', '.css', '.js', '.json', '.webmanifest', '.svg', '.md']);
+const GZIP_CACHE = new Map();
 
 function sendJSON(res, statusCode, payload) {
   const body = JSON.stringify(payload);
@@ -399,7 +505,7 @@ async function handle(req, res) {
   }
 
   if (M === 'GET' && url.pathname === '/health') {
-    return sendJSON(res, 200, { ok: true, service: 'hay-backend', version: '1.34', mode: IS_PROD ? 'production' : 'development', db: store.kind, photos: photoStorage.kind });
+    return sendJSON(res, 200, { ok: true, service: 'hay-backend', version: APP_VERSION, mode: IS_PROD ? 'production' : 'development', db: store.kind, photos: photoStorage.kind, mail: mailer.mailerKind() });
   }
 
   // ------------------------------ Publicaciones -----------------------
@@ -449,6 +555,7 @@ async function handle(req, res) {
     const saved = await savePhotos(body.photoData || []);
     if (saved.error) return sendJSON(res, 400, { error: saved.error });
     if (IS_PROD && saved.urls.length === 0) return sendJSON(res, 400, { error: 'Agrega al menos una foto de tu producto' });
+    const thumbs = await saveThumbs(saved.urls, body.thumbData);
     const listing = await store.listings.insert({
       title: String(body.title).slice(0, 60),
       price,
@@ -461,6 +568,9 @@ async function handle(req, res) {
       icon: body.icon ? String(body.icon).slice(0, 20) : 'tag',
       acceptsOffers: Boolean(body.acceptsOffers),
       photoUrls: saved.urls,
+      ...(Object.keys(thumbs).length ? { photoThumbs: thumbs } : {}),
+      lat: roundCoord(body.lat, -90, 90),
+      lng: roundCoord(body.lng, -180, 180),
       photos: saved.urls.length || Number(body.photos) || 0,
       createdAt: new Date().toISOString(),
       sellerType: user.accountType || 'persona',
@@ -491,9 +601,19 @@ async function handle(req, res) {
     if (savedEdit.error) return sendJSON(res, 400, { error: savedEdit.error });
     const photoUrls = keep.concat(savedEdit.urls).slice(0, MAX_PHOTOS);
     if (IS_PROD && photoUrls.length === 0) return sendJSON(res, 400, { error: 'La publicación necesita al menos una foto' });
+    const newThumbs = await saveThumbs(savedEdit.urls, body.thumbData);
+    const photoThumbs = {};
+    for (const u of photoUrls) {
+      const t = (existing.photoThumbs && existing.photoThumbs[u]) || newThumbs[u];
+      if (t) photoThumbs[u] = t;
+    }
+    const hasCoords = body.lat !== undefined || body.lng !== undefined;
     const updated = await store.listings.update(existing.id, {
       ...existing,
       photoUrls,
+      photoThumbs,
+      lat: hasCoords ? roundCoord(body.lat, -90, 90) : existing.lat ?? null,
+      lng: hasCoords ? roundCoord(body.lng, -180, 180) : existing.lng ?? null,
       photos: photoUrls.length,
       title: String(body.title).slice(0, 60),
       price,
@@ -616,7 +736,7 @@ async function handle(req, res) {
         listingId: m.listingId,
         listingTitle: titles[m.listingId] || null,
         otherUser: { id: otherUserId, email: emails[otherUserId] || null },
-        lastMessage: { text: m.text, createdAt: m.createdAt },
+        lastMessage: { text: m.text, createdAt: m.createdAt, fromUserId: m.fromUserId },
       };
     });
     threads.sort((a, b) => (a.lastMessage.createdAt < b.lastMessage.createdAt ? 1 : -1));
@@ -658,6 +778,80 @@ async function handle(req, res) {
     msg.offerStatus = body.response;
     await store.messages.update(msg.id, msg);
     return sendJSON(res, 200, { message: msg });
+  }
+
+  // V1.35: mensajes recibidos desde una fecha — la app pregunta cada pocos
+  // segundos para sonar y avisar de mensajes nuevos. "now" es la hora del
+  // servidor, que la app usa como "since" en la próxima consulta.
+  if (M === 'GET' && api('me', 'inbox')) {
+    const user = await currentUser(req);
+    if (!user) return sendJSON(res, 401, { error: 'Sesión inválida o expirada' });
+    const now = new Date().toISOString();
+    const sinceRaw = url.searchParams.get('since');
+    const sinceMs = Date.parse(sinceRaw || '');
+    if (!sinceRaw || Number.isNaN(sinceMs)) return sendJSON(res, 200, { now, items: [] });
+    const since = new Date(Math.max(sinceMs, Date.now() - 7 * 24 * 3600 * 1000)).toISOString();
+    const msgs = await store.messages.incoming(user.id, since, 20);
+    const [emails, titles] = await Promise.all([
+      store.users.emails([...new Set(msgs.map((m) => m.fromUserId))]),
+      store.listings.titles([...new Set(msgs.map((m) => m.listingId))]),
+    ]);
+    return sendJSON(res, 200, {
+      now,
+      items: msgs.map((m) => ({
+        id: m.id,
+        threadId: m.threadId,
+        listingId: m.listingId,
+        listingTitle: titles[m.listingId] || null,
+        fromUserId: m.fromUserId,
+        fromEmail: emails[m.fromUserId] || null,
+        text: String(m.text || '').slice(0, 140),
+        type: m.type,
+        amount: m.amount,
+        createdAt: m.createdAt,
+      })),
+    });
+  }
+
+  // V1.35: nombre de la zona para las coordenadas del GPS del teléfono
+  if (M === 'GET' && api('geo', 'reverse')) {
+    if (rateLimited(req, 'geo', 60)) return sendJSON(res, 429, { error: 'Demasiadas consultas de ubicación. Espera unos minutos.' });
+    const lat = roundCoord(url.searchParams.get('lat'), -90, 90);
+    const lng = roundCoord(url.searchParams.get('lng'), -180, 180);
+    if (lat === null || lng === null) return sendJSON(res, 400, { error: 'Coordenadas inválidas' });
+    try {
+      return sendJSON(res, 200, { lat, lng, zone: await reverseGeocode(lat, lng) });
+    } catch (e) {
+      return sendJSON(res, 502, { error: 'No se pudo obtener el nombre de la zona: ' + e.message, lat, lng });
+    }
+  }
+
+  // V1.35: miniaturas de las fotos publicadas antes de esta versión. El
+  // teléfono del moderador las genera (el servidor no tiene con qué
+  // achicar imágenes) y las sube aquí, una publicación a la vez.
+  if (M === 'GET' && api('admin', 'listings-without-thumbs')) {
+    const user = await currentUser(req);
+    if (!user) return sendJSON(res, 401, { error: 'Debes iniciar sesión' });
+    if (!user.isAdmin) return sendJSON(res, 403, { error: 'Solo moderadores' });
+    const list = await store.listings.withoutThumbs(30);
+    return sendJSON(res, 200, { items: list.map((l) => ({ id: l.id, title: l.title, photoUrls: l.photoUrls || [] })) });
+  }
+
+  if (M === 'POST' && api('admin', 'listings', '*', 'thumbs')) {
+    const user = await currentUser(req);
+    if (!user) return sendJSON(res, 401, { error: 'Debes iniciar sesión' });
+    if (!user.isAdmin) return sendJSON(res, 403, { error: 'Solo moderadores' });
+    const listing = await store.listings.get(parts[3]);
+    if (!listing) return sendJSON(res, 404, { error: 'Publicación no encontrada' });
+    const body = await jsonBody(req, res);
+    if (!body) return;
+    const urls = listing.photoUrls || [];
+    const thumbData = urls.map((u) => (body.thumbs && body.thumbs[u]) || null);
+    const thumbs = await saveThumbs(urls, thumbData);
+    // aunque alguna no se pueda generar, se marca para no volver a intentarlo siempre
+    listing.photoThumbs = { ...(listing.photoThumbs || {}), ...thumbs };
+    await store.listings.update(listing.id, listing);
+    return sendJSON(res, 200, { ok: true, saved: Object.keys(thumbs).length });
   }
 
   // ------------------------------ Calificaciones ----------------------
@@ -839,7 +1033,8 @@ async function handle(req, res) {
       if (e.code === '23505') return sendJSON(res, 409, { error: 'Ya existe una cuenta con ese email' });
       throw e;
     }
-    return sendJSON(res, 201, { token: await createSession(newUser.id), user: publicUser(newUser) });
+    sendWelcomeEmails(req, newUser, 'password'); // V1.35
+    return sendJSON(res, 201, { token: await createSession(newUser.id), user: publicUser(newUser), isNew: true, welcomeEmail: mailer.mailerKind() !== 'none' });
   }
 
   if (M === 'POST' && api('auth', 'login')) {
@@ -870,7 +1065,9 @@ async function handle(req, res) {
     if (!googlePayload.email || googlePayload.email_verified !== 'true') return sendJSON(res, 400, { error: 'Tu cuenta de Google no tiene el email verificado' });
     const email = String(googlePayload.email).trim().toLowerCase();
     let user = await store.users.byEmail(email);
+    let isNew = false;
     if (!user) {
+      isNew = true;
       user = await store.users.insert({
         email,
         salt: null,
@@ -883,7 +1080,8 @@ async function handle(req, res) {
       user.googleId = googlePayload.sub;
       await store.users.update(user.id, user);
     }
-    return sendJSON(res, 200, { token: await createSession(user.id), user: publicUser(user) });
+    if (isNew) sendWelcomeEmails(req, user, 'google'); // V1.35
+    return sendJSON(res, 200, { token: await createSession(user.id), user: publicUser(user), isNew, welcomeEmail: isNew && mailer.mailerKind() !== 'none' });
   }
 
   if (M === 'POST' && api('auth', 'logout')) {
@@ -952,7 +1150,9 @@ async function handle(req, res) {
     };
     await store.users.update(user.id, user);
     if (old) for (const f of [old.cedulaFile, old.selfieFile]) if (f) await store.identity.remove(f);
-    return sendJSON(res, 200, { ok: true, user: publicUser(user) });
+    // V1.35: correo "verificación de seguridad completada"
+    mailer.sendMail({ to: user.email, ...mailer.identityDoneEmail({ name: user.businessName, appUrl: appUrlFor(req) }) });
+    return sendJSON(res, 200, { ok: true, user: publicUser(user), email: mailer.mailerKind() !== 'none' });
   }
 
   // V1.33: foto de perfil (la cámara o la galería del teléfono, desde Editar perfil).
@@ -1019,7 +1219,7 @@ async function handle(req, res) {
     if (user.passwordHash && !samePassword(String(body.password || ''), user)) return sendJSON(res, 401, { error: 'La contraseña no es correcta' });
     const listings = await store.listings.removeBySeller(user.id);
     if (photoStorage.kind === 'local') {
-      for (const l of listings) for (const u of l.photoUrls || []) {
+      for (const l of listings) for (const u of [...(l.photoUrls || []), ...Object.values(l.photoThumbs || {})]) {
         if (String(u).startsWith('/uploads/')) { try { fs.unlinkSync(path.join(UPLOADS_DIR, path.basename(u))); } catch (e) {} }
       }
     }
@@ -1055,9 +1255,10 @@ async function start() {
   await store.init();
   await store.sessions.purgeOlderThan(new Date(Date.now() - SESSION_TTL_MS).toISOString());
   server.listen(PORT, () => {
-    console.log(`[HAY backend] v1.34 · modo ${IS_PROD ? 'PRODUCCIÓN' : 'desarrollo'} · datos: ${store.kind === 'postgres' ? 'PostgreSQL' : 'archivos en ' + DATA_DIR} · fotos: ${photoStorage.kind}`);
+    console.log(`[HAY backend] v${APP_VERSION} · modo ${IS_PROD ? 'PRODUCCIÓN' : 'desarrollo'} · datos: ${store.kind === 'postgres' ? 'PostgreSQL' : 'archivos en ' + DATA_DIR} · fotos: ${photoStorage.kind}`);
     if (IS_PROD && store.kind !== 'postgres') console.warn('[HAY backend] AVISO: producción sin DATABASE_URL — usando archivos. Para muchos usuarios configura PostgreSQL.');
     if (IS_PROD && REQUIRE_IDENTITY && !IDENTITY_KEY) console.warn('[HAY backend] AVISO: sin IDENTITY_KEY las fotos de cédula se guardan sin cifrar.');
+    if (mailer.mailerKind() === 'none') console.warn('[HAY backend] AVISO: sin servicio de correo (MAIL_FROM + RESEND_API_KEY, BREVO_API_KEY o SMTP_*): no se envían los correos de bienvenida ni de verificación.');
     if (IS_PROD && !ADMIN_EMAILS.length) console.warn('[HAY backend] AVISO: no hay ADMIN_EMAIL configurado; nadie podrá moderar reportes.');
     console.log(`[HAY backend] escuchando en http://localhost:${PORT}`);
   });

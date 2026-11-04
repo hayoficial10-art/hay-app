@@ -174,6 +174,10 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
         markDirty('listings');
         return clone(gone);
       },
+      // V1.35: publicaciones con fotos pero sin miniaturas (fotos antiguas)
+      async withoutThumbs(limit = 30) {
+        return clone(data.listings.filter((l) => (l.photoUrls || []).length && !l.photoThumbs).slice(0, limit));
+      },
       async titles(ids) {
         const set = new Set(ids);
         const out = {};
@@ -255,6 +259,15 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
           if (!prev || m.createdAt > prev.createdAt) last.set(m.threadId, m);
         }
         return clone(Array.from(last.values()));
+      },
+      // V1.35: mensajes recibidos después de una fecha (avisos y sonido)
+      async incoming(userId, sinceIso, limit = 20) {
+        return clone(
+          data.messages
+            .filter((m) => m.toUserId === userId && m.createdAt > sinceIso)
+            .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+            .slice(0, limit)
+        );
       },
     },
 
@@ -490,6 +503,10 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
       async removeBySeller(sellerId) {
         return rowsData(await q('DELETE FROM listings WHERE seller_id = $1 RETURNING data', [sellerId]));
       },
+      // V1.35: publicaciones con fotos pero sin miniaturas (fotos antiguas)
+      async withoutThumbs(limit = 30) {
+        return rowsData(await q("SELECT data FROM listings WHERE NOT (data ? 'photoThumbs') AND jsonb_array_length(COALESCE(data->'photoUrls', '[]'::jsonb)) > 0 ORDER BY created_at DESC LIMIT $1", [limit]));
+      },
       async titles(ids) {
         if (!ids.length) return {};
         const r = await q('SELECT id, title FROM listings WHERE id = ANY($1::text[])', [ids]);
@@ -571,6 +588,13 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
            WHERE from_user_id = $1 OR to_user_id = $1
            ORDER BY thread_id, created_at DESC, id DESC LIMIT 500`,
           [userId]
+        ));
+      },
+      // V1.35: mensajes recibidos después de una fecha (avisos y sonido)
+      async incoming(userId, sinceIso, limit = 20) {
+        return rowsData(await q(
+          'SELECT data FROM messages WHERE to_user_id = $1 AND created_at > $2 ORDER BY created_at DESC LIMIT $3',
+          [userId, sinceIso, limit]
         ));
       },
     },
