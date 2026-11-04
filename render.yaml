@@ -25,6 +25,22 @@ services:
         sync: false
       - key: IDENTITY_KEY
         generateValue: true
+      # V1.35: correos (bienvenida y verificación completada). Completar en
+      # el panel UNA de las opciones: RESEND_API_KEY, BREVO_API_KEY o SMTP_*.
+      - key: MAIL_FROM
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
     disk:
       name: hay-data
       mountPath: /var/data

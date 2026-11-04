@@ -12,12 +12,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+<!-- V1.35: la letra se carga sin frenar la apertura de la app -->
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="css/tokens.css" />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/components.css" />
 <link rel="stylesheet" href="css/tema-fucsia.css" />
+<link rel="stylesheet" href="css/avisos.css" />
 <link rel="stylesheet" href="css/app-mode.css" />
 <!-- V1.27: la misma app, en modo real (una sola pantalla a tamaño completo). -->
 <script>window.HAY_APP_MODE = true;</script>
@@ -27,6 +29,7 @@
 <noscript>HAY necesita JavaScript activado para funcionar.</noscript>
 <script src="js/icons.js"></script>
 <script src="js/api.js"></script>
+<script src="js/avisos.js"></script>
 <script src="js/moderacion.js"></script>
 <script src="js/partials.js"></script>
 <script src="js/screens-onboarding.js"></script>

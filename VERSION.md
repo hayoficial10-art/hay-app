@@ -1,8 +1,105 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.34
-**FECHA:** 2 de noviembre de 2026
-**BASE:** v1.32. Contiene todo lo de la v1.32, más lo nuevo (v1.33 y v1.34).
+**VERSIÓN:** 1.35
+**FECHA:** 4 de noviembre de 2026
+**BASE:** v1.34. Contiene todo lo de la v1.34, más lo nuevo de la v1.35.
+
+## V1.35 — avisos, correos, sonido, GPS y velocidad
+
+### 1. Registro completado + correo de bienvenida
+- Al crear la cuenta (con correo o con Google por primera vez) aparece la pantalla **«¡Registro completado!»**.
+- Se envía al usuario el correo **«¡Bienvenido a HAY!»**.
+- Al moderador (`ADMIN_EMAIL`) le llega el correo **«Nuevo usuario registrado en HAY»**.
+- Si el servidor de correo está configurado, la pantalla dice «Te enviamos un correo de bienvenida».
+
+### 2. Verificación de seguridad
+- Si falta, se avisa:
+  - en la pantalla de registro completado («Siguiente paso: verificación de seguridad»);
+  - con un aviso amarillo en **Inicio** y en **Mi perfil**: «Falta tu verificación de seguridad».
+- Al terminarla aparece **«¡Verificación completada!»** y se envía el correo **«Verificación de seguridad completada»**.
+- El aviso amarillo desaparece.
+
+### 3. Publicaciones más rápidas
+- El servidor comprime los .js y .css con gzip (app.js: de 82 KB a 20 KB).
+- Si el teléfono ya tiene un archivo, el servidor responde «sin cambios» (304) y no lo vuelve a mandar.
+- La app abre desde la copia guardada en el teléfono y se actualiza en segundo plano. Antes esperaba siempre a la red.
+- Cuando hay una versión nueva, la app se recarga sola una vez.
+- La primera página de publicaciones se pide durante la pantalla de inicio, no después.
+- Quien ya tiene sesión espera 0,5 s en la pantalla de inicio (antes 1,6 s).
+- La letra Nunito ya no frena la apertura.
+
+### 4. Mensajes: sonido, avisos y silenciar
+- Antes no existía ningún aviso de mensajes nuevos.
+- Ahora la app consulta cada 10 s (ruta nueva `GET /api/me/inbox`). Cuando llega un mensaje u oferta:
+  - **suena** (dos tonos, generados en el teléfono) y vibra;
+  - aparece un aviso arriba; al tocarlo se abre el chat;
+  - si la app está en segundo plano, sale una notificación del teléfono (si el usuario dio permiso);
+  - un **número rojo** marca los no leídos en Mensajes y en la campana;
+  - el mensaje queda en la pantalla **Notificaciones** (antes estaba vacía).
+- En **Configuración → Notificaciones** hay dos interruptores:
+  - **Silenciar mensajes:** sin sonido ni vibración;
+  - **Silenciar notificaciones:** sin avisos en pantalla ni del teléfono.
+- Al quitar el silencio de mensajes suena una vez de prueba.
+
+### 5. GPS y mapa
+- **Publicar, paso 4:** botón **«Usar mi ubicación (GPS)»**. Hace tres cosas:
+  - pide el permiso;
+  - escribe el nombre de la zona, con OpenStreetMap (ruta nueva `GET /api/geo/reverse`);
+  - muestra el mapa real.
+- La ubicación se guarda **aproximada (~1 km)**, por privacidad.
+- **Detalle del producto:** mapa real de la zona aproximada y distancia («a 2,3 km»).
+- **Inicio:** tocar la ubicación de la cabecera activa el GPS. Las tarjetas muestran la distancia.
+- Si el permiso está negado o el GPS apagado, la app explica qué hacer.
+
+### 6. Imágenes más rápidas
+- Cada foto nueva lleva una **miniatura** de ~480 px. En la prueba: 61 KB la foto y 8 KB la miniatura.
+- Las tarjetas de Inicio y Buscar usan la miniatura. El detalle usa la foto grande.
+- Las fotos vistas quedan guardadas en el teléfono (hasta 300) y la segunda vez aparecen al instante.
+- **Fotos publicadas antes de la v1.35:** en Configuración → Panel de moderador → **«Optimizar fotos antiguas»**. Las prepara desde el teléfono del moderador.
+
+### 7. Versión visible
+- «HAY · versión 1.35» al final de **Configuración** y de **Mi perfil**.
+
+### Configuración nueva en Render (correos)
+Ver **PUBLICAR.md → «Activar los correos»**. Sin configurarlos, todo lo demás funciona, pero no salen correos.
+
+### Archivos
+- **Nuevos:**
+  - `backend/mailer.js`
+  - `js/avisos.js`
+  - `css/avisos.css`
+- **Cambiados:**
+  - `backend/server.js` y `backend/store.js`
+  - `js/app.js`, `js/api.js`, `js/partials.js` y los `js/screens-*.js`
+  - `sw.js`, `app.html`, `index.html`
+  - `render.yaml`, `package.json`, `PUBLICAR.md`
+
+### Pruebas realizadas (Chromium, pantalla de 390 px; con archivos y con PostgreSQL)
+- **Registro:** aparece «¡Registro completado!» y el aviso de verificación pendiente.
+- **Correos:** se probaron con un servidor de correo de prueba. Salieron los 3 (bienvenida, aviso al moderador y verificación completada), con asunto y tildes correctos.
+- **Verificación:** aparece «¡Verificación completada!» y el aviso amarillo de Inicio desaparece.
+- **Mensaje de otro usuario:** a los 10 s aparecen el aviso, la vibración y el número rojo. Queda en Notificaciones.
+- **Silenciado:** con los dos interruptores activados, otro mensaje no sonó ni mostró aviso, pero sí sumó al número rojo.
+- **GPS:** con el GPS simulado (Cumanacoa) se guardó 10,25 / −63,92, se mostró el mapa y la tarjeta dijo «a menos de 1 km».
+- **Miniaturas:** la tarjeta carga la miniatura (`…-t.jpg`). El botón «Optimizar fotos antiguas» generó la de una publicación vieja.
+- **Velocidad:** gzip y 304 comprobados.
+- **Service worker:** se registra y la segunda apertura funciona desde la copia guardada.
+- **Prototipo** (`index.html`): sin errores de JavaScript.
+
+## LÍMITES (v1.35)
+- **Sonido y avisos con la app cerrada del todo:** no funcionan.
+  - Funcionan con la app abierta o en segundo plano reciente.
+  - Avisar con la app cerrada requiere «notificaciones push» (Web Push con servidor); no está en esta versión.
+  - En segundo plano, Android puede espaciar las consultas.
+- **Primer sonido:** Android solo deja sonar después de que la persona toque la pantalla una vez.
+- **Nombre de la zona:** viene de OpenStreetMap. Si ese servicio no responde, el mapa y la distancia funcionan igual y se escribe la zona a mano. No se pudo probar desde aquí (sin salida a internet en la prueba).
+- **Mapas y distancias:** solo para publicaciones donde se tocó «Usar mi ubicación». Las viejas siguen con la zona escrita.
+- **Fotos antiguas:** siguen lentas hasta que el moderador toque «Optimizar fotos antiguas».
+- **App de la Play Store:** se actualiza sola desde Render. No hace falta un `.aab` nuevo.
+
+---
+
+## (Anterior) V1.34 — base v1.32
 
 ## V1.34 — sin botones blancos
 - Los botones secundarios (Galería, Crear cuenta, Limpiar…) ahora son **verdes**.

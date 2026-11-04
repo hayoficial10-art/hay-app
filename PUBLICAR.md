@@ -83,6 +83,37 @@ cambiados (arrastrar y soltar reemplaza los viejos) → Render la publica solo e
 1–2 minutos. **Tus datos y fotos no se pierden**: viven en el disco `/var/data`,
 separado del código.
 
+## Activar los correos (v1.35)
+
+La app envía 3 correos: **bienvenida** al usuario cuando termina el registro,
+**verificación de seguridad completada**, y un **aviso al moderador**
+(`ADMIN_EMAIL`) de cada usuario nuevo. Sin configurar esto, la app funciona
+igual pero no envía correos.
+
+En Render → servicio `hay-app` → **Environment**, agrega UNA de estas opciones:
+
+**Opción A — Gmail (la más fácil):**
+1. En tu cuenta de Google activa la verificación en 2 pasos.
+2. Entra a https://myaccount.google.com/apppasswords y crea una
+   "contraseña de aplicación" (16 letras).
+3. Variables en Render:
+   - `SMTP_HOST` = `smtp.gmail.com`
+   - `SMTP_PORT` = `465`
+   - `SMTP_USER` = tu correo de Gmail
+   - `SMTP_PASS` = la contraseña de aplicación (sin espacios)
+   - `MAIL_FROM` = `HAY <tu-correo@gmail.com>`
+
+**Opción B — Resend o Brevo (para muchos correos):** `RESEND_API_KEY` (o
+`BREVO_API_KEY`) y `MAIL_FROM` con una dirección de un dominio verificado en
+ese servicio.
+
+Opcional: `PUBLIC_URL` = `https://hay-app.onrender.com/` (el enlace del botón
+de los correos).
+
+Para comprobarlo: abre `https://hay-app.onrender.com/health`; debe decir
+`"mail":"smtp"` (o `"resend"` / `"brevo"`). Si un correo falla, el motivo
+aparece en Render → **Logs** con la palabra `[HAY correo]`.
+
 ## Cuando crezca (más velocidad)
 
 - **Más usuarios a la vez:** en Render → `hay-app` → *Scaling*, subir a más
