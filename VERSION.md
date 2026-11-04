@@ -1,8 +1,91 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.35
+**VERSIÓN:** 1.37
 **FECHA:** 4 de noviembre de 2026
-**BASE:** v1.34. Contiene todo lo de la v1.34, más lo nuevo de la v1.35.
+**BASE:** v1.36. Contiene todo lo de la v1.36 (que no llegó a publicarse), más lo nuevo de la v1.37.
+
+## V1.37 — verificación de identidad de verdad
+**Pedido:** que no se pueda hacer trampa con fotos de la galería, y que se compruebe que la persona de la selfie es la de la cédula.
+
+### Selfie en vivo
+- Ya no se puede subir de la galería.
+- Se toma con la cámara frontal **dentro de la app**: no se abre la app de cámara, así Android no cierra HAY.
+- Pasos:
+  1. Pide poner la cara dentro de un óvalo.
+  2. Pide **dos movimientos al azar** entre tres: acercar la cara, girar a la izquierda o girar a la derecha. Los comprueba el detector de caras que ya trae la app (SSD MobileNet).
+  3. Pide mirar de frente y toma la foto sola.
+- Si no hay permiso de cámara, explica cómo darlo.
+
+### Foto de la cédula
+- Sigue con **Tomar foto** y **Galería**: es un documento y Galería sirve en los teléfonos que se cierran al abrir la cámara.
+- Ahora se revisa que en la foto se vea una cara. Si no se ve, se rechaza y se pide repetirla.
+
+### Comparación de caras
+- Al tocar «Enviar verificación», el teléfono compara la cara de la selfie con la de la cédula. Usa el modelo de reconocimiento de face-api: una distancia menor que 0,55 cuenta como la misma persona.
+- **Si no coincide**, pide repetir la selfie. A la segunda vez ofrece «Enviar para revisión manual».
+- **Si los modelos no se pueden descargar** (sin conexión, 60 s de espera), se envía igual, marcada para revisión manual.
+- Los modelos de comparación (~6,5 MB) se descargan de jsDelivr la primera vez y quedan guardados.
+
+### Servidor y moderador
+- El servidor guarda el resultado junto a las fotos: retos hechos, distancia, si coincide y si necesita revisión.
+- En **Panel de moderador → Verificaciones** cada persona sale con **«Cara coincide ✓ (distancia)»** o **«Revisar a mano»**.
+
+### Archivos
+- **Nuevo:** `js/verificacion.js`
+- **Cambiados:**
+  - `js/app.js`, `js/api.js`, `js/screens-account.js`
+  - `css/avisos.css`, `app.html`, `index.html`
+  - `backend/server.js`, `sw.js`, `package.json`, `VERSION.md`
+
+### Pruebas (Chromium, pantalla de 390 px, cámara simulada)
+- La selfie no tiene Galería.
+- Una cédula sin cara se rechazó con mensaje.
+- La cámara se abre dentro de la app y pide la cara en el óvalo.
+- No coincide 2 veces → revisión manual.
+- Sin modelos → revisión manual.
+- Coincide → enviada.
+- El moderador vio 1 «Cara coincide» y 2 «Revisar a mano».
+- Sin errores de JavaScript.
+
+### Límites
+- **Movimientos y comparación sin persona real:** no se pudieron probar aquí, porque no había una persona ante la cámara ni acceso al CDN de los modelos. Hay que probarlo en un teléfono real.
+- **Revisión en el teléfono:** la revisión corre en el teléfono. Alguien con conocimientos técnicos podría saltársela; para eso queda la revisión del moderador.
+- **Revisión manual:** quien queda en «revisión manual» igual puede publicar. El moderador ve la marca y decide.
+
+---
+
+## (Anterior) V1.36 — base v1.35
+
+## V1.36 — la foto de la cédula no cargaba
+**Problema reportado:** en la verificación de seguridad, la foto de la cédula no cargaba.
+
+**Causas encontradas:**
+- Cada foto solo tenía la opción de cámara. En teléfonos con poca memoria, Android cierra la app mientras la cámara está abierta y la foto se pierde sin aviso.
+- La foto se copiaba entera a texto antes de achicarla, unos 5 a 10 MB en memoria.
+- Una foto en formato HEIC no se podía abrir y el error no se explicaba.
+
+**Cambios:**
+- Cada foto (cédula y selfie) tiene dos botones: **Tomar foto** y **Galería**.
+- La foto se abre con menos memoria (`createImageBitmap`) y respeta la orientación de la cámara.
+- Mientras se prepara la foto aparece «Preparando la foto…».
+- Si el teléfono cerró la app al abrir la cámara, la app vuelve sola a la pantalla de verificación (o a Publicar o Editar perfil) y explica que se use «Galería».
+- Si la foto es HEIC y el teléfono no la abre, el mensaje explica cómo cambiar la cámara a JPG.
+
+**Archivos cambiados (7):**
+- `js/app.js`, `js/api.js`, `js/screens-account.js`
+- `backend/server.js` (versión), `sw.js` (versión), `package.json`, `VERSION.md`
+
+**Pruebas (Chromium, pantalla de 390 px):**
+- Hay dos botones por foto.
+- La cédula cargó desde Galería.
+- Una foto HEIC mostró el mensaje claro.
+- La verificación se envió.
+- Al simular el cierre de la app por la cámara, la app volvió a Verificación con el aviso.
+- Sin errores de JavaScript.
+
+---
+
+## (Anterior) V1.35 — base v1.34
 
 ## V1.35 — avisos, correos, sonido, GPS y velocidad
 
