@@ -833,6 +833,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
     if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
       el.addEventListener('input', () => {
         PUBLISH_DRAFT[field] = field === 'price' ? el.value.replace(/[^0-9.]/g, '') : el.value;
+        if (field === 'price') { const bs = phoneEl.querySelector('#pubPriceBs'); if (bs) bs.textContent = bsLabel(PUBLISH_DRAFT.price); }
       });
     }
   });
@@ -1526,46 +1527,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         if (errEl) { errEl.textContent = 'No se pudo leer la foto: ' + err.message; errEl.style.color = 'var(--color-error)'; errEl.style.display = 'block'; }
         return;
       }
-      // V1.37: en la foto de la cédula se tiene que ver la cara
-      if (kind === 'cedula') {
-        if (errEl) errEl.textContent = 'Revisando la foto de la cédula… (la primera vez tarda un poco)';
-        let cara = true;
-        try { cara = await HAY_VERIFICACION.hayCaraEnCedula(data); } catch (err) { cara = true; }
-        if (!cara) {
-          if (errEl) { errEl.textContent = 'No se ve la cara en la foto de la cédula. Tómala de nuevo más cerca, con buena luz y sin reflejos, del lado de la foto.'; errEl.style.color = 'var(--color-error)'; }
-          return;
-        }
-      }
       IDENTITY_DRAFT[kind] = data;
-      if (kind === 'selfie') IDENTITY_SELFIE_RETOS = null;
-      IDENTITY_TRIES = 0;
       navigateTo(phoneEl, 'verify-identity', { skipFetch: true });
     });
   });
-  // V1.37: selfie en vivo con la cámara dentro de la app
-  const selfieBtn = phoneEl.querySelector('[data-action="selfie-live"]');
-  if (selfieBtn) {
-    selfieBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const box = phoneEl.querySelector('#selfieLive');
-      const est = phoneEl.querySelector('#selfieEstado');
-      const errEl = phoneEl.querySelector('#identityErrorMsg');
-      if (errEl) errEl.style.display = 'none';
-      selfieBtn.disabled = true;
-      est.style.display = 'block';
-      try {
-        const r = await HAY_VERIFICACION.selfieEnVivo(box, (t) => { est.textContent = t; });
-        IDENTITY_DRAFT.selfie = r.foto;
-        IDENTITY_SELFIE_RETOS = r.retos;
-        IDENTITY_TRIES = 0;
-        navigateTo(phoneEl, 'verify-identity', { skipFetch: true });
-      } catch (err) {
-        selfieBtn.disabled = false;
-        est.style.display = 'none';
-        if (errEl) { errEl.textContent = 'No se pudo tomar la selfie: ' + err.message; errEl.style.color = 'var(--color-error)'; errEl.style.display = 'block'; }
-      }
-    });
-  }
   const submitIdentityBtn = phoneEl.querySelector('#btnSubmitIdentity');
   if (submitIdentityBtn) {
     submitIdentityBtn.addEventListener('click', async (e) => {
@@ -1577,43 +1542,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         navigateTo(phoneEl, 'login');
         return;
       }
-      if (!IDENTITY_SELFIE_RETOS) {
-        if (errEl) { errEl.textContent = 'Toma la selfie en vivo con el botón «Tomar selfie en vivo».'; errEl.style.display = 'block'; }
-        return;
-      }
       submitIdentityBtn.disabled = true;
-      // V1.37: comparar la cara de la selfie con la de la cédula
-      submitIdentityBtn.textContent = 'Comparando tu cara con la cédula…';
-      let match = null;
-      let matchError = null;
-      try {
-        match = await HAY_VERIFICACION.comparar(IDENTITY_DRAFT.selfie, IDENTITY_DRAFT.cedula);
-        if (match.error) { matchError = match.error; match = null; }
-      } catch (err) {
-        matchError = 'no se pudo hacer la comparación automática (' + err.message + ')';
-      }
-      if (match && !match.coincide && IDENTITY_TRIES < 2) {
-        IDENTITY_TRIES += 1;
-        submitIdentityBtn.disabled = false;
-        submitIdentityBtn.textContent = IDENTITY_TRIES >= 2 ? 'Enviar para revisión manual' : 'Enviar verificación';
-        if (errEl) {
-          errEl.textContent = IDENTITY_TRIES >= 2
-            ? 'La cara sigue sin coincidir con la de la cédula. Puedes enviarla para que un moderador la revise a mano.'
-            : 'La cara de la selfie no coincide con la de la cédula. Repite la selfie con buena luz y la foto de la cédula bien enfocada.';
-          errEl.style.display = 'block';
-        }
-        return;
-      }
-      if (matchError && errEl) { errEl.textContent = 'Aviso: ' + matchError + '. Se enviará para revisión manual.'; errEl.style.display = 'block'; }
       submitIdentityBtn.textContent = 'Enviando...';
-      const check = {
-        liveness: true,
-        retos: IDENTITY_SELFIE_RETOS,
-        distancia: match ? match.distancia : null,
-        coincide: Boolean(match && match.coincide),
-        nota: matchError || null,
-      };
-      const result = await apiSubmitIdentity(IDENTITY_DRAFT.cedula, IDENTITY_DRAFT.selfie, check);
+      const fotos = { cedula: IDENTITY_DRAFT.cedula, selfie: IDENTITY_DRAFT.selfie };
+      const result = await apiSubmitIdentity(fotos.cedula, fotos.selfie);
       if (!result.ok) {
         submitIdentityBtn.disabled = false;
         submitIdentityBtn.textContent = 'Enviar verificación';
@@ -1622,8 +1554,9 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       }
       CURRENT_USER = result.user;
       IDENTITY_DRAFT = { cedula: null, selfie: null };
-      IDENTITY_SELFIE_RETOS = null;
-      IDENTITY_TRIES = 0;
+      // V1.38: la comparación de caras se hace por detrás, sin hacer esperar a nadie;
+      // el resultado solo le llega al moderador.
+      compararIdentidadPorDetras(fotos.selfie, fotos.cedula);
       const next = PENDING_AFTER_IDENTITY;
       PENDING_AFTER_IDENTITY = null;
       // V1.35: aviso de verificación completada (+ correo)
@@ -1858,6 +1791,12 @@ async function init() {
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
     startInboxPoll(); // V1.35: avisos y sonido de mensajes nuevos
+    revisarVersionNueva(); // V1.38
+    reintentarComparacionPendiente(); // V1.38
+    apiFetchDolar().then(() => { // V1.38: equivalencia en bolívares
+      const scr = phoneEl.dataset.currentScreen;
+      if (['home', 'search', 'product-detail'].includes(scr)) navigateTo(phoneEl, scr, { skipFetch: true });
+    });
     return;
   }
   renderScreens();
@@ -1987,4 +1926,54 @@ function takeCameraOpening() {
   try { v = JSON.parse(localStorage.getItem(CAMERA_KEY) || 'null'); } catch (e) {}
   clearCameraOpening();
   return v && Date.now() - v.at < 10 * 60 * 1000 ? v.screen : null;
+}
+
+/* V1.38: compara la selfie con la cédula después de enviada la verificación.
+   Nunca bloquea ni hace esperar al usuario; si falla, el moderador la ve como
+   «Sin comparar». */
+const ID_PENDING_KEY = 'hay_id_pendiente';
+async function compararIdentidadPorDetras(selfie, cedula) {
+  // se guardan las dos fotos para reintentar si no hay conexión ahora
+  try { localStorage.setItem(ID_PENDING_KEY, JSON.stringify({ uid: CURRENT_USER && CURRENT_USER.id, selfie, cedula })); } catch (e) {}
+  let check;
+  try {
+    const r = await HAY_VERIFICACION.comparar(selfie, cedula);
+    check = r.error ? { distancia: null, coincide: false, sinCara: true, nota: r.error } : { distancia: r.distancia, coincide: r.coincide, nota: r.coincide ? null : 'la cara de la selfie no coincide con la de la cédula' };
+  } catch (err) {
+    return; // no se pudo comparar ahora (sin conexión): se reintenta al abrir la app
+  }
+  const user = await apiSendIdentityCheck(check);
+  if (!user) return;
+  try { localStorage.removeItem(ID_PENDING_KEY); } catch (e) {}
+  CURRENT_USER = user;
+  const phoneEl = document.getElementById('phone-app');
+  const scr = phoneEl && phoneEl.dataset.currentScreen;
+  if (phoneEl && ['home', 'profile', 'verify-identity'].includes(scr)) navigateTo(phoneEl, scr, { skipFetch: true });
+}
+function reintentarComparacionPendiente() {
+  let p = null;
+  try { p = JSON.parse(localStorage.getItem(ID_PENDING_KEY) || 'null'); } catch (e) {}
+  if (!p || !CURRENT_USER || p.uid !== CURRENT_USER.id) return;
+  if (CURRENT_USER.identityStatus !== 'submitted') { try { localStorage.removeItem(ID_PENDING_KEY); } catch (e) {} return; }
+  setTimeout(() => compararIdentidadPorDetras(p.selfie, p.cedula), 4000);
+}
+
+/* V1.38: si el teléfono quedó con una versión vieja de la app (copia guardada
+   del navegador), se borra esa copia y se recarga una vez con la nueva. */
+async function revisarVersionNueva() {
+  try {
+    const res = await fetch('/health?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) return;
+    const { version } = await res.json();
+    if (!version || version === HAY_VERSION) return;
+    const marca = 'hay_actualizado_a_' + version;
+    if (sessionStorage.getItem(marca)) return; // ya se intentó en esta sesión
+    sessionStorage.setItem(marca, '1');
+    if (window.caches) for (const k of await caches.keys()) if (k.startsWith('hay-v')) await caches.delete(k);
+    if (navigator.serviceWorker) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) { try { await reg.update(); } catch (e) {} }
+    }
+    location.reload();
+  } catch (e) {}
 }

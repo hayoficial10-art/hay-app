@@ -44,7 +44,7 @@ const { createStorage } = require('./storage');
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.37';
+const APP_VERSION = '1.38';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -63,7 +63,13 @@ const IDENTITY_KEY = process.env.IDENTITY_KEY
   : null;
 const MAX_PHOTOS = 6;
 const MAX_PHOTO_BYTES = 1.5 * 1024 * 1024;
-const MAX_THUMB_BYTES = 250 * 1024; // V1.35: miniatura de cada foto (para las tarjetas del feed)
+const MAX_THUMB_BYTES = 250 * 1024;
+// V1.38: revisión de fotos en el servidor con Google Cloud Vision (SafeSearch):
+// contenido sexual, violencia, heridas y sangre. Se activa con GOOGLE_VISION_KEY.
+const GOOGLE_VISION_KEY = String(process.env.GOOGLE_VISION_KEY || '').trim();
+const VISION_URL = process.env.VISION_URL || 'https://vision.googleapis.com/v1/images:annotate';
+// V1.38: tasa oficial del dólar (BCV) para mostrar la equivalencia en bolívares
+const DOLAR_URL = process.env.DOLAR_URL || 'https://ve.dolarapi.com/v1/dolares/oficial'; // V1.35: miniatura de cada foto (para las tarjetas del feed)
 const FEED_MAX_LIMIT = 50;
 const LEGACY_FEED_LIMIT = 300; // pedido sin "limit" (galería de prototipo)
 
@@ -155,6 +161,7 @@ function publicUser(u) {
     businessName: u.businessName || null,
     businessCategory: u.businessCategory || null,
     identityStatus: (u.identity && u.identity.status) || 'none',
+    identityReason: (u.identity && u.identity.status === 'rejected' && u.identity.check && u.identity.check.nota) || null, // V1.38
     avatarUrl: u.avatarUrl || null, // V1.33: foto de perfil
     identityRequired: REQUIRE_IDENTITY,
     hasPassword: Boolean(u.passwordHash),
@@ -214,6 +221,85 @@ async function saveThumbs(urls, thumbData) {
     out[urls[i]] = await photoStorage.put(name, r.buf, r.mime);
   }
   return out;
+}
+
+// V1.38: revisión de fotos con Google Cloud Vision SafeSearch. Devuelve el
+// motivo en palabras si una foto no se permite, o null. Sin GOOGLE_VISION_KEY,
+// o si Vision no responde, no bloquea (queda la revisión del teléfono).
+const LIKELIHOOD = { UNKNOWN: 0, VERY_UNLIKELY: 1, UNLIKELY: 2, POSSIBLE: 3, LIKELY: 4, VERY_LIKELY: 5 };
+function postJSONUrl(url, payload, timeoutMs = 12000) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const body = JSON.stringify(payload);
+    const lib = u.protocol === 'http:' ? http : https;
+    const req = lib.request(u, { method: 'POST', timeout: timeoutMs, headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) } }, (res) => {
+      let out = '';
+      res.on('data', (c) => (out += c));
+      res.on('end', () => {
+        if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode + ' ' + out.slice(0, 200)));
+        try { resolve(JSON.parse(out)); } catch (e) { reject(e); }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('tiempo de espera agotado')));
+    req.on('error', reject);
+    req.end(body);
+  });
+}
+async function moderatePhotos(dataUrls) {
+  if (!GOOGLE_VISION_KEY || !Array.isArray(dataUrls) || !dataUrls.length) return null;
+  const requests = [];
+  for (const d of dataUrls.slice(0, MAX_PHOTOS)) {
+    const m = /^data:image\/[a-z]+;base64,([A-Za-z0-9+/=]+)$/.exec(String(d || ''));
+    if (m) requests.push({ image: { content: m[1] }, features: [{ type: 'SAFE_SEARCH_DETECTION' }] });
+  }
+  if (!requests.length) return null;
+  try {
+    const out = await postJSONUrl(VISION_URL + '?key=' + encodeURIComponent(GOOGLE_VISION_KEY), { requests });
+    for (const r of out.responses || []) {
+      const s = r.safeSearchAnnotation || {};
+      const v = (k) => LIKELIHOOD[s[k]] || 0;
+      if (v('adult') >= 4 || v('racy') >= 5) return 'Una de las fotos no se permite: parece tener contenido sexual.';
+      if (v('violence') >= 4) return 'Una de las fotos no se permite: parece mostrar violencia.';
+      if (v('medical') >= 4) return 'Una de las fotos no se permite: parece mostrar heridas, sangre o cuerpos.';
+    }
+    return null;
+  } catch (e) {
+    console.warn('[HAY backend] Revisión de fotos (Vision) no disponible:', e.message);
+    return null;
+  }
+}
+
+// V1.38: tasa oficial del dólar en bolívares (BCV). Se consulta como máximo
+// cada 30 minutos. DOLAR_BCV permite fijarla a mano si el servicio falla.
+let DOLAR = { tasa: null, fecha: null, fuente: null, at: 0 };
+function getJSONUrl(url, timeoutMs = 8000) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const lib = u.protocol === 'http:' ? http : https;
+    const req = lib.get(u, { timeout: timeoutMs, headers: { 'User-Agent': 'HAY-app/' + APP_VERSION, Accept: 'application/json' } }, (res) => {
+      let out = '';
+      res.on('data', (c) => (out += c));
+      res.on('end', () => {
+        if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode));
+        try { resolve(JSON.parse(out)); } catch (e) { reject(e); }
+      });
+    });
+    req.on('timeout', () => req.destroy(new Error('tiempo de espera agotado')));
+    req.on('error', reject);
+  });
+}
+async function dolarBCV() {
+  const manual = Number(process.env.DOLAR_BCV);
+  if (manual > 0) return { tasa: manual, fecha: null, fuente: 'manual' };
+  if (DOLAR.tasa && Date.now() - DOLAR.at < 30 * 60 * 1000) return DOLAR;
+  try {
+    const j = await getJSONUrl(DOLAR_URL);
+    const tasa = Number(j.promedio || j.venta || j.price);
+    if (tasa > 0) DOLAR = { tasa: Math.round(tasa * 10000) / 10000, fecha: j.fechaActualizacion || null, fuente: 'BCV', at: Date.now() };
+  } catch (e) {
+    console.warn('[HAY backend] No se pudo consultar el dólar BCV:', e.message);
+  }
+  return DOLAR;
 }
 
 // V1.35: ubicación aproximada de una publicación (redondeada a ~1 km, por privacidad)
@@ -505,7 +591,7 @@ async function handle(req, res) {
   }
 
   if (M === 'GET' && url.pathname === '/health') {
-    return sendJSON(res, 200, { ok: true, service: 'hay-backend', version: APP_VERSION, mode: IS_PROD ? 'production' : 'development', db: store.kind, photos: photoStorage.kind, mail: mailer.mailerKind() });
+    return sendJSON(res, 200, { ok: true, service: 'hay-backend', version: APP_VERSION, mode: IS_PROD ? 'production' : 'development', db: store.kind, photos: photoStorage.kind, mail: mailer.mailerKind(), photoReview: GOOGLE_VISION_KEY ? 'vision' : 'phone' });
   }
 
   // ------------------------------ Publicaciones -----------------------
@@ -549,9 +635,11 @@ async function handle(req, res) {
     if (missing.length) return sendJSON(res, 400, { error: 'Faltan campos obligatorios: ' + missing.join(', ') });
     const price = Number(body.price);
     if (Number.isNaN(price) || price < 0) return sendJSON(res, 400, { error: 'El precio debe ser un número válido y no negativo' });
-    if (REQUIRE_IDENTITY && !(user.identity && user.identity.status)) {
+    if (REQUIRE_IDENTITY && !(user.identity && user.identity.status && user.identity.status !== 'rejected')) {
       return sendJSON(res, 403, { error: 'Antes de publicar tienes que verificar tu identidad (foto de cédula + selfie).', code: 'IDENTITY_REQUIRED' });
     }
+    const blocked = await moderatePhotos(body.photoData || []);
+    if (blocked) return sendJSON(res, 400, { error: blocked, code: 'PHOTO_BLOCKED' });
     const saved = await savePhotos(body.photoData || []);
     if (saved.error) return sendJSON(res, 400, { error: saved.error });
     if (IS_PROD && saved.urls.length === 0) return sendJSON(res, 400, { error: 'Agrega al menos una foto de tu producto' });
@@ -597,6 +685,8 @@ async function handle(req, res) {
     const keep = Array.isArray(body.keepPhotoUrls)
       ? body.keepPhotoUrls.filter((u) => (existing.photoUrls || []).includes(u))
       : existing.photoUrls || [];
+    const blockedEdit = await moderatePhotos(body.photoData || []);
+    if (blockedEdit) return sendJSON(res, 400, { error: blockedEdit, code: 'PHOTO_BLOCKED' });
     const savedEdit = await savePhotos(body.photoData || []);
     if (savedEdit.error) return sendJSON(res, 400, { error: savedEdit.error });
     const photoUrls = keep.concat(savedEdit.urls).slice(0, MAX_PHOTOS);
@@ -811,6 +901,13 @@ async function handle(req, res) {
         createdAt: m.createdAt,
       })),
     });
+  }
+
+  // V1.38: tasa oficial del dólar (BCV)
+  if (M === 'GET' && api('dolar')) {
+    const d = await dolarBCV();
+    if (!d.tasa) return sendJSON(res, 503, { error: 'La tasa del dólar no está disponible en este momento' });
+    return sendJSON(res, 200, { tasa: d.tasa, fecha: d.fecha, fuente: d.fuente });
   }
 
   // V1.35: nombre de la zona para las coordenadas del GPS del teléfono
@@ -1142,19 +1239,9 @@ async function handle(req, res) {
     const sel = decodeImageDataUrl(body.selfiePhoto, { minBytes: 2000 });
     if (sel.error) return sendJSON(res, 400, { error: 'Selfie: ' + sel.error });
     const old = user.identity;
-    // V1.37: resultado de la selfie en vivo y de la comparación de caras (lo calcula el teléfono)
-    const c = body.check && typeof body.check === 'object' ? body.check : null;
-    const check = c ? {
-      liveness: Boolean(c.liveness),
-      retos: Array.isArray(c.retos) ? c.retos.slice(0, 3).map((x) => String(x).slice(0, 20)) : [],
-      distancia: typeof c.distancia === 'number' && Number.isFinite(c.distancia) ? Math.round(c.distancia * 1000) / 1000 : null,
-      coincide: Boolean(c.coincide),
-      nota: c.nota ? String(c.nota).slice(0, 200) : null,
-    } : null;
     user.identity = {
       status: 'submitted',
-      check,
-      needsReview: !(check && check.liveness && check.coincide),
+      check: null, // V1.38: la comparación de caras llega después (POST /api/me/identity/check)
       cedulaFile: await saveIdentityFile(user.id, 'cedula', ced.buf),
       selfieFile: await saveIdentityFile(user.id, 'selfie', sel.buf),
       submittedAt: new Date().toISOString(),
@@ -1164,6 +1251,29 @@ async function handle(req, res) {
     // V1.35: correo "verificación de seguridad completada"
     mailer.sendMail({ to: user.email, ...mailer.identityDoneEmail({ name: user.businessName, appUrl: appUrlFor(req) }) });
     return sendJSON(res, 200, { ok: true, user: publicUser(user), email: mailer.mailerKind() !== 'none' });
+  }
+
+  // V1.38: resultado de la comparación selfie ↔ cédula, calculado en el teléfono
+  // después de enviar la verificación. No cambia el estado del usuario: solo
+  // informa al moderador.
+  if (M === 'POST' && api('me', 'identity', 'check')) {
+    if (rateLimited(req, 'identity-check', 20)) return sendJSON(res, 429, { error: 'Demasiados intentos.' });
+    const user = await currentUser(req);
+    if (!user) return sendJSON(res, 401, { error: 'Debes iniciar sesión' });
+    if (!user.identity) return sendJSON(res, 400, { error: 'Primero envía la verificación' });
+    const c = await jsonBody(req, res);
+    if (!c) return;
+    const distancia = typeof c.distancia === 'number' && Number.isFinite(c.distancia) ? Math.round(c.distancia * 1000) / 1000 : null;
+    const coincide = Boolean(c.coincide) && distancia !== null;
+    // Sin cara en alguna de las dos fotos = no se pudo comprobar: también se rechaza
+    const sinCara = Boolean(c.sinCara);
+    user.identity.check = { distancia, coincide, nota: c.nota ? String(c.nota).slice(0, 200) : null, at: new Date().toISOString() };
+    // V1.38: decisión automática. Coincide → verificada. No coincide o sin cara → rechazada
+    // (la persona la repite). Si el teléfono no pudo comparar, queda «enviada» y lo vuelve a intentar.
+    if (coincide) user.identity.status = 'verified';
+    else if (distancia !== null || sinCara) user.identity.status = 'rejected';
+    await store.users.update(user.id, user);
+    return sendJSON(res, 200, { ok: true, user: publicUser(user) });
   }
 
   // V1.33: foto de perfil (la cámara o la galería del teléfono, desde Editar perfil).
@@ -1178,6 +1288,8 @@ async function handle(req, res) {
     if (body.photoData === null) {
       user.avatarUrl = null;
     } else {
+      const blockedAv = await moderatePhotos([body.photoData]);
+      if (blockedAv) return sendJSON(res, 400, { error: blockedAv.replace('Una de las fotos', 'La foto') });
       const saved = await savePhotos([body.photoData]);
       if (saved.error) return sendJSON(res, 400, { error: saved.error.replace('Una de las fotos es', 'La foto es') });
       if (!saved.urls.length) return sendJSON(res, 400, { error: 'Falta la foto' });

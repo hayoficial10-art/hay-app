@@ -114,6 +114,15 @@ Para comprobarlo: abre `https://hay-app.onrender.com/health`; debe decir
 `"mail":"smtp"` (o `"resend"` / `"brevo"`). Si un correo falla, el motivo
 aparece en Render → **Logs** con la palabra `[HAY correo]`.
 
+## Revisión de fotos con Google (v1.38, opcional)
+
+Para bloquear en el servidor fotos con violencia, heridas, sangre o contenido sexual:
+1. Entra a https://console.cloud.google.com con tu cuenta de Google, crea un proyecto (ej. HAY) y activa la facturación (las primeras 1.000 fotos al mes no se cobran).
+2. Busca **Cloud Vision API** y toca **Habilitar**.
+3. Ve a **APIs y servicios → Credenciales → Crear credenciales → Clave de API** y cópiala.
+4. En Render → `hay-app` → **Environment**, agrega `GOOGLE_VISION_KEY` con esa clave y guarda.
+5. Comprueba en `https://hay-app.onrender.com/health` que diga `"photoReview":"vision"`.
+
 ## Cuando crezca (más velocidad)
 
 - **Más usuarios a la vez:** en Render → `hay-app` → *Scaling*, subir a más

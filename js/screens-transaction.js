@@ -55,7 +55,7 @@ const SCREENS_TRANSACTION = [
         </div>
         <div class="screen-content product-sheet" data-testid="screen-product-detail">
           <div class="flex-between">
-            <span class="product-detail__price">$${price}</span>
+            <span class="product-detail__price">$${price}${HAY_APP_MODE && bsLabel(price) ? ` <small class="price-bs price-bs--lg" data-testid="detail-price-bs">${bsLabel(price)}</small>` : ''}</span>
             <span class="badge badge--active">${condition}</span>
           </div>
           <h2 class="product-detail__title">${title}</h2>

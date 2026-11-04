@@ -79,6 +79,7 @@ function productCard(p, opts = {}) {
   <button class="product-card" style="position:relative; text-align:left;" data-nav="product-detail" data-listing-id="${p.id}" data-testid="card-product-${p.id}">
     ${listingArt(p, 'ph-art--wide', '', `<span class="ph-art__badge">${p.cond}</span><span class="ph-art__price product-card__price">$${p.price}</span>${favBtn}`)}
     <p class="product-card__title">${p.title}</p>
+    ${HAY_APP_MODE && bsLabel(p.price) ? `<span class="price-bs" data-testid="price-bs">${bsLabel(p.price)}</span>` : ''}
     ${businessChip}
     <span class="product-card__meta">${icon('pin')} ${placeLabel(p)}</span>
   </button>`;
@@ -94,9 +95,12 @@ function placeLabel(p) {
 
 /* V1.35: aviso "Falta tu verificación de seguridad" (Inicio y Mi perfil) */
 function identityBanner() {
+  const rechazada = CURRENT_USER && CURRENT_USER.identityStatus === 'rejected';
   return `<button class="identity-banner" data-nav="verify-identity" data-testid="identity-pending-banner">
     <span class="identity-banner__icon">${icon('shield')}</span>
-    <span class="identity-banner__text"><strong>Falta tu verificación de seguridad</strong>Foto de tu cédula y una selfie. La necesitas para publicar.</span>
+    <span class="identity-banner__text">${rechazada
+      ? '<strong>Tu verificación no pasó</strong>La cara de la selfie no coincide con la de la cédula. Repítela para poder publicar.'
+      : '<strong>Falta tu verificación de seguridad</strong>Foto de tu cédula y una selfie. La necesitas para publicar.'}</span>
     <span class="identity-banner__go">Verificar</span>
   </button>`;
 }
@@ -350,7 +354,7 @@ const SCREENS_MAIN = [
             </button>
             ${CURRENT_USER ? `<button class="option-row" data-nav="verify-identity" data-testid="btn-go-verify-identity">
               <span class="list-row__icon tone-yellow">${icon('shield')}</span>
-              <div class="list-row__body"><p class="list-row__title">Verificación de identidad</p><p class="list-row__sub">${CURRENT_USER.identityStatus && CURRENT_USER.identityStatus !== 'none' ? 'Enviada ✓' : 'Pendiente · necesaria para publicar'}</p></div>
+              <div class="list-row__body"><p class="list-row__title">Verificación de identidad</p><p class="list-row__sub">${({ verified: 'Verificada ✓', submitted: 'Enviada ✓', rejected: 'No pasó · repítela' })[CURRENT_USER.identityStatus] || 'Pendiente · necesaria para publicar'}</p></div>
               ${icon('chevronRight', 'list-row__chevron')}
             </button>` : ''}
             <button class="option-row" data-nav="settings" data-testid="btn-go-settings">

@@ -208,6 +208,8 @@ const SCREENS_PUBLISH = [
             <div class="field" style="width:100%;">
               <input id="pub-price" type="text" value="$ ${PUBLISH_DRAFT.price}" data-testid="input-publish-price" data-draft-field="price" style="text-align:center; font-family:var(--font-display); font-size:28px; font-weight:700; background:#fff; border-color:#fff;" />
             </div>
+            ${HAY_APP_MODE ? `<p class="price-bs price-bs--lg" id="pubPriceBs" data-testid="publish-price-bs">${bsLabel(PUBLISH_DRAFT.price) || (DOLAR_BCV ? '' : 'Equivalencia en bolívares no disponible')}</p>
+            ${DOLAR_BCV ? `<p class="text-xs text-muted">Dólar BCV: Bs ${Number(DOLAR_BCV.tasa).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>` : ''}` : ''}
           </div>
           <div class="toggle-row card">
             <div class="toggle-row__text">
@@ -254,6 +256,7 @@ const SCREENS_PUBLISH = [
             <div class="dots" style="margin:2px 0;"><div class="dots__dot is-active"></div><div class="dots__dot"></div><div class="dots__dot"></div></div>
             <p class="product-card__title" style="font-size:17px;">${PUBLISH_DRAFT.title || '(sin título)'}</p>
             <span class="product-card__price" style="font-size:24px;">$${PUBLISH_DRAFT.price || 0}</span>
+            ${HAY_APP_MODE && bsLabel(PUBLISH_DRAFT.price) ? `<span class="price-bs">${bsLabel(PUBLISH_DRAFT.price)}</span>` : ''}
             <span class="product-card__meta">${icon('pin')} ${PUBLISH_DRAFT.zone || 'Sin zona indicada'}</span>
           </div>
           <div class="card stack-sm">

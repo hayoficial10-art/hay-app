@@ -1,8 +1,78 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.37
+**VERSIÓN:** 1.38
 **FECHA:** 4 de noviembre de 2026
-**BASE:** v1.36. Contiene todo lo de la v1.36 (que no llegó a publicarse), más lo nuevo de la v1.37.
+**BASE:** v1.37. Contiene todo lo de la v1.37, más lo nuevo de la v1.38.
+
+## V1.38 — verificación sencilla y automática, control de fotos, bolívares, actualización
+
+### 1. Verificación de identidad: sencilla y automática
+- **Cédula:** Tomar foto o Galería.
+- **Selfie:** solo con la cámara normal del teléfono (sin galería, sin escaneo de movimientos).
+- **Enviar:** no espera nada. El registro y la verificación nunca se frenan.
+- **Comparación:** después de enviar, el teléfono compara por detrás la cara de la selfie con la de la cédula y el servidor decide solo:
+  - **coincide** → «Verificada ✓»;
+  - **no coincide**, o no se ve una de las caras → «No pasó». Inicio y Mi perfil avisan «Tu verificación no pasó… repítela» y no se puede publicar hasta repetirla;
+  - **sin conexión para comparar** → queda «Enviada», se puede publicar y se reintenta al abrir la app.
+- Nadie tiene que revisar a mano. El panel de moderador solo muestra el resultado.
+- Ruta nueva: `POST /api/me/identity/check`.
+
+### 2. Control de fotos al publicar: sexo, violencia, heridos, muertos
+- **En el teléfono (ya existía):**
+  - no se acepta una foto donde se vea una persona, viva, herida o muerta;
+  - no se acepta contenido sexual (nsfwjs).
+- **Nuevo, en el servidor, con Google Cloud Vision (SafeSearch):** revisa cada foto de publicaciones y de perfil, y rechaza:
+  - contenido sexual («adult» probable, o «racy» muy probable);
+  - **violencia** probable;
+  - **heridas, sangre o cuerpos** («medical» probable).
+- **Cómo se activa:** con la variable `GOOGLE_VISION_KEY` en Render. Sin ella, quedan solo las revisiones del teléfono.
+
+### 3. Dólar BCV y bolívares
+- Ruta nueva `GET /api/dolar`: tasa oficial BCV (fuente ve.dolarapi.com, consultada como máximo cada 30 min).
+- `DOLAR_BCV` en Render permite fijarla a mano.
+- **Dónde se ve el precio en bolívares** («≈ Bs …»):
+  - en cada tarjeta;
+  - en el detalle;
+  - en Publicar paso 4, en vivo mientras se escribe, con la tasa del día;
+  - en la revisión del paso 5.
+
+### 4. El enlace no se actualizaba en algunos teléfonos
+- **Causa:** el teléfono abría la copia guardada de una versión vieja.
+- **Ahora, al abrir:** la app compara su versión con la del servidor. Si es distinta:
+  1. borra la copia guardada;
+  2. se recarga una sola vez (no entra en bucle).
+
+### Archivos
+**Cambiados respecto de la 1.37 publicada:**
+- `js/app.js`, `js/api.js`, `js/screens-account.js`, `js/screens-main.js`, `js/screens-publish.js`, `js/screens-transaction.js`
+- `css/avisos.css`, `backend/server.js`, `sw.js`, `package.json`, `VERSION.md`
+
+### Pruebas (Chromium, 390 px; servicios del dólar y de Vision simulados)
+- La selfie solo tiene cámara.
+- Enviar tardó 89 ms.
+- **Verificación:**
+  - no coincide → rechazada, aviso en Inicio, publicar da 403;
+  - repetida y coincide → verificada.
+- **Fotos:**
+  - con violencia → bloqueada con mensaje;
+  - normal → publicada.
+- **Bolívares:**
+  - tarjeta $15 → ≈ Bs 13.398,26;
+  - Publicar $100 → ≈ Bs 89.321,73.
+- **Versión vieja:** se recargó una vez y no entró en bucle.
+- Sin errores de JavaScript.
+
+### Límites
+- **Comparación de caras:** usa modelos que el teléfono descarga de jsDelivr (~6,5 MB). No se pudo probar con caras reales aquí.
+- **Revisión en el teléfono:** la comparación corre en el teléfono. Alguien con conocimientos técnicos podría saltársela.
+- **Google Cloud Vision:**
+  - necesita una clave de Google Cloud con facturación activada;
+  - las primeras 1.000 fotos al mes son gratis;
+  - sin la clave, la violencia y las heridas sin persona visible no se detectan.
+
+---
+
+## (Anterior) V1.37 — base v1.36
 
 ## V1.37 — verificación de identidad de verdad
 **Pedido:** que no se pueda hacer trampa con fotos de la galería, y que se compruebe que la persona de la selfie es la de la cédula.

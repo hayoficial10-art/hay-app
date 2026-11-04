@@ -507,7 +507,11 @@ const SCREENS_ACCOUNT = [
           <div class="card stack-sm" data-testid="identity-row">
             <div class="flex-between">
               <span class="text-sm fw-800" style="word-break:break-all;">${it.email}</span>
-              ${it.check && it.check.coincide ? `<span class="badge badge--active" data-testid="identity-match-ok">Cara coincide ✓${typeof it.check.distancia === 'number' ? ' (' + String(it.check.distancia).replace('.', ',') + ')' : ''}</span>` : `<span class="badge badge--paused" data-testid="identity-match-review">${it.check ? 'Revisar a mano' : 'Enviada'}</span>`}
+              ${it.check && it.check.coincide
+                ? `<span class="badge badge--active" data-testid="identity-match-ok">Cara coincide ✓</span>`
+                : it.check && typeof it.check.distancia === 'number'
+                ? `<span class="badge badge--paused" style="background:var(--hay-red-highlight); color:var(--hay-red);" data-testid="identity-match-no">No coincide · revisar</span>`
+                : `<span class="badge badge--paused" data-testid="identity-match-review">Sin comparar · revisar</span>`}
             </div>
             <span class="text-xs text-faint">${new Date(it.submittedAt).toLocaleString('es-VE')}</span>
             <button class="btn btn--outline btn--sm" data-view-identity="${it.userId}" data-testid="btn-view-identity">Ver fotos</button>
@@ -536,7 +540,8 @@ const SCREENS_ACCOUNT = [
     block: 'account',
     label: '27. Verificar identidad',
     html: () => {
-      const done = CURRENT_USER && CURRENT_USER.identityStatus && CURRENT_USER.identityStatus !== 'none';
+      const done = CURRENT_USER && ['submitted', 'verified'].includes(CURRENT_USER.identityStatus);
+      const rechazada = CURRENT_USER && CURRENT_USER.identityStatus === 'rejected';
       const slot = (kind, title, hint, capture, iconName) => {
         const img = IDENTITY_DRAFT[kind];
         // V1.36: dos botones por foto. «Galería» sirve cuando el teléfono cierra la
@@ -554,9 +559,10 @@ const SCREENS_ACCOUNT = [
               ${img ? `<span class="badge badge--active">✓</span>` : ''}
             </div>
             ${kind === 'selfie' ? `
-            <button class="btn btn--turquoise btn--sm" data-action="selfie-live" data-testid="btn-selfie-live">${icon('camera')} ${img ? 'Repetir selfie en vivo' : 'Tomar selfie en vivo'}</button>
-            <p class="selfie-live__estado" id="selfieEstado" data-testid="selfie-estado" style="display:none;"></p>
-            <div class="selfie-live" id="selfieLive" data-testid="selfie-live" style="display:none;"></div>` : `
+            <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-identity-camera-selfie">
+              ${icon('camera')} ${img ? 'Repetir selfie' : 'Tomar selfie'}
+              <input type="file" accept="image/*" capture="user" data-identity-input="selfie" data-testid="input-identity-selfie" style="display:none;" />
+            </label>` : `
             <div class="photo-actions">
               <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-identity-camera-${kind}">
                 ${icon('camera')} Tomar foto
@@ -583,15 +589,16 @@ const SCREENS_ACCOUNT = [
             <h2 class="screen-title" style="font-size:24px;">Verifica tu identidad</h2>
             <p class="screen-subtitle">${done ? 'Ya enviaste tu verificación. ¡Gracias! Si quieres, puedes reemplazar las fotos.' : 'Para publicar en HAY necesitamos una foto de tu cédula y una selfie. Así la comunidad es más segura.'}</p>
           </div>
-          ${done ? `<span class="badge badge--active" style="align-self:center; padding:6px 14px;" data-testid="identity-status-done">✓ Verificación enviada</span>` : ''}
+          ${done ? `<span class="badge badge--active" style="align-self:center; padding:6px 14px;" data-testid="identity-status-done">${CURRENT_USER.identityStatus === 'verified' ? '✓ Identidad verificada' : '✓ Verificación enviada'}</span>` : ''}
+          ${rechazada ? `<p class="identity-banner" style="cursor:default;" data-testid="identity-rejected"><span class="identity-banner__text"><strong>Tu verificación no pasó</strong>La cara de la selfie no coincide con la de la cédula. Toma de nuevo las dos fotos: la cédula bien enfocada y sin reflejos, y la selfie de frente con buena luz.</span></p>` : ''}
           ${slot('cedula', '1. Foto de tu cédula', 'Del lado de la foto, que se lea bien', 'environment', 'shield')}
-          ${slot('selfie', '2. Selfie en vivo', 'Con la cámara de la app: te pedirá dos movimientos de la cara', 'user', 'user')}
+          ${slot('selfie', '2. Selfie', 'Tu cara de frente, con buena luz (se toma con la cámara)', 'user', 'user')}
           <p class="text-xs text-muted" style="font-weight:600; display:flex; gap:8px; align-items:flex-start;">${icon('lock', 'icon-16')} <span>Tus fotos se guardan cifradas y en privado. Nunca se muestran en tus publicaciones; solo el equipo de moderación puede verlas si hace falta revisar un caso.</span></p>
           <p class="text-xs" id="identityErrorMsg" data-testid="identity-error-msg" style="display:${IDENTITY_NOTICE ? 'block' : 'none'}; color:var(--color-error); font-weight:700;">${IDENTITY_NOTICE || ''}</p>
         </div>
       </div>
       <div class="bottom-cta">
-        <button class="btn btn--turquoise" id="btnSubmitIdentity" data-testid="btn-submit-identity" ${IDENTITY_DRAFT.cedula && IDENTITY_DRAFT.selfie ? '' : 'disabled'}>${IDENTITY_TRIES >= 2 ? 'Enviar para revisión manual' : 'Enviar verificación'}</button>
+        <button class="btn btn--turquoise" id="btnSubmitIdentity" data-testid="btn-submit-identity" ${IDENTITY_DRAFT.cedula && IDENTITY_DRAFT.selfie ? '' : 'disabled'}>Enviar verificación</button>
       </div>
     </div>`;
     },

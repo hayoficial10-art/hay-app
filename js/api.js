@@ -14,7 +14,7 @@ const HAY_ORIGIN = (location.protocol.startsWith('http') && location.port !== '8
   : 'http://localhost:3000';
 const HAY_API_BASE = HAY_ORIGIN + '/api';
 // V1.35: versión visible en la app (Configuración y Mi perfil)
-const HAY_VERSION = '1.37';
+const HAY_VERSION = '1.38';
 // Modo app real (app.html) vs. galería de prototipo (index.html)
 const HAY_APP_MODE = Boolean(window.HAY_APP_MODE);
 // URL completa de una foto subida (/uploads/...)
@@ -572,15 +572,16 @@ let IDENTITIES = [];
 let IDENTITIES_LOADING = false;
 
 function needsIdentity() {
-  return Boolean(CURRENT_USER && CURRENT_USER.identityRequired && (!CURRENT_USER.identityStatus || CURRENT_USER.identityStatus === 'none'));
+  // V1.38: una verificación rechazada (la cara no coincidió) se tiene que repetir
+  return Boolean(CURRENT_USER && CURRENT_USER.identityRequired && (!CURRENT_USER.identityStatus || CURRENT_USER.identityStatus === 'none' || CURRENT_USER.identityStatus === 'rejected'));
 }
 
-async function apiSubmitIdentity(cedulaPhoto, selfiePhoto, check) {
+async function apiSubmitIdentity(cedulaPhoto, selfiePhoto) {
   try {
     const res = await fetch(`${HAY_API_BASE}/me/identity`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ cedulaPhoto, selfiePhoto, check: check || null }),
+      body: JSON.stringify({ cedulaPhoto, selfiePhoto }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, error: (data && data.error) || `Error HTTP ${res.status}` };
@@ -693,9 +694,7 @@ let REGISTER_DONE = null; // { welcomeEmail }
 let IDENTITY_DONE = null; // { email, next }
 // V1.36: aviso en la pantalla de verificación (ej. el teléfono cerró la app al abrir la cámara)
 let IDENTITY_NOTICE = null;
-// V1.37: intentos en que la cara no coincidió con la cédula
-let IDENTITY_TRIES = 0;
-let IDENTITY_SELFIE_RETOS = null;
+
 
 // Mensajes recibidos desde una fecha (avisos y sonido)
 async function apiFetchInbox(since) {
@@ -741,4 +740,40 @@ async function apiUploadThumbs(listingId, thumbs) {
   } catch (e) {
     return false;
   }
+}
+
+// V1.38: resultado de la comparación de caras (por detrás, solo lo ve el moderador)
+async function apiSendIdentityCheck(check) {
+  try {
+    const res = await fetch(`${HAY_API_BASE}/me/identity/check`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(check),
+    });
+    const data = await res.json().catch(() => null);
+    return res.ok && data ? data.user : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+/* V1.38: dólar BCV → equivalencia en bolívares. La tasa se guarda en el
+   teléfono para mostrarla aunque falle la conexión. */
+let DOLAR_BCV = (() => { try { return JSON.parse(localStorage.getItem('hay_dolar')) || null; } catch (e) { return null; } })();
+async function apiFetchDolar() {
+  try {
+    const res = await fetch(`${HAY_API_BASE}/dolar`);
+    if (!res.ok) return DOLAR_BCV;
+    const d = await res.json();
+    if (d && d.tasa > 0) {
+      DOLAR_BCV = d;
+      try { localStorage.setItem('hay_dolar', JSON.stringify(d)); } catch (e) {}
+    }
+  } catch (e) {}
+  return DOLAR_BCV;
+}
+function bsLabel(usd) {
+  const n = Number(String(usd).replace(',', '.'));
+  if (!DOLAR_BCV || !(DOLAR_BCV.tasa > 0) || !(n > 0)) return '';
+  return '≈ Bs ' + (n * DOLAR_BCV.tasa).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
