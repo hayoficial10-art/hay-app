@@ -13,6 +13,8 @@ const HAY_ORIGIN = (location.protocol.startsWith('http') && location.port !== '8
   ? location.origin
   : 'http://localhost:3000';
 const HAY_API_BASE = HAY_ORIGIN + '/api';
+// V1.35: versión visible en la app (Configuración y Mi perfil)
+const HAY_VERSION = '1.35';
 // Modo app real (app.html) vs. galería de prototipo (index.html)
 const HAY_APP_MODE = Boolean(window.HAY_APP_MODE);
 // URL completa de una foto subida (/uploads/...)
@@ -419,7 +421,7 @@ async function apiRegister(email, password, extra) {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, error: (data && data.error) || `Error HTTP ${res.status}` };
-    return { ok: true, token: data.token, user: data.user };
+    return { ok: true, token: data.token, user: data.user, isNew: true, welcomeEmail: Boolean(data.welcomeEmail) };
   } catch (e) {
     return { ok: false, error: 'No se pudo conectar al backend: ' + e.message };
   }
@@ -455,7 +457,7 @@ async function apiLoginWithGoogle(accessToken) {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, error: (data && data.error) || `Error HTTP ${res.status}` };
-    return { ok: true, token: data.token, user: data.user };
+    return { ok: true, token: data.token, user: data.user, isNew: Boolean(data.isNew), welcomeEmail: Boolean(data.welcomeEmail) };
   } catch (e) {
     return { ok: false, error: 'No se pudo conectar al backend: ' + e.message };
   }
@@ -493,6 +495,13 @@ function ensureGoogleTokenClient() {
       }
       setToken(result.token);
       CURRENT_USER = result.user;
+      startInboxPoll();
+      // V1.35: cuenta nueva con Google → pantalla "Registro completado"
+      if (result.isNew) {
+        REGISTER_DONE = { welcomeEmail: result.welcomeEmail };
+        navigateTo(phoneEl, 'register-success');
+        return;
+      }
       navigateTo(phoneEl, afterLoginTarget());
     },
   });
@@ -575,7 +584,7 @@ async function apiSubmitIdentity(cedulaPhoto, selfiePhoto) {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, error: (data && data.error) || `Error HTTP ${res.status}` };
-    return { ok: true, user: data.user };
+    return { ok: true, user: data.user, email: Boolean(data.email) };
   } catch (e) {
     return { ok: false, error: 'No se pudo conectar al servidor: ' + e.message };
   }
@@ -674,5 +683,57 @@ async function apiDeleteAccount(password, confirm) {
     return { ok: true };
   } catch (e) {
     return { ok: false, error: 'No se pudo conectar al servidor: ' + e.message };
+  }
+}
+
+
+/* --- V1.35 ----------------------------------------------------------- */
+// Pantallas de "Registro completado" y "Verificación completada"
+let REGISTER_DONE = null; // { welcomeEmail }
+let IDENTITY_DONE = null; // { email, next }
+
+// Mensajes recibidos desde una fecha (avisos y sonido)
+async function apiFetchInbox(since) {
+  try {
+    const res = await fetch(`${HAY_API_BASE}/me/inbox?since=${encodeURIComponent(since || '')}`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+// Nombre de la zona para unas coordenadas del GPS
+async function apiReverseGeo(lat, lng) {
+  try {
+    const res = await fetch(`${HAY_API_BASE}/geo/reverse?lat=${lat}&lng=${lng}`);
+    const data = await res.json().catch(() => null);
+    if (!res.ok) return { ok: false, error: (data && data.error) || `Error HTTP ${res.status}` };
+    return { ok: true, zone: data.zone || '' };
+  } catch (e) {
+    return { ok: false, error: 'No se pudo conectar al servidor: ' + e.message };
+  }
+}
+
+// Moderador: fotos antiguas sin miniatura
+async function apiFetchListingsWithoutThumbs() {
+  try {
+    const res = await fetch(`${HAY_API_BASE}/admin/listings-without-thumbs`, { headers: authHeaders() });
+    if (!res.ok) return null;
+    return (await res.json()).items || [];
+  } catch (e) {
+    return null;
+  }
+}
+async function apiUploadThumbs(listingId, thumbs) {
+  try {
+    const res = await fetch(`${HAY_API_BASE}/admin/listings/${encodeURIComponent(listingId)}/thumbs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ thumbs }),
+    });
+    return res.ok;
+  } catch (e) {
+    return false;
   }
 }

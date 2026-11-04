@@ -48,7 +48,7 @@ function tabBar(activeTab, opts = {}) {
       <span class="tabbar__fab-circle">${icon('plus')}</span>
       <span>Publicar</span>
     </button>
-    ${item('chat', 'chat', 'Mensajes')}
+    ${item('chat', 'chat', 'Mensajes').replace('</button>', `${unreadBadgeHtml()}</button>`)}
     ${item('profile', 'user', 'Perfil')}
   </nav>`;
 }
@@ -136,7 +136,7 @@ const SCREEN_FRAME = {
   home: 'green', search: 'green', favorites: 'green', messages: 'pink', profile: 'purple',
   'publish-step1': 'yellow', 'publish-step2': 'yellow', 'publish-step3': 'yellow', 'publish-step4': 'yellow', 'publish-step5': 'yellow', 'publish-success': 'yellow', 'exit-publish-confirm': 'yellow',
   'product-detail': 'pink', 'make-offer': 'pink', 'offer-sent': 'pink', 'seller-profile': 'pink', 'chat-detail': 'pink', 'confirm-sale': 'pink', 'rate-transaction': 'pink', report: 'pink', 'report-sent': 'pink',
-  'my-listings': 'purple', notifications: 'purple', 'edit-profile': 'purple', settings: 'purple', safety: 'purple', 'safety-admin': 'purple', 'moderation-panel': 'purple', 'verify-identity': 'cyan', 'delete-account': 'purple',
+  'my-listings': 'purple', notifications: 'purple', 'edit-profile': 'purple', settings: 'purple', safety: 'purple', 'safety-admin': 'purple', 'moderation-panel': 'purple', 'verify-identity': 'cyan', 'delete-account': 'purple', 'register-success': 'cyan', 'identity-success': 'cyan',
 };
 function frameColorFor(screenId) {
   return FRAME_COLORS[SCREEN_FRAME[screenId] || 'cyan'];
@@ -146,10 +146,13 @@ function frameColorFor(screenId) {
    dibujo de color de siempre (publicaciones de muestra / sin foto).
    cls: clases extra del contenedor (ej. 'ph-art--wide'); inner: HTML
    extra dentro (ej. la etiqueta de condición). */
-function listingArt(p, cls = '', style = '', inner = '') {
+function listingArt(p, cls = '', style = '', inner = '', opts = {}) {
   const url = p && p.photoUrls && p.photoUrls[0];
   if (url) {
-    return `<div class="ph-art ph-art--photo ${cls}" style="${style}"><img src="${photoSrc(url)}" alt="${String(p.title || 'Foto del producto').replace(/"/g, '&quot;')}" loading="lazy" />${inner}</div>`;
+    // V1.35: las tarjetas usan la miniatura (~40 KB) en vez de la foto grande (hasta 1,3 MB)
+    const thumb = !opts.full && p.photoThumbs && p.photoThumbs[url];
+    const eager = opts.eager ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
+    return `<div class="ph-art ph-art--photo ${cls}" style="${style}"><img src="${photoSrc(thumb || url)}" alt="${String(p.title || 'Foto del producto').replace(/"/g, '&quot;')}" ${eager} decoding="async" />${inner}</div>`;
   }
   return `<div class="ph-art ph-art--${(p && p.art) || 1} ${cls}" style="${style}">${icon((p && p.icon) || 'tag')}${inner}</div>`;
 }

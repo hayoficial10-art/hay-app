@@ -42,7 +42,7 @@ const SCREENS_TRANSACTION = [
       ${statusBar()}
       <div class="screen-body">
         <div class="product-hero">
-          ${listingArt(listing || { art: artClass, icon: productIcon, title }, 'product-hero__art', '')}
+          ${listingArt(listing || { art: artClass, icon: productIcon, title }, 'product-hero__art', '', '', { full: true, eager: true })}
           <div class="product-hero__bar">
             <button class="icon-btn" data-nav="home" aria-label="Volver" data-testid="btn-back-product-detail">${icon('back')}</button>
             <div class="flex-row" style="gap:var(--space-2);">
@@ -59,7 +59,7 @@ const SCREENS_TRANSACTION = [
             <span class="badge badge--active">${condition}</span>
           </div>
           <h2 class="product-detail__title">${title}</h2>
-          <span class="product-card__meta" style="margin-top:-6px;">${icon('pin')} ${zone || 'Zona no indicada'}</span>
+          <span class="product-card__meta" style="margin-top:-6px;">${icon('pin')} ${zone || 'Zona no indicada'}${HAY_APP_MODE && listing && distanceLabel(listing) ? ' · ' + distanceLabel(listing) : ''}</span>
 
           <button class="card flex-row" style="width:100%; text-align:left; padding:var(--space-3);" data-nav="seller-profile" data-testid="btn-open-seller-profile">
             <div class="avatar avatar--md avatar--4">${sellerInitials}</div>
@@ -75,7 +75,9 @@ const SCREENS_TRANSACTION = [
 
           <div class="stack-sm">
             <span class="section-label">Ubicación aproximada</span>
-            <div class="map-ph"><div class="map-ph__pin">${icon('pin')}</div></div>
+            ${HAY_APP_MODE && listing && typeof listing.lat === 'number'
+              ? osmMap(listing.lat, listing.lng, 'product-map')
+              : `<div class="map-ph"><div class="map-ph__pin">${icon('pin')}</div></div>${HAY_APP_MODE ? `<span class="text-xs text-muted">El vendedor no marcó la ubicación en el mapa${zone ? '; zona indicada: ' + zone : ''}.</span>` : ''}`}
           </div>
         </div>
       </div>

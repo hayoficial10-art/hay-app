@@ -102,6 +102,7 @@ function mountNavigation() {
     }
     // Cerrar sesión (V1.2): limpiar token + usuario antes de navegar a login.
     if (trigger.getAttribute('data-testid') === 'btn-logout') {
+      stopInboxPoll(); // V1.35
       apiLogout();
     }
     // V1.7: recordar qué publicación real se está mirando, para que
@@ -198,6 +199,13 @@ function navigateTo(phoneEl, targetId, opts) {
   // Scroll de vuelta al top del contenido nuevo
   const body = phoneEl.querySelector('.screen-body');
   if (body) body.scrollTop = 0;
+
+  // V1.35: al ver Mensajes o Notificaciones se dan por leídos los avisos;
+  // al abrir un chat, los de esa conversación.
+  if (HAY_APP_MODE && CURRENT_USER) {
+    if (targetId === 'messages' || targetId === 'notifications') markNotifsRead();
+    else if (targetId === 'chat-detail' && CURRENT_CHAT && CURRENT_CHAT.threadId) markNotifsRead(CURRENT_CHAT.threadId);
+  }
 
   // V1.16: solo pollear mientras este frame esté realmente en el chat;
   // al navegar a cualquier otra pantalla, cortar el polling de ese frame.
@@ -330,6 +338,7 @@ function currentFeedFilters(phoneEl) {
    completa al bajar (scroll infinito). append=true agrega la página
    siguiente; si no, vuelve a empezar con los filtros actuales. */
 let FEED_DEBOUNCE = null;
+let FEED_PREFETCH = null; // V1.35: { key, promise } de la primera página
 async function loadFeed(phoneEl, { append = false } = {}) {
   const grid = phoneEl.querySelector('[data-testid="home-product-grid"], [data-testid="search-results-grid"]');
   if (!grid) return;
@@ -345,7 +354,10 @@ async function loadFeed(phoneEl, { append = false } = {}) {
   } else {
     grid.insertAdjacentHTML('beforeend', '<p class="empty-msg" data-feed-more style="grid-column:1/-1; margin:var(--space-2) 0;">Cargando más…</p>');
   }
-  const page = await apiFetchFeed({ ...filters, cursor: append ? APP_FEED.nextCursor : null });
+  // V1.35: la primera página se pide mientras se muestra la pantalla de inicio
+  const usePrefetch = !append && FEED_PREFETCH && key === FEED_PREFETCH.key;
+  const page = usePrefetch ? await FEED_PREFETCH.promise : await apiFetchFeed({ ...filters, cursor: append ? APP_FEED.nextCursor : null });
+  if (usePrefetch) FEED_PREFETCH = null;
   if (APP_FEED.req !== reqId) return; // llegó una búsqueda más nueva: ignorar esta
   APP_FEED.loading = false;
   grid.removeAttribute('aria-busy');
@@ -440,6 +452,92 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       t.setAttribute('aria-checked', t.classList.contains('is-on') ? 'true' : 'false');
     });
   });
+
+  // V1.35: Configuración → silenciar mensajes / notificaciones (se guarda en el teléfono)
+  phoneEl.querySelectorAll('[data-pref]').forEach((t) => {
+    t.addEventListener('click', async () => {
+      const key = t.getAttribute('data-pref');
+      const on = t.classList.contains('is-on');
+      setPref(key, on);
+      if (key === 'muteNotifications' && !on) {
+        const perm = await requestNotificationPermission();
+        const msg = phoneEl.querySelector('#notifPermMsg');
+        if (msg) {
+          msg.textContent = perm === 'denied' ? 'El teléfono tiene bloqueadas las notificaciones de HAY: actívalas en Ajustes del teléfono para recibir avisos con la app cerrada o en segundo plano.' : '';
+          msg.style.display = perm === 'denied' ? 'block' : 'none';
+        }
+      }
+      if (key === 'muteMessages' && !on) playMessageSound(); // prueba del sonido
+    });
+  });
+  phoneEl.querySelectorAll('[data-action="enable-system-notifs"]').forEach((b) => {
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      await requestNotificationPermission();
+      navigateTo(phoneEl, screenId, { skipFetch: true });
+    });
+  });
+  // V1.35: tocar un aviso en Notificaciones abre ese chat
+  phoneEl.querySelectorAll('[data-notif-id]').forEach((row) => {
+    row.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const n = loadNotifs().find((x) => x.id === row.getAttribute('data-notif-id'));
+      if (n) openChatFromNotif(n);
+    });
+  });
+
+  // V1.35: GPS — Inicio (tu zona y distancias) y Publicar paso 4 (zona de encuentro + mapa)
+  phoneEl.querySelectorAll('[data-action="gps-home"], [data-action="gps-publish"]').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const isPublish = btn.getAttribute('data-action') === 'gps-publish';
+      const msg = phoneEl.querySelector('#gpsMsg');
+      const say = (text, isError) => {
+        if (msg) { msg.textContent = text; msg.classList.toggle('is-error', Boolean(isError)); msg.style.display = text ? 'block' : 'none'; }
+        else if (isError) alert(text);
+      };
+      btn.disabled = true;
+      const oldLabel = btn.innerHTML;
+      if (isPublish) btn.textContent = 'Buscando tu ubicación…';
+      else btn.lastChild && (btn.lastChild.textContent = 'Buscando…');
+      say(isPublish ? 'Buscando tu ubicación… (puede tardar unos segundos)' : '');
+      try {
+        const loc = await getGpsLocation();
+        if (isPublish) {
+          PUBLISH_DRAFT.lat = loc.lat;
+          PUBLISH_DRAFT.lng = loc.lng;
+          if (loc.zone) PUBLISH_DRAFT.zone = loc.zone;
+          navigateTo(phoneEl, 'publish-step4', { skipFetch: true });
+          const m2 = phoneEl.querySelector('#gpsMsg');
+          if (m2) { m2.textContent = loc.zone ? 'Ubicación lista ✓ Puedes corregir el nombre de la zona.' : 'Ubicación lista ✓ Escribe el nombre de tu zona.'; m2.style.display = 'block'; }
+        } else {
+          navigateTo(phoneEl, screenId, { skipFetch: true });
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = oldLabel;
+        say(err.message, true);
+      }
+    });
+  });
+
+  // V1.35: moderador — miniaturas de las fotos publicadas antes de la v1.35
+  const thumbsBtn = phoneEl.querySelector('#btnBackfillThumbs');
+  if (thumbsBtn) {
+    thumbsBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const msg = phoneEl.querySelector('#backfillMsg');
+      thumbsBtn.disabled = true;
+      if (msg) { msg.style.display = 'block'; msg.textContent = 'Preparando fotos… no cierres la app.'; }
+      try {
+        const n = await backfillThumbs((k) => { if (msg) msg.textContent = `Fotos optimizadas: ${k} publicaciones…`; });
+        if (msg) msg.textContent = n ? `Listo ✓ ${n} publicaciones optimizadas.` : 'Listo ✓ No había fotos antiguas por optimizar.';
+      } catch (err) {
+        if (msg) msg.textContent = 'No se pudo terminar: ' + err.message + '. Vuelve a tocar el botón para seguir.';
+      }
+      thumbsBtn.disabled = false;
+    });
+  }
 
   // Chips seleccionables (categorías, filtros) — togglean is-active en su grupo local
   const FILTERABLE_CHIP_ROWS = ['home-categories', 'search-categories'];
@@ -814,7 +912,40 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       }
       setToken(result.token);
       CURRENT_USER = result.user;
+      startInboxPoll();
+      // V1.35: aviso de registro completado (+ correo de bienvenida)
+      REGISTER_DONE = { welcomeEmail: result.welcomeEmail };
+      navigateTo(phoneEl, 'register-success');
+    });
+  }
+
+  // V1.35: botón "Continuar" de "Registro completado"
+  const regDoneBtn = phoneEl.querySelector('#btnRegisterDoneContinue');
+  if (regDoneBtn) {
+    regDoneBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      REGISTER_DONE = null;
       navigateTo(phoneEl, afterLoginTarget());
+    });
+  }
+  const regDoneVerifyBtn = phoneEl.querySelector('#btnRegisterDoneVerify');
+  if (regDoneVerifyBtn) {
+    regDoneVerifyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      REGISTER_DONE = null;
+      if (PENDING_AFTER_LOGIN === 'publish-step1') PENDING_AFTER_IDENTITY = 'publish-step1';
+      PENDING_AFTER_LOGIN = null;
+      navigateTo(phoneEl, 'verify-identity');
+    });
+  }
+  const idDoneBtn = phoneEl.querySelector('#btnIdentityDoneContinue');
+  if (idDoneBtn) {
+    idDoneBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const next = (IDENTITY_DONE && IDENTITY_DONE.next) || 'home';
+      IDENTITY_DONE = null;
+      if (next === 'publish-step1') resetPublishDraft();
+      navigateTo(phoneEl, next);
     });
   }
 
@@ -877,6 +1008,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       }
       setToken(result.token);
       CURRENT_USER = result.user;
+      startInboxPoll(); // V1.35
       navigateTo(phoneEl, afterLoginTarget());
     });
   }
@@ -966,7 +1098,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
           acceptsOffers: Boolean(listing.acceptsOffers),
           photos: listing.photos || 0,
           photoData: [],
+          thumbData: [],
           photoUrls: listing.photoUrls || [],
+          lat: listing.lat ?? null,
+          lng: listing.lng ?? null,
         };
         navigateTo(phoneEl, 'publish-step2');
       });
@@ -1292,6 +1427,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
           continue;
         }
         PUBLISH_DRAFT.photoData.push(data);
+        // V1.35: miniatura para las tarjetas del feed (carga mucho más rápido)
+        let thumb = null;
+        try { thumb = await makeThumb(data); } catch (err) {}
+        (PUBLISH_DRAFT.thumbData = PUBLISH_DRAFT.thumbData || []).push(thumb);
         room -= 1;
       }
       PUBLISH_DRAFT.photos = draftPhotoList().length;
@@ -1309,7 +1448,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       const i = Number(btn.getAttribute('data-remove-photo'));
       const keptCount = (PUBLISH_DRAFT.photoUrls || []).length;
       if (i < keptCount) PUBLISH_DRAFT.photoUrls.splice(i, 1);
-      else PUBLISH_DRAFT.photoData.splice(i - keptCount, 1);
+      else {
+        PUBLISH_DRAFT.photoData.splice(i - keptCount, 1);
+        if (PUBLISH_DRAFT.thumbData) PUBLISH_DRAFT.thumbData.splice(i - keptCount, 1);
+      }
       PUBLISH_DRAFT.photos = draftPhotoList().length;
       navigateTo(phoneEl, 'publish-step1', { skipFetch: true });
     });
@@ -1400,8 +1542,9 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       IDENTITY_DRAFT = { cedula: null, selfie: null };
       const next = PENDING_AFTER_IDENTITY;
       PENDING_AFTER_IDENTITY = null;
-      if (next === 'publish-step1') resetPublishDraft();
-      navigateTo(phoneEl, next || 'profile');
+      // V1.35: aviso de verificación completada (+ correo)
+      IDENTITY_DONE = { email: result.email, next: next || 'home' };
+      navigateTo(phoneEl, 'identity-success');
     });
   }
   // V1.28: moderador — ver fotos de una verificación (se piden al tocar)
@@ -1441,6 +1584,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         if (errEl) { errEl.textContent = result.error; errEl.style.display = 'block'; }
         return;
       }
+      stopInboxPoll();
       setToken(null);
       CURRENT_USER = null;
       MY_LISTINGS = [];
@@ -1472,7 +1616,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         photos: draftPhotoList().length || PUBLISH_DRAFT.photos,
         // V1.27: fotos reales
         photoData: PUBLISH_DRAFT.photoData || [],
+        thumbData: PUBLISH_DRAFT.thumbData || [], // V1.35
         keepPhotoUrls: PUBLISH_DRAFT.photoUrls || [],
+        lat: PUBLISH_DRAFT.lat ?? null, // V1.35: ubicación aproximada (GPS)
+        lng: PUBLISH_DRAFT.lng ?? null,
       };
 
       const result = isEditing
@@ -1518,7 +1665,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         try { seen = localStorage.getItem('hay_onboarding_seen') === '1'; } catch (e) {}
         navigateTo(phoneEl, HAY_APP_MODE && (CURRENT_USER || seen) ? 'home' : 'onboarding-slides', { replaceHistory: true });
       }
-    }, 1600);
+    }, HAY_APP_MODE && CURRENT_USER ? 500 : 1600); // V1.35: quien ya entró antes no espera
   }
 }
 
@@ -1569,6 +1716,10 @@ async function init() {
   // se abrió directo con file://), seguimos con los datos de respaldo
   // sin romper nada — ver api.js y screens-main.js.
   // V1.29: la app real no descarga todo: Inicio/Buscar piden de a 20.
+  // V1.35: la primera página del feed se pide YA, en paralelo con la sesión.
+  if (HAY_APP_MODE) {
+    FEED_PREFETCH = { key: JSON.stringify({ category: null, sellerType: null, q: '' }), promise: apiFetchFeed({}) };
+  }
   const listings = HAY_APP_MODE ? null : await apiFetchListings();
   if (HAY_APP_MODE) PRODUCTS = [];
   if (listings) {
@@ -1600,8 +1751,17 @@ async function init() {
     });
     wireInteractiveBehaviors(phoneEl, 'splash');
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      // V1.35: cuando llega una versión nueva, la app se recarga una vez sola
+      const hadController = Boolean(navigator.serviceWorker.controller);
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hadController || reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
       navigator.serviceWorker.register('sw.js').catch(() => {});
     }
+    startInboxPoll(); // V1.35: avisos y sonido de mensajes nuevos
     return;
   }
   renderScreens();

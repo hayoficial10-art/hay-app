@@ -34,6 +34,9 @@ function mapListingFromApi(l) {
     sellerBusinessName: l.sellerBusinessName || null,
     zone: l.zone || '',
     photoUrls: l.photoUrls || [],
+    photoThumbs: l.photoThumbs || null, // V1.35: miniaturas
+    lat: l.lat ?? null, // V1.35: ubicación aproximada
+    lng: l.lng ?? null,
   };
 }
 
@@ -84,8 +87,18 @@ function productCard(p, opts = {}) {
 /* V1.27: zona real de la publicación (antes decía siempre "Miami, FL"). */
 function placeLabel(p) {
   const zone = p.zone || (HAY_APP_MODE ? '' : 'Miami, FL');
-  const dist = p.dist && p.dist !== '0 mi' ? p.dist : '';
+  // V1.35: distancia real si el teléfono ya tiene tu ubicación (GPS) y la publicación la suya
+  const dist = HAY_APP_MODE ? distanceLabel(p) : p.dist && p.dist !== '0 mi' ? p.dist : '';
   return [zone, dist].filter(Boolean).join(' · ') || 'Cerca de ti';
+}
+
+/* V1.35: aviso "Falta tu verificación de seguridad" (Inicio y Mi perfil) */
+function identityBanner() {
+  return `<button class="identity-banner" data-nav="verify-identity" data-testid="identity-pending-banner">
+    <span class="identity-banner__icon">${icon('shield')}</span>
+    <span class="identity-banner__text"><strong>Falta tu verificación de seguridad</strong>Foto de tu cédula y una selfie. La necesitas para publicar.</span>
+    <span class="identity-banner__go">Verificar</span>
+  </button>`;
 }
 
 /* V1.26: chips de categoría con ícono (referencia "Inicio"). */
@@ -140,8 +153,10 @@ const SCREENS_MAIN = [
         <header class="fucsia-header home-header" data-testid="home-header">
           <div class="flex-between">
             ${hayLogo(34)}
-            <span class="home-location" title="Ubicación actual">${icon('pin')}${HAY_APP_MODE ? 'Cerca de ti' : 'Miami, FL'}</span>
-            <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" data-testid="btn-notifications" style="flex-shrink:0;">${icon('bell')}</button>
+            ${HAY_APP_MODE
+              ? `<button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home" data-testid="btn-home-gps">${icon('pin')}${(getSavedLocation() && getSavedLocation().zone) || (getSavedLocation() ? 'Mi ubicación' : 'Activar ubicación')}</button>`
+              : `<span class="home-location" title="Ubicación actual">${icon('pin')}Miami, FL</span>`}
+            <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" data-testid="btn-notifications" style="flex-shrink:0;">${icon('bell')}${unreadBadgeHtml()}</button>
           </div>
           <button class="searchbar searchbar--white" style="text-align:left" data-nav="search" data-testid="btn-open-search">
             ${icon('search')}
@@ -149,6 +164,7 @@ const SCREENS_MAIN = [
           </button>
         </header>
         <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-home">
+          ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
           <div class="pill-row pill-row--color" data-testid="home-seller-type">
             ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
           </div>
@@ -315,6 +331,7 @@ const SCREENS_MAIN = [
             `}
           </div>
 
+          ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
           <div class="option-list">
             <button class="option-row" data-nav="my-listings" data-testid="btn-go-my-listings">
               <span class="list-row__icon tone-pink">${icon('boxOpen')}</span>
@@ -342,6 +359,7 @@ const SCREENS_MAIN = [
               ${icon('chevronRight', 'list-row__chevron')}
             </button>
           </div>
+          ${HAY_APP_MODE ? `<p class="app-version" data-testid="app-version-profile">HAY · versión ${HAY_VERSION}</p>` : ''}
         </div>
       </div>
       ${tabBar('profile')}

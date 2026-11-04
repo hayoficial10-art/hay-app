@@ -105,7 +105,7 @@ const SCREENS_ACCOUNT = [
       ${topBar({ back: 'home', title: 'Notificaciones', testid: 'notifications', stacked: true })}
       <div class="screen-body" data-testid="screen-notifications">
         <div class="notif-list">
-        ${HAY_APP_MODE ? `<div class="empty-state">${heroIcon('bell', 'yellow', { size: 130 })}<p class="empty-msg" style="margin-top:0;">No tienes notificaciones por ahora. Los mensajes y ofertas nuevas los ves en la pestaña Mensajes.</p></div>` : [
+        ${HAY_APP_MODE ? notificationsListHtml() : [
           { icon: 'chat', bg: 'cyan', text: '<strong>Carlos M.</strong> te envió un mensaje sobre "Bicicleta montaña rodado 26"', time: 'Hace 10 min' },
           { icon: 'gift', bg: 'green', text: '<strong>Jonathan P.</strong> hizo una oferta de $80 por "Silla de oficina ergonómica"', time: 'Hace 1 h' },
           { icon: 'tag', bg: 'yellow', text: 'Bajó el precio de "Mesa de centro madera" en tus favoritos, ahora $60', time: 'Hace 3 h' },
@@ -249,6 +249,21 @@ const SCREENS_ACCOUNT = [
           </div>
 
           `}
+          ${HAY_APP_MODE ? `
+          <div class="stack-sm">
+            <span class="settings-section-title">Notificaciones</span>
+            <div class="card stack">
+              <div class="toggle-row">
+                <span class="list-row__icon tone-cyan" style="width:38px;height:38px;">${icon('chat')}</span><div class="toggle-row__text grow"><strong>Silenciar mensajes</strong><span>Sin sonido ni vibración cuando llega un mensaje</span></div>
+                <button class="toggle ${getPrefs().muteMessages ? 'is-on' : ''}" role="switch" aria-checked="${getPrefs().muteMessages}" aria-label="Silenciar mensajes" data-pref="muteMessages" data-testid="toggle-mute-messages"></button>
+              </div>
+              <div class="toggle-row">
+                <span class="list-row__icon tone-green" style="width:38px;height:38px;">${icon('bell')}</span><div class="toggle-row__text grow"><strong>Silenciar notificaciones</strong><span>Sin avisos en pantalla ni del teléfono</span></div>
+                <button class="toggle ${getPrefs().muteNotifications ? 'is-on' : ''}" role="switch" aria-checked="${getPrefs().muteNotifications}" aria-label="Silenciar notificaciones" data-pref="muteNotifications" data-testid="toggle-mute-notifications"></button>
+              </div>
+              <p class="text-xs" id="notifPermMsg" style="display:none; color:var(--color-error); font-weight:700;"></p>
+            </div>
+          </div>` : ''}
           <div class="stack-sm">
             <span class="settings-section-title">Ayuda</span>
             <div class="card" style="padding:0;">
@@ -293,6 +308,7 @@ const SCREENS_ACCOUNT = [
           <button class="btn btn--outline" style="color:var(--color-error); border-color:var(--color-error);" data-nav="login" data-testid="btn-logout">
             ${icon('logout')} Cerrar sesión
           </button>
+          <p class="app-version" data-testid="app-version">HAY · versión ${HAY_VERSION}</p>
         </div>
       </div>
     </div>`,
@@ -499,6 +515,12 @@ const SCREENS_ACCOUNT = [
           </div>`).join('')}
           <span class="settings-section-title">Reportes</span>
           ${reportsHtml}
+          <span class="settings-section-title">Fotos antiguas</span>
+          <div class="card stack-sm" data-testid="backfill-thumbs-card">
+            <span class="text-xs text-muted">Las publicaciones hechas antes de la versión 1.35 no tienen foto reducida y cargan lento en Inicio. Este botón las prepara desde este teléfono (deja la app abierta hasta que diga «Listo»).</span>
+            <button class="btn btn--green btn--sm" id="btnBackfillThumbs" data-testid="btn-backfill-thumbs">Optimizar fotos antiguas</button>
+            <p class="text-xs" id="backfillMsg" data-testid="backfill-msg" style="display:none; font-weight:700;"></p>
+          </div>
         </div>
       </div>
     </div>`;
@@ -595,4 +617,83 @@ const SCREENS_ACCOUNT = [
       </div>
     </div>`,
   },
+
+  // ------------------------------------------------------------------
+  // V1.35: aviso al terminar el registro y al terminar la verificación
+  // ------------------------------------------------------------------
+  {
+    id: 'register-success',
+    block: 'account',
+    label: '3b. Registro completado',
+    html: () => `
+    <div class="phone__screen success-screen">
+      ${statusBar()}
+      <span class="confetti" aria-hidden="true" style="width:18px;height:18px;background:var(--hay-yellow);top:96px;left:52px;transform:rotate(20deg);"></span>
+      <span class="confetti" aria-hidden="true" style="width:14px;height:14px;border-radius:50%;background:var(--hay-turquoise);top:140px;right:70px;"></span>
+      <span class="confetti" aria-hidden="true" style="width:22px;height:10px;background:var(--hay-pink);top:220px;left:34px;transform:rotate(-30deg);"></span>
+      <div class="screen-body" style="position:relative; z-index:1;">
+        <div class="screen-content screen-content--centered" data-testid="screen-register-success">
+          ${heroIcon('check', 'green', { size: 160, halo: true })}
+          <h2 class="screen-title" style="font-size:32px;">¡Registro completado!</h2>
+          <p class="screen-subtitle" style="font-size:17px;">Bienvenido a HAY${CURRENT_USER ? ', <strong style="word-break:break-all;">' + CURRENT_USER.email + '</strong>' : ''}. Tu cuenta ya está creada.</p>
+          ${REGISTER_DONE && REGISTER_DONE.welcomeEmail ? `<p class="text-sm" style="font-weight:700; color:var(--hay-green-active); display:flex; align-items:center; justify-content:center; gap:6px;" data-testid="welcome-email-sent">${icon('check', 'icon-16')} Te enviamos un correo de bienvenida.</p>` : ''}
+          ${needsIdentity() ? `
+          <div class="card stack-sm" style="text-align:left; border:2px solid var(--hay-yellow-active); background:var(--hay-yellow-highlight);" data-testid="register-identity-pending">
+            <strong style="color:var(--hay-navy);">Siguiente paso: verificación de seguridad</strong>
+            <span class="text-sm" style="color:var(--hay-navy);">Falta enviar la foto de tu cédula y una selfie. La necesitas para publicar.</span>
+          </div>
+          <button class="btn btn--turquoise" id="btnRegisterDoneVerify" data-testid="btn-register-done-verify">${icon('shield')} Hacer la verificación ahora</button>
+          <button class="btn btn--green" id="btnRegisterDoneContinue" data-testid="btn-register-done-continue">Más tarde, ir a HAY</button>` : `
+          <button class="btn btn--turquoise" id="btnRegisterDoneContinue" data-testid="btn-register-done-continue">Empezar</button>`}
+        </div>
+      </div>
+    </div>`,
+  },
+
+  {
+    id: 'identity-success',
+    block: 'account',
+    label: '27b. Verificación completada',
+    html: () => `
+    <div class="phone__screen success-screen">
+      ${statusBar()}
+      <span class="confetti" aria-hidden="true" style="width:18px;height:18px;background:var(--hay-yellow);top:96px;left:52px;transform:rotate(20deg);"></span>
+      <span class="confetti" aria-hidden="true" style="width:14px;height:14px;border-radius:50%;background:var(--hay-pink);top:140px;right:70px;"></span>
+      <div class="screen-body" style="position:relative; z-index:1;">
+        <div class="screen-content screen-content--centered" data-testid="screen-identity-success">
+          ${heroIcon('shield', 'green', { size: 160, halo: true })}
+          <h2 class="screen-title" style="font-size:30px;">¡Verificación completada!</h2>
+          <p class="screen-subtitle" style="font-size:17px;">Recibimos la foto de tu cédula y tu selfie. Esta fase quedó completa: ya puedes publicar en HAY.</p>
+          ${IDENTITY_DONE && IDENTITY_DONE.email ? `<p class="text-sm" style="font-weight:700; color:var(--hay-green-active); display:flex; align-items:center; justify-content:center; gap:6px;" data-testid="identity-email-sent">${icon('check', 'icon-16')} Te enviamos un correo de confirmación.</p>` : ''}
+          <button class="btn btn--turquoise" id="btnIdentityDoneContinue" data-testid="btn-identity-done-continue">${IDENTITY_DONE && IDENTITY_DONE.next === 'publish-step1' ? 'Seguir con mi publicación' : IDENTITY_DONE && IDENTITY_DONE.next === 'publish-step5' ? 'Volver a mi publicación' : 'Continuar'}</button>
+        </div>
+      </div>
+    </div>`,
+  },
 ];
+
+/* V1.35: lista real de notificaciones (mensajes y ofertas recibidos) */
+function notificationsListHtml() {
+  if (!CURRENT_USER) return `<div class="empty-state">${heroIcon('bell', 'yellow', { size: 130 })}<p class="empty-msg" style="margin-top:0;">Inicia sesión para recibir avisos de mensajes y ofertas.</p></div>`;
+  const list = loadNotifs();
+  const permBtn = 'Notification' in window && Notification.permission === 'default' && !getPrefs().muteNotifications
+    ? `<button class="btn btn--green btn--sm" style="margin-bottom:var(--space-3);" data-action="enable-system-notifs" data-testid="btn-enable-system-notifs">${icon('bell')} Recibir avisos del teléfono</button>`
+    : '';
+  if (!list.length) return `${permBtn}<div class="empty-state">${heroIcon('bell', 'yellow', { size: 130 })}<p class="empty-msg" style="margin-top:0;">No tienes notificaciones por ahora. Cuando te escriban o te hagan una oferta, te avisamos aquí y con un sonido.</p></div>`;
+  const when = (iso) => {
+    const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (min < 1) return 'Ahora';
+    if (min < 60) return `Hace ${min} min`;
+    if (min < 1440) return `Hace ${Math.round(min / 60)} h`;
+    return new Date(iso).toLocaleDateString('es-VE');
+  };
+  return permBtn + list.map((n) => `
+        <button class="notif-row ${n.read ? '' : 'is-unread'}" data-notif-id="${n.id}" data-testid="notif-row">
+          <span class="notif-row__icon tone-${n.type === 'offer' ? 'green' : 'cyan'}">${icon(n.type === 'offer' ? 'gift' : 'chat')}</span>
+          <div class="notif-row__body">
+            <p class="notif-row__text"><strong>${escapeText(notifTitle(n))}</strong> — ${escapeText(notifBody(n))}</p>
+            <p class="notif-row__time">${when(n.createdAt)}</p>
+          </div>
+          ${icon('chevronRight', 'list-row__chevron')}
+        </button>`).join('');
+}

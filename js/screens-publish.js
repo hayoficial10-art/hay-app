@@ -44,7 +44,10 @@ function resetPublishDraft() {
     acceptsOffers: true,
     photos: 0,
     photoData: [],
+    thumbData: [], // V1.35: miniaturas de las fotos nuevas
     photoUrls: [],
+    lat: null, // V1.35: ubicación aproximada (GPS)
+    lng: null,
   };
 }
 
@@ -215,9 +218,11 @@ const SCREENS_PUBLISH = [
           </div>
           <div class="stack-sm">
             <span class="section-label">Zona de encuentro</span>
-            <div class="map-ph">
-              <div class="map-ph__pin">${icon('pin')}</div>
-            </div>
+            ${HAY_APP_MODE && typeof PUBLISH_DRAFT.lat === 'number'
+              ? osmMap(PUBLISH_DRAFT.lat, PUBLISH_DRAFT.lng, 'publish-map')
+              : `<div class="map-ph"><div class="map-ph__pin">${icon('pin')}</div></div>`}
+            ${HAY_APP_MODE ? `<button class="btn btn--green btn--sm" data-action="gps-publish" data-testid="btn-publish-gps">${icon('pin')} ${typeof PUBLISH_DRAFT.lat === 'number' ? 'Actualizar mi ubicación (GPS)' : 'Usar mi ubicación (GPS)'}</button>
+            <p class="gps-msg" id="gpsMsg" data-testid="gps-msg" style="display:none;"></p>` : ''}
             <div class="field">
               <label for="pub-zone" class="sr-only">Zona</label>
               <input id="pub-zone" type="text" value="${PUBLISH_DRAFT.zone}" placeholder="Ej. Chacao, Caracas" data-testid="input-publish-zone" data-draft-field="zone" />
