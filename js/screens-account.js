@@ -507,7 +507,7 @@ const SCREENS_ACCOUNT = [
           <div class="card stack-sm" data-testid="identity-row">
             <div class="flex-between">
               <span class="text-sm fw-800" style="word-break:break-all;">${it.email}</span>
-              <span class="badge badge--paused">Enviada</span>
+              ${it.check && it.check.coincide ? `<span class="badge badge--active" data-testid="identity-match-ok">Cara coincide ✓${typeof it.check.distancia === 'number' ? ' (' + String(it.check.distancia).replace('.', ',') + ')' : ''}</span>` : `<span class="badge badge--paused" data-testid="identity-match-review">${it.check ? 'Revisar a mano' : 'Enviada'}</span>`}
             </div>
             <span class="text-xs text-faint">${new Date(it.submittedAt).toLocaleString('es-VE')}</span>
             <button class="btn btn--outline btn--sm" data-view-identity="${it.userId}" data-testid="btn-view-identity">Ver fotos</button>
@@ -539,18 +539,35 @@ const SCREENS_ACCOUNT = [
       const done = CURRENT_USER && CURRENT_USER.identityStatus && CURRENT_USER.identityStatus !== 'none';
       const slot = (kind, title, hint, capture, iconName) => {
         const img = IDENTITY_DRAFT[kind];
+        // V1.36: dos botones por foto. «Galería» sirve cuando el teléfono cierra la
+        // app al abrir la cámara (pasa en teléfonos con poca memoria).
         return `
-          <label class="card flex-row" style="cursor:pointer; padding:var(--space-3); gap:var(--space-3);" data-testid="identity-slot-${kind}">
-            ${img
-              ? `<img src="${img}" alt="${title}" style="width:64px; height:64px; object-fit:cover; border-radius:12px; flex-shrink:0;" />`
-              : `<span class="list-row__icon tone-cyan" style="width:64px; height:64px; border-radius:12px;">${icon(iconName)}</span>`}
-            <span class="grow">
-              <span class="list-row__title" style="display:block;">${title}</span>
-              <span class="list-row__sub" style="white-space:normal;">${img ? 'Lista ✓ · toca para cambiarla' : hint}</span>
-            </span>
-            ${img ? `<span class="badge badge--active">✓</span>` : icon('camera', 'list-row__chevron')}
-            <input type="file" accept="image/*" capture="${capture}" data-identity-input="${kind}" data-testid="input-identity-${kind}" style="display:none;" />
-          </label>`;
+          <div class="card stack-sm" style="padding:var(--space-3);" data-testid="identity-slot-${kind}">
+            <div class="flex-row" style="gap:var(--space-3);">
+              ${img
+                ? `<img src="${img}" alt="${title}" style="width:64px; height:64px; object-fit:cover; border-radius:12px; flex-shrink:0;" />`
+                : `<span class="list-row__icon tone-cyan" style="width:64px; height:64px; border-radius:12px;">${icon(iconName)}</span>`}
+              <span class="grow">
+                <span class="list-row__title" style="display:block;">${title}</span>
+                <span class="list-row__sub" style="white-space:normal;">${img ? 'Lista ✓ · puedes cambiarla' : hint}</span>
+              </span>
+              ${img ? `<span class="badge badge--active">✓</span>` : ''}
+            </div>
+            ${kind === 'selfie' ? `
+            <button class="btn btn--turquoise btn--sm" data-action="selfie-live" data-testid="btn-selfie-live">${icon('camera')} ${img ? 'Repetir selfie en vivo' : 'Tomar selfie en vivo'}</button>
+            <p class="selfie-live__estado" id="selfieEstado" data-testid="selfie-estado" style="display:none;"></p>
+            <div class="selfie-live" id="selfieLive" data-testid="selfie-live" style="display:none;"></div>` : `
+            <div class="photo-actions">
+              <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-identity-camera-${kind}">
+                ${icon('camera')} Tomar foto
+                <input type="file" accept="image/*" capture="${capture}" data-identity-input="${kind}" data-testid="input-identity-${kind}" style="display:none;" />
+              </label>
+              <label class="btn btn--green btn--sm" style="cursor:pointer;" data-testid="btn-identity-gallery-${kind}">
+                ${icon('gallery')} Galería
+                <input type="file" accept="image/*" data-identity-input="${kind}" data-testid="input-identity-gallery-${kind}" style="display:none;" />
+              </label>
+            </div>`}
+          </div>`;
       };
       return `
     <div class="phone__screen">
@@ -568,13 +585,13 @@ const SCREENS_ACCOUNT = [
           </div>
           ${done ? `<span class="badge badge--active" style="align-self:center; padding:6px 14px;" data-testid="identity-status-done">✓ Verificación enviada</span>` : ''}
           ${slot('cedula', '1. Foto de tu cédula', 'Del lado de la foto, que se lea bien', 'environment', 'shield')}
-          ${slot('selfie', '2. Selfie', 'Tu cara de frente, con buena luz', 'user', 'user')}
+          ${slot('selfie', '2. Selfie en vivo', 'Con la cámara de la app: te pedirá dos movimientos de la cara', 'user', 'user')}
           <p class="text-xs text-muted" style="font-weight:600; display:flex; gap:8px; align-items:flex-start;">${icon('lock', 'icon-16')} <span>Tus fotos se guardan cifradas y en privado. Nunca se muestran en tus publicaciones; solo el equipo de moderación puede verlas si hace falta revisar un caso.</span></p>
-          <p class="text-xs" id="identityErrorMsg" data-testid="identity-error-msg" style="display:none; color:var(--color-error); font-weight:700;"></p>
+          <p class="text-xs" id="identityErrorMsg" data-testid="identity-error-msg" style="display:${IDENTITY_NOTICE ? 'block' : 'none'}; color:var(--color-error); font-weight:700;">${IDENTITY_NOTICE || ''}</p>
         </div>
       </div>
       <div class="bottom-cta">
-        <button class="btn btn--turquoise" id="btnSubmitIdentity" data-testid="btn-submit-identity" ${IDENTITY_DRAFT.cedula && IDENTITY_DRAFT.selfie ? '' : 'disabled'}>Enviar verificación</button>
+        <button class="btn btn--turquoise" id="btnSubmitIdentity" data-testid="btn-submit-identity" ${IDENTITY_DRAFT.cedula && IDENTITY_DRAFT.selfie ? '' : 'disabled'}>${IDENTITY_TRIES >= 2 ? 'Enviar para revisión manual' : 'Enviar verificación'}</button>
       </div>
     </div>`;
     },

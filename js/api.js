@@ -14,7 +14,7 @@ const HAY_ORIGIN = (location.protocol.startsWith('http') && location.port !== '8
   : 'http://localhost:3000';
 const HAY_API_BASE = HAY_ORIGIN + '/api';
 // V1.35: versión visible en la app (Configuración y Mi perfil)
-const HAY_VERSION = '1.35';
+const HAY_VERSION = '1.37';
 // Modo app real (app.html) vs. galería de prototipo (index.html)
 const HAY_APP_MODE = Boolean(window.HAY_APP_MODE);
 // URL completa de una foto subida (/uploads/...)
@@ -575,12 +575,12 @@ function needsIdentity() {
   return Boolean(CURRENT_USER && CURRENT_USER.identityRequired && (!CURRENT_USER.identityStatus || CURRENT_USER.identityStatus === 'none'));
 }
 
-async function apiSubmitIdentity(cedulaPhoto, selfiePhoto) {
+async function apiSubmitIdentity(cedulaPhoto, selfiePhoto, check) {
   try {
     const res = await fetch(`${HAY_API_BASE}/me/identity`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authHeaders() },
-      body: JSON.stringify({ cedulaPhoto, selfiePhoto }),
+      body: JSON.stringify({ cedulaPhoto, selfiePhoto, check: check || null }),
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) return { ok: false, error: (data && data.error) || `Error HTTP ${res.status}` };
@@ -691,6 +691,11 @@ async function apiDeleteAccount(password, confirm) {
 // Pantallas de "Registro completado" y "Verificación completada"
 let REGISTER_DONE = null; // { welcomeEmail }
 let IDENTITY_DONE = null; // { email, next }
+// V1.36: aviso en la pantalla de verificación (ej. el teléfono cerró la app al abrir la cámara)
+let IDENTITY_NOTICE = null;
+// V1.37: intentos en que la cara no coincidió con la cédula
+let IDENTITY_TRIES = 0;
+let IDENTITY_SELFIE_RETOS = null;
 
 // Mensajes recibidos desde una fecha (avisos y sonido)
 async function apiFetchInbox(since) {

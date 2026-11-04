@@ -182,6 +182,7 @@ function navigateTo(phoneEl, targetId, opts) {
     }
   }
 
+  if (targetId !== 'verify-identity') IDENTITY_NOTICE = null; // V1.36
   phoneEl.querySelector('.phone__notch')?.remove();
   phoneEl.innerHTML = `<div class="phone__notch"></div>${target.html()}`;
   const prevScreen = phoneEl.dataset.currentScreen;
@@ -1391,9 +1392,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
   // V1.27: fotos reales en Publicar paso 1 — se comprimen en el teléfono
   // (máx. 1280 px, JPEG) antes de guardarlas en el borrador.
   phoneEl.querySelectorAll('[data-photo-input]').forEach((input) => {
-    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('click', (e) => { e.stopPropagation(); markCameraOpening('publish-step1'); });
     input.addEventListener('change', async (e) => {
       e.stopPropagation();
+      clearCameraOpening();
       const files = Array.from(input.files || []);
       if (!files.length) return;
       // V1.33: cada foto se revisa en el teléfono antes de aceptarla
@@ -1466,9 +1468,10 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
     el.style.display = text ? 'block' : 'none';
   };
   phoneEl.querySelectorAll('[data-avatar-input]').forEach((input) => {
-    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('click', (e) => { e.stopPropagation(); markCameraOpening('edit-profile'); });
     input.addEventListener('change', async (e) => {
       e.stopPropagation();
+      clearCameraOpening();
       const file = input.files && input.files[0];
       if (!file) return;
       if (!CURRENT_USER) { navigateTo(phoneEl, 'login'); return; }
@@ -1502,22 +1505,67 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
 
   // V1.28: verificación de identidad — capturar cédula y selfie
   phoneEl.querySelectorAll('[data-identity-input]').forEach((input) => {
-    input.addEventListener('click', (e) => e.stopPropagation());
+    input.addEventListener('click', (e) => {
+      e.stopPropagation();
+      markCameraOpening('verify-identity'); // V1.36
+    });
     input.addEventListener('change', async (e) => {
       e.stopPropagation();
+      clearCameraOpening();
       const kind = input.getAttribute('data-identity-input');
       const file = input.files && input.files[0];
+      const errEl = phoneEl.querySelector('#identityErrorMsg');
+      IDENTITY_NOTICE = null;
       if (!file) return;
+      // V1.36: se avisa que la foto se está preparando (antes no se veía nada)
+      if (errEl) { errEl.textContent = 'Preparando la foto…'; errEl.style.color = 'var(--color-text-muted)'; errEl.style.display = 'block'; }
+      let data;
       try {
-        IDENTITY_DRAFT[kind] = await compressImage(file);
+        data = await compressImage(file);
       } catch (err) {
-        const errEl = phoneEl.querySelector('#identityErrorMsg');
-        if (errEl) { errEl.textContent = 'No se pudo leer la foto: ' + err.message; errEl.style.display = 'block'; }
+        if (errEl) { errEl.textContent = 'No se pudo leer la foto: ' + err.message; errEl.style.color = 'var(--color-error)'; errEl.style.display = 'block'; }
         return;
       }
+      // V1.37: en la foto de la cédula se tiene que ver la cara
+      if (kind === 'cedula') {
+        if (errEl) errEl.textContent = 'Revisando la foto de la cédula… (la primera vez tarda un poco)';
+        let cara = true;
+        try { cara = await HAY_VERIFICACION.hayCaraEnCedula(data); } catch (err) { cara = true; }
+        if (!cara) {
+          if (errEl) { errEl.textContent = 'No se ve la cara en la foto de la cédula. Tómala de nuevo más cerca, con buena luz y sin reflejos, del lado de la foto.'; errEl.style.color = 'var(--color-error)'; }
+          return;
+        }
+      }
+      IDENTITY_DRAFT[kind] = data;
+      if (kind === 'selfie') IDENTITY_SELFIE_RETOS = null;
+      IDENTITY_TRIES = 0;
       navigateTo(phoneEl, 'verify-identity', { skipFetch: true });
     });
   });
+  // V1.37: selfie en vivo con la cámara dentro de la app
+  const selfieBtn = phoneEl.querySelector('[data-action="selfie-live"]');
+  if (selfieBtn) {
+    selfieBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const box = phoneEl.querySelector('#selfieLive');
+      const est = phoneEl.querySelector('#selfieEstado');
+      const errEl = phoneEl.querySelector('#identityErrorMsg');
+      if (errEl) errEl.style.display = 'none';
+      selfieBtn.disabled = true;
+      est.style.display = 'block';
+      try {
+        const r = await HAY_VERIFICACION.selfieEnVivo(box, (t) => { est.textContent = t; });
+        IDENTITY_DRAFT.selfie = r.foto;
+        IDENTITY_SELFIE_RETOS = r.retos;
+        IDENTITY_TRIES = 0;
+        navigateTo(phoneEl, 'verify-identity', { skipFetch: true });
+      } catch (err) {
+        selfieBtn.disabled = false;
+        est.style.display = 'none';
+        if (errEl) { errEl.textContent = 'No se pudo tomar la selfie: ' + err.message; errEl.style.color = 'var(--color-error)'; errEl.style.display = 'block'; }
+      }
+    });
+  }
   const submitIdentityBtn = phoneEl.querySelector('#btnSubmitIdentity');
   if (submitIdentityBtn) {
     submitIdentityBtn.addEventListener('click', async (e) => {
@@ -1529,9 +1577,43 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         navigateTo(phoneEl, 'login');
         return;
       }
+      if (!IDENTITY_SELFIE_RETOS) {
+        if (errEl) { errEl.textContent = 'Toma la selfie en vivo con el botón «Tomar selfie en vivo».'; errEl.style.display = 'block'; }
+        return;
+      }
       submitIdentityBtn.disabled = true;
+      // V1.37: comparar la cara de la selfie con la de la cédula
+      submitIdentityBtn.textContent = 'Comparando tu cara con la cédula…';
+      let match = null;
+      let matchError = null;
+      try {
+        match = await HAY_VERIFICACION.comparar(IDENTITY_DRAFT.selfie, IDENTITY_DRAFT.cedula);
+        if (match.error) { matchError = match.error; match = null; }
+      } catch (err) {
+        matchError = 'no se pudo hacer la comparación automática (' + err.message + ')';
+      }
+      if (match && !match.coincide && IDENTITY_TRIES < 2) {
+        IDENTITY_TRIES += 1;
+        submitIdentityBtn.disabled = false;
+        submitIdentityBtn.textContent = IDENTITY_TRIES >= 2 ? 'Enviar para revisión manual' : 'Enviar verificación';
+        if (errEl) {
+          errEl.textContent = IDENTITY_TRIES >= 2
+            ? 'La cara sigue sin coincidir con la de la cédula. Puedes enviarla para que un moderador la revise a mano.'
+            : 'La cara de la selfie no coincide con la de la cédula. Repite la selfie con buena luz y la foto de la cédula bien enfocada.';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+      if (matchError && errEl) { errEl.textContent = 'Aviso: ' + matchError + '. Se enviará para revisión manual.'; errEl.style.display = 'block'; }
       submitIdentityBtn.textContent = 'Enviando...';
-      const result = await apiSubmitIdentity(IDENTITY_DRAFT.cedula, IDENTITY_DRAFT.selfie);
+      const check = {
+        liveness: true,
+        retos: IDENTITY_SELFIE_RETOS,
+        distancia: match ? match.distancia : null,
+        coincide: Boolean(match && match.coincide),
+        nota: matchError || null,
+      };
+      const result = await apiSubmitIdentity(IDENTITY_DRAFT.cedula, IDENTITY_DRAFT.selfie, check);
       if (!result.ok) {
         submitIdentityBtn.disabled = false;
         submitIdentityBtn.textContent = 'Enviar verificación';
@@ -1540,6 +1622,8 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       }
       CURRENT_USER = result.user;
       IDENTITY_DRAFT = { cedula: null, selfie: null };
+      IDENTITY_SELFIE_RETOS = null;
+      IDENTITY_TRIES = 0;
       const next = PENDING_AFTER_IDENTITY;
       PENDING_AFTER_IDENTITY = null;
       // V1.35: aviso de verificación completada (+ correo)
@@ -1663,6 +1747,18 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         // onboarding entra directo a Inicio.
         let seen = false;
         try { seen = localStorage.getItem('hay_onboarding_seen') === '1'; } catch (e) {}
+        // V1.36: si el teléfono cerró la app al abrir la cámara, se vuelve a esa pantalla con un aviso
+        const back = HAY_APP_MODE && CURRENT_USER ? takeCameraOpening() : null;
+        if (back) {
+          if (back === 'verify-identity') IDENTITY_NOTICE = 'Tu teléfono cerró HAY al abrir la cámara y la foto se perdió. Toma la foto con la cámara normal del teléfono y luego súbela con el botón «Galería».';
+          if (back === 'publish-step1' && !PUBLISH_DRAFT.photoData) resetPublishDraft();
+          navigateTo(phoneEl, back === 'publish-step1' ? 'publish-step1' : back, { replaceHistory: true });
+          if (back !== 'verify-identity') {
+            const m = phoneEl.querySelector('#photoErrorMsg, #avatarMsg');
+            if (m) { m.textContent = 'Tu teléfono cerró HAY al abrir la cámara. Toma la foto con la cámara normal y súbela con «Galería».'; m.style.display = 'block'; }
+          }
+          return;
+        }
         navigateTo(phoneEl, HAY_APP_MODE && (CURRENT_USER || seen) ? 'home' : 'onboarding-slides', { replaceHistory: true });
       }
     }, HAY_APP_MODE && CURRENT_USER ? 500 : 1600); // V1.35: quien ya entró antes no espera
@@ -1780,7 +1876,35 @@ document.addEventListener('DOMContentLoaded', init);
 /* V1.27: reduce una foto del teléfono (que suele pesar 3-8 MB) a un
    JPEG de máx. 1280 px, para que subirla sea rápido aun con datos
    móviles. Si sigue pesando más de ~1,3 MB, se baja la calidad. */
-function compressImage(file) {
+/* V1.36: la foto se abre sin copiarla entera a texto (FileReader + base64 de
+   5-10 MB era lo que más memoria gastaba y hacía fallar teléfonos sencillos).
+   Se usa createImageBitmap, que además respeta la orientación de la cámara.
+   Si el teléfono no puede abrirla (ej. foto HEIC), se explica qué hacer. */
+async function compressImage(file) {
+  const isHeic = /hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name || '');
+  if (file.type && !file.type.startsWith('image/') && !isHeic) throw new Error('el archivo no es una imagen');
+  if (window.createImageBitmap) {
+    let bmp = null;
+    try { bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch (e) { bmp = null; }
+    if (bmp) {
+      const encode = (maxSide, quality) => {
+        const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(bmp.width * scale);
+        canvas.height = Math.round(bmp.height * scale);
+        canvas.getContext('2d').drawImage(bmp, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg', quality);
+      };
+      let out = encode(1280, 0.8);
+      if (out.length * 0.75 > 1.3 * 1024 * 1024) out = encode(1024, 0.65);
+      if (bmp.close) bmp.close();
+      return out;
+    }
+    if (isHeic) throw new Error('la foto está en formato HEIC y este teléfono no la puede abrir. Usa «Tomar foto», o en la cámara del teléfono cambia el formato a JPG (Ajustes de la cámara → Formatos de imagen).');
+  }
+  return compressImageLegacy(file);
+}
+function compressImageLegacy(file) {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) return reject(new Error('el archivo no es una imagen'));
     const reader = new FileReader();
@@ -1839,4 +1963,28 @@ function afterLoginTarget() {
   }
   if (pending === 'publish-step1') resetPublishDraft();
   return pending || 'home';
+}
+
+/* V1.36: Android a veces cierra el navegador o la app mientras la cámara está
+   abierta (poca memoria). Antes de abrir la cámara se anota la pantalla; si la
+   app vuelve a arrancar en menos de 10 minutos, se regresa a esa pantalla. */
+const CAMERA_KEY = 'hay_camera_open';
+function markCameraOpening(screen) {
+  try { sessionStorage.setItem(CAMERA_KEY, JSON.stringify({ screen, at: Date.now() })); } catch (e) {}
+  try { localStorage.setItem(CAMERA_KEY, JSON.stringify({ screen, at: Date.now() })); } catch (e) {}
+}
+// Si la persona cancela la cámara o la galería no llega ningún "change": al
+// volver a la app se borra la marca (si la app se cerró, no corre nada y queda).
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) setTimeout(clearCameraOpening, 4000);
+});
+function clearCameraOpening() {
+  try { sessionStorage.removeItem(CAMERA_KEY); } catch (e) {}
+  try { localStorage.removeItem(CAMERA_KEY); } catch (e) {}
+}
+function takeCameraOpening() {
+  let v = null;
+  try { v = JSON.parse(localStorage.getItem(CAMERA_KEY) || 'null'); } catch (e) {}
+  clearCameraOpening();
+  return v && Date.now() - v.at < 10 * 60 * 1000 ? v.screen : null;
 }
