@@ -151,3 +151,33 @@ button.home-location {
 /* Fila de notificación no leída */
 .notif-row { width: 100%; border: none; background: none; text-align: left; font-family: inherit; cursor: pointer; }
 .notif-row.is-unread { background: var(--hay-turquoise-highlight); border-radius: 14px; }
+
+/* V1.37: selfie en vivo */
+.selfie-live {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+}
+.selfie-live__video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); display: block; }
+.selfie-live__guia {
+  position: absolute;
+  left: 50%; top: 46%;
+  width: 62%; height: 64%;
+  transform: translate(-50%, -50%);
+  border: 4px dashed rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 0 999px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.selfie-live__estado {
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--hay-navy);
+  background: var(--hay-yellow-highlight);
+  border-radius: 12px;
+  padding: 10px;
+}
