@@ -1,8 +1,39 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.38
+**VERSIÓN:** 1.39
 **FECHA:** 4 de noviembre de 2026
-**BASE:** v1.37. Contiene todo lo de la v1.37, más lo nuevo de la v1.38.
+**BASE:** v1.38. Contiene todo lo de la v1.38, más lo nuevo de la v1.39.
+
+## V1.39 — no se pueden publicar fotos de personas
+
+### Error
+Se pudo publicar una selfie (publicación «Cara»). El detector de caras del teléfono
+(SSD MobileNet) no ve una cara que llena toda la foto: a esa selfie le dio 0,09
+(el límite es 0,2), menos que a un frasco de colonia (0,10–0,21). Bajar el límite
+no sirve: rechazaría los objetos. Se probaron también BlazeFace y CenterNet en el
+teléfono y tampoco separan bien caras de objetos en estas fotos.
+
+### Arreglo
+- **En el servidor, con Google Cloud Vision:** cada foto de una publicación (nueva o
+  editada) se revisa también con **detección de caras** y **detección de objetos**.
+  Se rechaza si hay una cara (confianza ≥ 0,5) o una persona o parte del cuerpo
+  («Person», «Human face»…, confianza ≥ 0,6). El vendedor ve: «Una de las fotos no
+  se permite: parece que se ve una persona…».
+- Las **fotos de perfil** no se revisan por personas (ahí la cara es lo normal);
+  siguen revisándose por sexo y violencia.
+- La revisión del teléfono queda igual, como primer filtro.
+- `render.yaml` ahora pide `GOOGLE_VISION_KEY`. **Sin esa clave el bloqueo de
+  personas no funciona.** Ver PUBLICAR.md.
+
+### El moderador puede eliminar cualquier publicación
+- En el detalle de una publicación ajena, el moderador ve el botón rojo
+  **«Eliminar publicación (moderador)»**. Pide confirmación y la borra.
+- El servidor lo permite solo a quien tenga el email de `ADMIN_EMAIL` (Render).
+  Cada borrado queda en los Logs: «Moderador … eliminó la publicación …».
+
+
+
+---
 
 ## V1.38 — verificación sencilla y automática, control de fotos, bolívares, actualización
 

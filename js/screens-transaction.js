@@ -70,6 +70,7 @@ const SCREENS_TRANSACTION = [
             <span class="link-cyan" style="font-size:14px; flex-shrink:0;">Ver perfil</span>
           </button>
           ${isOwnListing ? `<p class="badge badge--cyan" style="align-self:flex-start;" data-testid="own-listing-notice">Esta es tu propia publicación</p>` : ''}
+          ${hasRealSeller && !isOwnListing && CURRENT_USER && CURRENT_USER.isAdmin ? `<button class="btn btn--outline" style="color:var(--color-error); border-color:var(--color-error);" data-testid="btn-admin-delete-listing">${icon('trash')} Eliminar publicación (moderador)</button>` : ''}
 
           <p style="font-size:16px; line-height:1.55; color:var(--hay-navy);">${description}</p>
 

@@ -10,6 +10,9 @@
  * la propia app (carpeta vendor/, ~9,5 MB) y se descargan solo la primera vez que
  * alguien agrega una foto; después quedan guardados en el teléfono.
  *
+ * V1.39: este detector NO ve las caras que llenan toda la foto (selfie muy de cerca).
+ * El bloqueo seguro de personas lo hace el servidor con Google Vision (GOOGLE_VISION_KEY).
+ *
  * La violencia no tiene un detector confiable que corra en el teléfono: para eso
  * quedan los términos de uso y el botón Reportar.
  *

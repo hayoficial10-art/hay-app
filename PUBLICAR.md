@@ -114,14 +114,17 @@ Para comprobarlo: abre `https://hay-app.onrender.com/health`; debe decir
 `"mail":"smtp"` (o `"resend"` / `"brevo"`). Si un correo falla, el motivo
 aparece en Render → **Logs** con la palabra `[HAY correo]`.
 
-## Revisión de fotos con Google (v1.38, opcional)
+## Revisión de fotos con Google (v1.39 — NECESARIA para bloquear personas)
 
-Para bloquear en el servidor fotos con violencia, heridas, sangre o contenido sexual:
+Para bloquear en el servidor fotos con **personas** (caras o cuerpos), violencia, heridas, sangre o contenido sexual.
+Sin esta clave solo queda la revisión del teléfono, que **no ve las caras muy de cerca** (por eso se pudo publicar una selfie):
 1. Entra a https://console.cloud.google.com con tu cuenta de Google, crea un proyecto (ej. HAY) y activa la facturación (las primeras 1.000 fotos al mes no se cobran).
 2. Busca **Cloud Vision API** y toca **Habilitar**.
 3. Ve a **APIs y servicios → Credenciales → Crear credenciales → Clave de API** y cópiala.
 4. En Render → `hay-app` → **Environment**, agrega `GOOGLE_VISION_KEY` con esa clave y guarda.
-5. Comprueba en `https://hay-app.onrender.com/health` que diga `"photoReview":"vision"`.
+5. Comprueba en `https://hay-app.onrender.com/health` que diga `"photoReview":"vision"` y `"version":"1.39"`.
+6. Costo: cada foto de publicación usa 3 revisiones (contenido, caras y objetos). Google regala 1.000 de cada una al mes; después cuesta unos 1,50 US$ por cada 1.000.
+7. Las publicaciones que ya existen con personas no se revisan solas: bórralas o páusalas a mano.
 
 ## Cuando crezca (más velocidad)
 

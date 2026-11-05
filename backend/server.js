@@ -44,7 +44,7 @@ const { createStorage } = require('./storage');
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.38';
+const APP_VERSION = '1.39';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -245,12 +245,21 @@ function postJSONUrl(url, payload, timeoutMs = 12000) {
     req.end(body);
   });
 }
-async function moderatePhotos(dataUrls) {
+// V1.39: en las fotos de PUBLICACIONES también se buscan personas (caras y
+// cuerpos), porque el detector del teléfono no ve las caras muy de cerca
+// (ej. una selfie que llena toda la foto). Las fotos de perfil no se revisan
+// por personas: ahí la cara es lo normal.
+const UMBRAL_CARA_VISION = 0.5;     // faceAnnotations[].detectionConfidence
+const UMBRAL_PERSONA_VISION = 0.6;  // localizedObjectAnnotations "Person"
+const PARTES_PERSONA = new Set(['Person', 'Human face', 'Human head', 'Human body', 'Human hand', 'Human leg', 'Human arm', 'Human foot', 'Human eye', 'Human mouth', 'Human nose', 'Human ear', 'Human beard', 'Human hair']);
+async function moderatePhotos(dataUrls, { personas = false } = {}) {
   if (!GOOGLE_VISION_KEY || !Array.isArray(dataUrls) || !dataUrls.length) return null;
+  const features = [{ type: 'SAFE_SEARCH_DETECTION' }];
+  if (personas) features.push({ type: 'FACE_DETECTION', maxResults: 3 }, { type: 'OBJECT_LOCALIZATION', maxResults: 15 });
   const requests = [];
   for (const d of dataUrls.slice(0, MAX_PHOTOS)) {
     const m = /^data:image\/[a-z]+;base64,([A-Za-z0-9+/=]+)$/.exec(String(d || ''));
-    if (m) requests.push({ image: { content: m[1] }, features: [{ type: 'SAFE_SEARCH_DETECTION' }] });
+    if (m) requests.push({ image: { content: m[1] }, features });
   }
   if (!requests.length) return null;
   try {
@@ -261,6 +270,11 @@ async function moderatePhotos(dataUrls) {
       if (v('adult') >= 4 || v('racy') >= 5) return 'Una de las fotos no se permite: parece tener contenido sexual.';
       if (v('violence') >= 4) return 'Una de las fotos no se permite: parece mostrar violencia.';
       if (v('medical') >= 4) return 'Una de las fotos no se permite: parece mostrar heridas, sangre o cuerpos.';
+      if (personas) {
+        const cara = (r.faceAnnotations || []).some((f) => (f.detectionConfidence || 0) >= UMBRAL_CARA_VISION);
+        const persona = (r.localizedObjectAnnotations || []).some((o) => PARTES_PERSONA.has(o.name) && (o.score || 0) >= UMBRAL_PERSONA_VISION);
+        if (cara || persona) return 'Una de las fotos no se permite: parece que se ve una persona. En HAY solo van fotos del artículo, sin personas. Toma la foto solo al artículo, con un fondo liso.';
+      }
     }
     return null;
   } catch (e) {
@@ -638,7 +652,7 @@ async function handle(req, res) {
     if (REQUIRE_IDENTITY && !(user.identity && user.identity.status && user.identity.status !== 'rejected')) {
       return sendJSON(res, 403, { error: 'Antes de publicar tienes que verificar tu identidad (foto de cédula + selfie).', code: 'IDENTITY_REQUIRED' });
     }
-    const blocked = await moderatePhotos(body.photoData || []);
+    const blocked = await moderatePhotos(body.photoData || [], { personas: true });
     if (blocked) return sendJSON(res, 400, { error: blocked, code: 'PHOTO_BLOCKED' });
     const saved = await savePhotos(body.photoData || []);
     if (saved.error) return sendJSON(res, 400, { error: saved.error });
@@ -685,7 +699,7 @@ async function handle(req, res) {
     const keep = Array.isArray(body.keepPhotoUrls)
       ? body.keepPhotoUrls.filter((u) => (existing.photoUrls || []).includes(u))
       : existing.photoUrls || [];
-    const blockedEdit = await moderatePhotos(body.photoData || []);
+    const blockedEdit = await moderatePhotos(body.photoData || [], { personas: true });
     if (blockedEdit) return sendJSON(res, 400, { error: blockedEdit, code: 'PHOTO_BLOCKED' });
     const savedEdit = await savePhotos(body.photoData || []);
     if (savedEdit.error) return sendJSON(res, 400, { error: savedEdit.error });
@@ -751,8 +765,10 @@ async function handle(req, res) {
     if (!user) return sendJSON(res, 401, { error: 'Debes iniciar sesión para eliminar una publicación' });
     const found = await store.listings.get(parts[2]);
     if (!found) return sendJSON(res, 404, { error: 'Publicación no encontrada' });
-    if (found.sellerId !== user.id) return sendJSON(res, 403, { error: 'No puedes eliminar una publicación que no es tuya' });
+    // V1.39: el moderador (ADMIN_EMAIL) puede eliminar cualquier publicación.
+    if (found.sellerId !== user.id && !user.isAdmin) return sendJSON(res, 403, { error: 'No puedes eliminar una publicación que no es tuya' });
     await store.listings.remove(found.id);
+    if (found.sellerId !== user.id) console.log('[HAY backend] Moderador', user.email, 'eliminó la publicación', found.id, '(' + found.title + ') de', found.sellerEmail);
     return sendJSON(res, 200, { ok: true, deletedId: found.id });
   }
 

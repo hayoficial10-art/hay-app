@@ -1213,6 +1213,26 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
 
   // Iniciar (o continuar) un chat real desde el detalle de un producto (V1.7)
   if (screenId === 'product-detail') {
+    // V1.39: el moderador puede eliminar la publicación de cualquier usuario.
+    const adminDelBtn = phoneEl.querySelector('[data-testid="btn-admin-delete-listing"]');
+    if (adminDelBtn) {
+      adminDelBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const listing = findListingById(CURRENT_PRODUCT_ID);
+        if (!listing) return;
+        if (!window.confirm('¿Eliminar la publicación «' + listing.title + '» de este usuario? No se puede deshacer.')) return;
+        adminDelBtn.disabled = true;
+        const result = await apiDeleteListing(listing.id);
+        if (!result.ok) {
+          adminDelBtn.disabled = false;
+          alert('No se pudo eliminar: ' + result.error);
+          return;
+        }
+        await refreshProductGrids();
+        navigateTo(phoneEl, 'home');
+      });
+    }
     ['btn-fab-chat', 'btn-buy-now'].forEach((testid) => {
       const btn = phoneEl.querySelector(`[data-testid="${testid}"]`);
       if (!btn) return;

@@ -41,6 +41,11 @@ services:
         sync: false
       - key: PUBLIC_URL
         sync: false
+      # V1.39: revisión de fotos en el servidor (sexo, violencia y PERSONAS en
+      # las publicaciones). Sin esta clave solo queda la revisión del teléfono,
+      # que no ve las caras muy de cerca. Ver PUBLICAR.md.
+      - key: GOOGLE_VISION_KEY
+        sync: false
     disk:
       name: hay-data
       mountPath: /var/data
