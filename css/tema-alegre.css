@@ -352,3 +352,103 @@
 .promo-block--alegre .promo-block__title { font-size: 19px; }
 .promo-block__art { width: 46px; height: 46px; border-radius: 14px; }
 .promo-block__art svg { width: 24px; height: 24px; }
+
+/* ---------- V1.44: Mi perfil (diseño Stitch) ---------- */
+.profile-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-5) var(--space-1);
+}
+.profile-head .screen-title { font-size: 30px; font-weight: 900; margin: 0; }
+.profile-head__sub { margin: 2px 0 0; font-size: 14px; font-weight: 600; color: var(--color-text-muted); }
+.profile-head__gear { width: 48px; height: 48px; border-radius: 999px; background: var(--hay-turquoise) !important; color: var(--hay-navy); }
+.profile-head__gear svg { stroke: var(--hay-navy); }
+
+.profile-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06);
+}
+.profile-card--guest { align-items: center; padding: var(--space-6) var(--space-4); }
+.profile-card--guest .btn { width: 100%; }
+.profile-card__top { display: flex; gap: var(--space-4); align-items: center; }
+.profile-card__avatar { position: relative; flex-shrink: 0; }
+.profile-card__avatar .avatar { width: 84px; height: 84px; border-radius: 999px; font-size: 28px; }
+.profile-card__check {
+  position: absolute; right: -2px; bottom: -2px;
+  width: 30px; height: 30px; border-radius: 999px;
+  background: var(--hay-green); border: 3px solid #ffffff;
+  display: flex; align-items: center; justify-content: center;
+}
+.profile-card__check svg { width: 16px; height: 16px; stroke: var(--hay-navy); stroke-width: 3; }
+.profile-card__who { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.profile-card__name { margin: 0; font-family: var(--font-display); font-size: 21px; font-weight: 900; line-height: 1.15; color: var(--hay-navy); word-break: break-word; }
+.id-pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+.id-pill__dot { width: 8px; height: 8px; border-radius: 999px; }
+.id-pill--ok { background: var(--hay-green-highlight); color: var(--hay-green-active); }
+.id-pill--ok .id-pill__dot { background: var(--hay-green); }
+.id-pill--wait { background: var(--hay-yellow-highlight); color: var(--hay-orange-ink); }
+.id-pill--wait .id-pill__dot { background: var(--hay-yellow); }
+.id-pill--bad { background: var(--hay-pink-highlight); color: var(--hay-pink-active); }
+.id-pill--bad .id-pill__dot { background: var(--hay-pink); }
+.profile-card .rating-pill { background: transparent; padding: 0; font-weight: 800; color: var(--hay-navy); }
+.profile-card .rating-pill svg { fill: var(--hay-yellow); stroke: var(--hay-yellow-active); }
+.profile-card__facts { background: var(--color-surface-2); border-radius: 18px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.profile-card__facts:empty { display: none; }
+.profile-card__facts p { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; color: var(--hay-navy); min-width: 0; }
+.profile-card__facts p span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.profile-card__facts svg { width: 18px; height: 18px; flex-shrink: 0; stroke: var(--color-text-muted); }
+.profile-card .btn--sm { align-self: flex-start; width: auto; padding: 0 18px; }
+
+.safe-banner {
+  display: flex; align-items: center; gap: var(--space-3);
+  background: var(--hay-turquoise); color: var(--hay-navy);
+  border-radius: 22px; padding: 14px 16px;
+  font-size: 14px; line-height: 1.35;
+}
+.safe-banner strong { display: block; font-size: 15px; font-weight: 900; }
+.safe-banner__icon { width: 46px; height: 46px; flex-shrink: 0; border-radius: 999px; background: var(--hay-navy); display: flex; align-items: center; justify-content: center; }
+.safe-banner__icon svg { width: 24px; height: 24px; stroke: #ffffff; }
+
+.profile-publish { min-height: 56px; font-size: 16px; font-weight: 900; gap: 8px; box-shadow: 0 8px 20px rgba(255, 194, 26, .35); }
+.profile-publish svg { width: 22px; height: 22px; stroke: var(--hay-navy); stroke-width: 2.6; }
+
+.option-list--card { background: #ffffff; border-radius: 24px; padding: 6px 12px; box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06); gap: 0; }
+.option-list--card .option-row { background: transparent; box-shadow: none; border-radius: 0; padding: 12px 4px; border: 0; }
+.option-list--card .option-row + .option-row { border-top: 1px solid var(--color-divider); }
+.option-list--card .list-row__icon { border-radius: 999px; }
+.option-row__tag { flex-shrink: 0; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; }
+.option-row__tag--ok { background: var(--hay-green-highlight); color: var(--hay-green-active); }
+.option-row__tag--wait { background: var(--hay-yellow-highlight); color: var(--hay-orange-ink); }
+.option-row__tag--bad { background: var(--hay-pink-highlight); color: var(--hay-pink-active); }
+
+.profile-logout { background: var(--hay-red, #c8102e) !important; border-color: transparent !important; color: #ffffff !important; gap: 8px; }
+.profile-logout svg { stroke: #ffffff; }
+.profile-foot { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: var(--space-2); }
+.profile-foot .app-version { margin: 0; text-align: center; }
+.profile-card__name { font-size: 19px; overflow-wrap: anywhere; }
+[data-testid="screen-profile"] { padding-bottom: 56px; }
+
+/* ---------- V1.44: Detalle del producto ---------- */
+/* Botones sobre la foto con color (no blancos) */
+.product-hero__bar .icon-btn { background: var(--hay-turquoise) !important; color: var(--hay-navy); box-shadow: 0 4px 12px rgba(27, 35, 80, .15); }
+.product-hero__bar .icon-btn svg { stroke: var(--hay-navy); }
+.product-hero__bar .icon-btn--pink { background: var(--hay-pink) !important; }
+.product-hero__bar .icon-btn--pink.is-fav svg { fill: var(--hay-navy); stroke: var(--hay-navy); }
+
+/* Mensajes: burbujas como en el diseño (las mías en tinta, las del otro blancas) */
+.bubble--out { background: var(--hay-navy) !important; color: #ffffff !important; }
+.bubble--in { background: #ffffff; box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06); }
+.chat-send { background: var(--hay-turquoise); }
+.chat-tip { display: flex; gap: 12px; align-items: flex-start; margin: var(--space-3) var(--space-4) 0; padding: 12px 14px; background: #ffffff; border-radius: 18px; box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06); }
+.chat-tip__icon { width: 36px; height: 36px; flex-shrink: 0; border-radius: 999px; background: var(--hay-yellow); display: flex; align-items: center; justify-content: center; }
+.chat-tip__icon svg { width: 20px; height: 20px; stroke: var(--hay-navy); }
+.chat-tip p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--color-text-muted); }
+.chat-tip strong { display: block; font-size: 14px; color: var(--hay-navy); font-weight: 900; }

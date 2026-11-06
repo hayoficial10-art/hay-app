@@ -318,71 +318,89 @@ const SCREENS_MAIN = [
     id: 'profile',
     block: 'main',
     label: '10. Perfil',
-    html: () => `
-    <div class="phone__screen screen--fucsia-top">
+    // V1.43: diseño Stitch — título claro, tarjeta del usuario, aviso de cuenta
+    // verificada, botón amarillo para publicar, opciones en una sola tarjeta
+    // y «Cerrar sesión» abajo. Solo datos reales (sin cifras inventadas).
+    html: () => {
+      const u = CURRENT_USER;
+      const logged = Boolean(u) || !HAY_APP_MODE;
+      const status = u ? u.identityStatus : 'none';
+      const verified = status === 'verified';
+      const name = u ? (u.businessName || u.email) : 'María Jiménez';
+      const since = u && u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-VE', { month: 'long', year: 'numeric' }) : '';
+      const ratingHtml = HAY_APP_MODE && u ? (() => {
+        const r = RATINGS_CACHE.get(u.id);
+        return r && r.count
+          ? `<span class="rating-pill" data-testid="profile-rating">${icon('star')} ${r.average.toFixed(1).replace('.', ',')} <small>(${r.count} calificaci${r.count === 1 ? 'ón' : 'ones'})</small></span>`
+          : `<span class="rating-pill" data-testid="profile-rating"><small>Todavía sin calificaciones</small></span>`;
+      })() : `<span class="rating-pill">${icon('star')} 4,0 <small>(32 ventas)</small></span>`;
+      const idLabel = ({ verified: 'Identidad verificada', submitted: 'Verificación enviada', rejected: 'Verificación no pasó' })[status] || 'Identidad sin verificar';
+      const idTone = verified ? 'ok' : status === 'rejected' ? 'bad' : 'wait';
+      const row = (nav, testid, tone, ic, title, extra = '') => `
+            <button class="option-row" data-nav="${nav}" data-testid="${testid}">
+              <span class="list-row__icon tone-${tone}">${icon(ic)}</span>
+              <div class="list-row__body"><p class="list-row__title">${title}</p></div>
+              ${extra}${icon('chevronRight', 'list-row__chevron')}
+            </button>`;
+      return `
+    <div class="phone__screen screen--alegre">
       ${statusBar()}
       <div class="screen-body">
-        <!-- V1.33: cabecera fucsia; la foto de perfil queda montada sobre su borde -->
-        <header class="fucsia-header profile-header" data-testid="profile-header">
-          <h1 class="screen-title">Mi perfil</h1>
-          <button class="icon-btn icon-btn--white" data-nav="settings" aria-label="Configuración" data-testid="btn-open-settings-from-profile">
+        <header class="profile-head" data-testid="profile-header">
+          <div>
+            <h1 class="screen-title">Mi perfil</h1>
+            <p class="profile-head__sub">${logged ? 'Gestiona tus ventas y reputación' : 'Entra para publicar y chatear'}</p>
+          </div>
+          <button class="icon-btn profile-head__gear" data-nav="settings" aria-label="Configuración" data-testid="btn-open-settings-from-profile">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>
           </button>
         </header>
-        <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-profile">
-          <div class="stack text-center profile-hero" style="align-items:center; gap:var(--space-3);">
-            ${HAY_APP_MODE && !CURRENT_USER ? `
-            ${heroIcon('user', 'cyan', { size: 130 })}
-            <p style="font-family:var(--font-display); font-weight:700; font-size:24px; color:var(--hay-navy);">Entra a tu cuenta</p>
-            <p class="screen-subtitle">Para publicar, chatear y ver tus ventas.</p>
-            <button class="btn btn--turquoise" data-nav="login" data-testid="btn-profile-login">Iniciar sesión</button>
-            <button class="btn btn--outline" data-nav="register" data-testid="btn-profile-register">Crear cuenta</button>
-            ` : `
-            ${userAvatar('lg', 'fucsia', 'profile-avatar')}
-            <p style="font-family:var(--font-display); font-weight:600; font-size:24px; color:var(--hay-navy); line-height:1.2; word-break:break-word;">${CURRENT_USER ? (CURRENT_USER.businessName || CURRENT_USER.email) : 'María Jiménez'}</p>
-            ${HAY_APP_MODE ? (() => {
-              const r = RATINGS_CACHE.get(CURRENT_USER.id);
-              return r && r.count
-                ? `<span class="rating-pill" data-testid="profile-rating">${r.average.toFixed(1).replace('.', ',')} ${icon('star')} <small>(${r.count} calificaci${r.count === 1 ? 'ón' : 'ones'})</small></span>`
-                : `<span class="rating-pill" data-testid="profile-rating"><small>Todavía sin calificaciones</small></span>`;
-            })() : `<span class="rating-pill">4,0 ${icon('star')} <small>(32 ventas)</small></span>`}
-            <span class="text-xs text-faint" style="font-weight:700;">${HAY_APP_MODE ? 'Sesión activa' : CURRENT_USER ? 'Miami, FL · Sesión activa' : 'Miami, FL · Miembro desde 2023 (invitado, sin sesión)'}</span>
-            <button class="btn btn--turquoise" style="width:auto; padding-left:var(--space-8); padding-right:var(--space-8);" data-nav="edit-profile" data-testid="btn-edit-profile-cta">${icon('edit')} Editar perfil</button>
-            `}
+        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-profile">
+          ${!logged ? `
+          <div class="profile-card profile-card--guest">
+            ${heroIcon('user', 'cyan', { size: 120 })}
+            <p class="profile-card__name" style="text-align:center;">Entra a tu cuenta</p>
+            <p class="screen-subtitle" style="text-align:center;">Para publicar, chatear y ver tus ventas.</p>
+            <button class="btn btn--yellow" data-nav="login" data-testid="btn-profile-login">Iniciar sesión</button>
+            <button class="btn btn--green" data-nav="register" data-testid="btn-profile-register">Crear cuenta</button>
+          </div>` : `
+          <div class="profile-card" data-testid="profile-card">
+            <div class="profile-card__top">
+              <div class="profile-card__avatar">${userAvatar('lg', 'fucsia', 'profile-avatar')}${verified ? `<span class="profile-card__check" aria-label="Identidad verificada">${icon('check')}</span>` : ''}</div>
+              <div class="profile-card__who">
+                <p class="profile-card__name">${name}</p>
+                <span class="id-pill id-pill--${idTone}" data-testid="profile-id-status"><span class="id-pill__dot"></span>${idLabel}</span>
+                ${ratingHtml}
+              </div>
+            </div>
+            <div class="profile-card__facts">
+              ${u && name !== u.email ? `<p>${icon('mail')}<span>${u.email}</span></p>` : ''}
+              ${since ? `<p>${icon('star')}<span>Miembro desde ${since}</span></p>` : ''}
+            </div>
+            <button class="btn btn--turquoise btn--sm" data-nav="edit-profile" data-testid="btn-edit-profile-cta">${icon('edit')} Editar perfil</button>
           </div>
-
-          ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <div class="option-list">
-            <button class="option-row" data-nav="my-listings" data-testid="btn-go-my-listings">
-              <span class="list-row__icon tone-pink">${icon('boxOpen')}</span>
-              <div class="list-row__body"><p class="list-row__title">Mis publicaciones</p><p class="list-row__sub">Ver lo que publicaste con esta cuenta</p></div>
-              ${icon('chevronRight', 'list-row__chevron')}
-            </button>
-            <button class="option-row" data-nav="favorites" data-testid="btn-go-favorites">
-              <span class="list-row__icon tone-cyan">${icon('heart')}</span>
-              <div class="list-row__body"><p class="list-row__title">Favoritos</p><p class="list-row__sub">${HAY_APP_MODE ? 'Tus productos guardados' : '6 productos guardados'}</p></div>
-              ${icon('chevronRight', 'list-row__chevron')}
-            </button>
-            <button class="option-row" data-nav="notifications" data-testid="btn-go-notifications">
-              <span class="list-row__icon tone-green">${icon('bell')}</span>
-              <div class="list-row__body"><p class="list-row__title">Notificaciones</p><p class="list-row__sub">${HAY_APP_MODE ? 'Avisos de tu cuenta' : '3 nuevas'}</p></div>
-              ${icon('chevronRight', 'list-row__chevron')}
-            </button>
-            ${CURRENT_USER ? `<button class="option-row" data-nav="verify-identity" data-testid="btn-go-verify-identity">
-              <span class="list-row__icon tone-yellow">${icon('shield')}</span>
-              <div class="list-row__body"><p class="list-row__title">Verificación de identidad</p><p class="list-row__sub">${({ verified: 'Verificada ✓', submitted: 'Enviada ✓', rejected: 'No pasó · repítela' })[CURRENT_USER.identityStatus] || 'Pendiente · necesaria para publicar'}</p></div>
-              ${icon('chevronRight', 'list-row__chevron')}
-            </button>` : ''}
-            <button class="option-row" data-nav="settings" data-testid="btn-go-settings">
-              <span class="list-row__icon tone-pink">${icon('help')}</span>
-              <div class="list-row__body"><p class="list-row__title">Configuración</p><p class="list-row__sub">Cuenta, privacidad, ayuda</p></div>
-              ${icon('chevronRight', 'list-row__chevron')}
-            </button>
+          ${verified ? `
+          <div class="safe-banner" data-testid="profile-verified-banner">
+            <span class="safe-banner__icon">${icon('shield')}</span>
+            <span><strong>Tu cuenta está protegida y verificada</strong>Tus compradores saben que eres confiable.</span>
+          </div>` : HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
+          <button class="btn btn--yellow profile-publish" data-nav="publish-step1" data-testid="btn-profile-publish">${icon('plus')} Crear nueva publicación</button>
+          <div class="option-list option-list--card">
+            ${row('my-listings', 'btn-go-my-listings', 'cyan', 'boxOpen', 'Mis publicaciones')}
+            ${row('favorites', 'btn-go-favorites', 'pink', 'heart', 'Favoritos guardados')}
+            ${u ? row('verify-identity', 'btn-go-verify-identity', 'green', 'shield', 'Verificación de identidad', `<span class="option-row__tag option-row__tag--${idTone}">${({ verified: 'Verificada', submitted: 'Enviada', rejected: 'Repetir' })[status] || 'Pendiente'}</span>`) : ''}
+            ${row('notifications', 'btn-go-notifications', 'yellow', 'bell', 'Notificaciones y alertas')}
+            ${row('settings', 'btn-go-settings', 'purple', 'help', 'Configuración y ayuda')}
           </div>
-          ${HAY_APP_MODE ? `<p class="app-version" data-testid="app-version-profile">HAY · versión ${HAY_VERSION}</p>` : ''}
+          ${u ? `<button class="btn profile-logout" data-nav="login" data-testid="btn-logout">${icon('logout')} Cerrar sesión</button>` : ''}`}
+          <div class="profile-foot">
+            ${hayLogo(22)}
+            ${HAY_APP_MODE ? `<p class="app-version" data-testid="app-version-profile">versión ${HAY_VERSION} · Compra y venta directa entre venezolanos</p>` : ''}
+          </div>
         </div>
       </div>
       ${tabBar('profile')}
-    </div>`,
+    </div>`;
+    },
   },
 ];

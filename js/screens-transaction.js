@@ -266,6 +266,11 @@ const SCREENS_TRANSACTION = [
         </div>
       </div>
       <div class="screen-body">
+        <!-- V1.44: consejo de compra segura (diseño Stitch) -->
+        <div class="chat-tip" data-testid="chat-safety-tip">
+          <span class="chat-tip__icon">${icon('shield')}</span>
+          <p><strong>Consejo de compra segura HAY</strong>Nunca pagues por adelantado ni compartas claves. Acuerden el pago al momento de la entrega, en un lugar público.</p>
+        </div>
         <div class="chat-messages" data-testid="chat-messages">
           ${CHAT_LOADING ? `
             <p class="empty-msg">Cargando conversación...</p>

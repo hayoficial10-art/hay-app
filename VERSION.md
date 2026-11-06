@@ -1,8 +1,42 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.43
+**VERSIÓN:** 1.44
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.42. Contiene todo lo de la v1.42, más lo nuevo de la v1.43.
+**BASE:** v1.43. Contiene todo lo de la v1.43, más lo nuevo de la v1.44.
+
+## V1.44 — Mi perfil, Detalle y Chat con el diseño nuevo
+
+### Mi perfil (diseño Stitch)
+- Título «Mi perfil» con el botón de Configuración en turquesa.
+- Tarjeta blanca con la foto, el nombre, el estado de la verificación (verde verificada,
+  amarillo pendiente, coral si no pasó), la calificación, el correo y «Miembro desde».
+- Si la identidad está verificada: aviso turquesa «Tu cuenta está protegida y verificada».
+  Si falta: el aviso de siempre para verificarse.
+- Botón amarillo grande «Crear nueva publicación».
+- Opciones en una sola tarjeta con íconos de colores: Mis publicaciones, Favoritos
+  guardados, Verificación de identidad (con su estado), Notificaciones y alertas,
+  Configuración y ayuda.
+- Botón rojo «Cerrar sesión» y, al final, el logo con la versión.
+- Sin cifras inventadas: solo se muestran datos reales de la cuenta.
+- Sin sesión: tarjeta con «Iniciar sesión» (amarillo) y «Crear cuenta» (verde).
+
+### Detalle del producto
+- Los botones sobre la foto (volver, compartir, favorito) ya no son blancos:
+  turquesa, y el corazón en coral.
+
+### Chat
+- Mis mensajes en azul marino con letra blanca; los del otro en tarjeta blanca.
+- Arriba de la conversación, la tarjeta «Consejo de compra segura HAY».
+
+### Sin cambios de forma
+- Publicar sigue en pasos (fotos, datos, precio, ubicación…) con sus revisiones; solo
+  tomó los colores nuevos. Verificación de identidad igual, con los colores nuevos.
+
+- Versión 1.44 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.43 — Inicio más limpio
 
