@@ -1,8 +1,32 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.48
+**VERSIÓN:** 1.49
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.47. Igual que la v1.46 (se deshizo el cambio de la v1.47).
+**BASE:** v1.48.
+
+## V1.49 — tamaños y simetría de referencia; selfie desde la galería
+
+- Tamaños y simetría tomados de las pantallas de referencia (los colores siguen
+  siendo los de HAY; las tarjetas con fotos de los productos no cambian).
+  Todo en `css/simetria.css`:
+  - Márgenes laterales iguales de 16 px en todas las pantallas.
+  - Inicio: las 4 ventajas son botones del mismo tamaño, con el ícono alineado.
+  - Mi perfil: «Mis publicaciones», «Favoritos» y «Notificaciones» pasan a ser
+    3 botones iguales y centrados; abajo quedan en lista «Verificación de identidad»
+    y «Configuración y ayuda».
+  - Filas de lista (Mi perfil y Configuración) con el mismo alto (58 px), mismo ícono
+    redondo de 40 px y línea separadora entre filas.
+  - Configuración: los íconos de «Términos de uso» y «Panel de moderador» se veían vacíos;
+    ahora se ven.
+  - Barra de abajo: 5 espacios del mismo ancho y botón central redondo de 60 px.
+  - Esquinas iguales (16 px) en bloques y tarjetas.
+- Verificación de identidad: la selfie ahora tiene dos botones, «Tomar selfie» y
+  «Galería», igual que la cédula. La comparación cara–cédula sigue igual.
+- Versión 1.49 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.48 — vuelve el logo de letras dentro de la app
 

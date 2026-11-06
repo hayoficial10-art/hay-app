@@ -1,0 +1,108 @@
+/* simetria.css — V1.49
+ * Tamaños y simetría tomados de las pantallas de referencia (teléfono de
+ * ~393 px de ancho). Solo medidas: los colores siguen siendo los de HAY.
+ *  - Márgenes laterales iguales: 16 px a cada lado.
+ *  - Accesos en fila: botones del mismo tamaño, separación 8 px,
+ *    ícono arriba y texto centrado en dos líneas.
+ *  - Filas de lista: 58 px de alto, ícono a la izquierda y flecha a la derecha.
+ *  - Barra de abajo: 5 espacios del mismo ancho, botón central redondo de 60 px.
+ * Las tarjetas con fotos de los productos NO se tocan.
+ */
+
+:root { --hay-margen: 16px; }
+
+/* ---------- Márgenes laterales iguales ---------- */
+.screen-content { padding-left: var(--hay-margen); padding-right: var(--hay-margen); }
+.alegre-header,
+.profile-head,
+.topbar,
+.bottom-cta { padding-left: var(--hay-margen); padding-right: var(--hay-margen); }
+
+/* ---------- Inicio: fila de 4 ventajas iguales ---------- */
+.benefits-row { gap: 8px; }
+.benefit {
+  min-height: 104px;
+  justify-content: flex-start; /* íconos alineados aunque el texto ocupe 1 o 2 líneas */
+  gap: 8px;
+  padding: 12px 4px;
+  border-radius: 16px;
+}
+.benefit__icon { width: 40px; height: 40px; }
+.benefit__icon svg { width: 22px; height: 22px; }
+
+/* ---------- Accesos de 3 iguales (Mi perfil) ---------- */
+.quick-tiles { display: grid; gap: 8px; }
+.quick-tiles--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.quick-tile {
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* íconos alineados aunque el texto ocupe 1 o 2 líneas */
+  gap: 8px;
+  padding: 14px 6px 12px;
+  border: 0;
+  border-radius: 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--hay-navy);
+  cursor: pointer;
+  transition: transform var(--transition-interactive);
+}
+.quick-tile:active { transform: scale(0.97); }
+.quick-tile__icon {
+  width: 40px; height: 40px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .6);
+}
+.quick-tile__icon svg { width: 22px; height: 22px; stroke: var(--hay-navy); stroke-width: 2.3; }
+.quick-tile--cyan { background: var(--hay-turquoise-highlight); }
+.quick-tile--pink { background: var(--hay-pink-highlight); }
+.quick-tile--yellow { background: var(--hay-yellow-highlight); }
+.quick-tile--green { background: var(--hay-green-highlight); }
+
+/* ---------- Filas de lista: mismo alto y mismo ícono ---------- */
+.option-row,
+.option-list--card .option-row,
+.card > .list-row {
+  min-height: 58px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.option-row .list-row__icon,
+.option-list--card .list-row__icon,
+.card > .list-row .list-row__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+}
+.option-row .list-row__icon svg,
+.card > .list-row .list-row__icon svg { width: 20px; height: 20px; }
+.option-row .list-row__title,
+.card > .list-row .list-row__title { font-size: 16px; font-weight: 700; }
+/* Configuración: una línea separadora entre filas, como en Mi perfil */
+.card > .list-row { border-bottom: 0; }
+.card > .list-row + .list-row { border-top: 1px solid var(--color-divider) !important; }
+/* El ícono en bloque tinta se veía vacío (trazo tinta sobre fondo tinta) */
+.tone-navy svg { stroke: #ffffff !important; }
+
+/* Bloques y tarjetas: esquinas iguales */
+.promo-block--alegre,
+.profile-card,
+.option-list--card,
+.safe-banner,
+.identity-banner { border-radius: 16px; }
+
+/* ---------- Barra de abajo: 5 espacios iguales ---------- */
+.tabbar { justify-content: space-between; padding-left: 4px; padding-right: 4px; }
+.tabbar__item { flex: 1 1 0; min-width: 0; }
+.tabbar__item span { white-space: nowrap; }
+.tabbar__fab-circle,
+.tabbar--color .tabbar__fab-circle { width: 60px; height: 60px; border-radius: 999px; }
+
+/* ---------- Verificación: botones de foto del mismo tamaño ---------- */
+.photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.photo-actions .btn { width: 100%; min-height: 44px; }

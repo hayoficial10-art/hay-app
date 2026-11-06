@@ -379,6 +379,12 @@ const SCREENS_MAIN = [
             </div>
             <button class="btn btn--turquoise btn--sm" data-nav="edit-profile" data-testid="btn-edit-profile-cta">${icon('edit')} Editar perfil</button>
           </div>
+          <!-- V1.49: tres accesos iguales y centrados (tamaños y simetría de referencia) -->
+          <div class="quick-tiles quick-tiles--3" data-testid="profile-quick-tiles">
+            <button class="quick-tile quick-tile--cyan" data-nav="my-listings" data-testid="btn-go-my-listings"><span class="quick-tile__icon">${icon('boxOpen')}</span><span class="quick-tile__label">Mis publicaciones</span></button>
+            <button class="quick-tile quick-tile--pink" data-nav="favorites" data-testid="btn-go-favorites"><span class="quick-tile__icon">${icon('heart')}</span><span class="quick-tile__label">Favoritos</span></button>
+            <button class="quick-tile quick-tile--yellow" data-nav="notifications" data-testid="btn-go-notifications"><span class="quick-tile__icon">${icon('bell')}</span><span class="quick-tile__label">Notificaciones</span></button>
+          </div>
           ${verified ? `
           <div class="safe-banner" data-testid="profile-verified-banner">
             <span class="safe-banner__icon">${icon('shield')}</span>
@@ -386,10 +392,7 @@ const SCREENS_MAIN = [
           </div>` : HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
           <button class="btn btn--yellow profile-publish" data-nav="publish-step1" data-testid="btn-profile-publish">${icon('plus')} Crear nueva publicación</button>
           <div class="option-list option-list--card">
-            ${row('my-listings', 'btn-go-my-listings', 'cyan', 'boxOpen', 'Mis publicaciones')}
-            ${row('favorites', 'btn-go-favorites', 'pink', 'heart', 'Favoritos guardados')}
             ${u ? row('verify-identity', 'btn-go-verify-identity', 'green', 'shield', 'Verificación de identidad', `<span class="option-row__tag option-row__tag--${idTone}">${({ verified: 'Verificada', submitted: 'Enviada', rejected: 'Repetir' })[status] || 'Pendiente'}</span>`) : ''}
-            ${row('notifications', 'btn-go-notifications', 'yellow', 'bell', 'Notificaciones y alertas')}
             ${row('settings', 'btn-go-settings', 'purple', 'help', 'Configuración y ayuda')}
           </div>
           ${u ? `<button class="btn profile-logout" data-nav="login" data-testid="btn-logout">${icon('logout')} Cerrar sesión</button>` : ''}`}

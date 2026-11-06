@@ -558,21 +558,17 @@ const SCREENS_ACCOUNT = [
               </span>
               ${img ? `<span class="badge badge--active">✓</span>` : ''}
             </div>
-            ${kind === 'selfie' ? `
-            <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-identity-camera-selfie">
-              ${icon('camera')} ${img ? 'Repetir selfie' : 'Tomar selfie'}
-              <input type="file" accept="image/*" capture="user" data-identity-input="selfie" data-testid="input-identity-selfie" style="display:none;" />
-            </label>` : `
+            <!-- V1.49: la selfie también se puede elegir de la galería (igual que la cédula) -->
             <div class="photo-actions">
               <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-identity-camera-${kind}">
-                ${icon('camera')} Tomar foto
+                ${icon('camera')} ${kind === 'selfie' ? (img ? 'Repetir selfie' : 'Tomar selfie') : 'Tomar foto'}
                 <input type="file" accept="image/*" capture="${capture}" data-identity-input="${kind}" data-testid="input-identity-${kind}" style="display:none;" />
               </label>
               <label class="btn btn--green btn--sm" style="cursor:pointer;" data-testid="btn-identity-gallery-${kind}">
                 ${icon('gallery')} Galería
                 <input type="file" accept="image/*" data-identity-input="${kind}" data-testid="input-identity-gallery-${kind}" style="display:none;" />
               </label>
-            </div>`}
+            </div>
           </div>`;
       };
       return `
@@ -592,7 +588,7 @@ const SCREENS_ACCOUNT = [
           ${done ? `<span class="badge badge--active" style="align-self:center; padding:6px 14px;" data-testid="identity-status-done">${CURRENT_USER.identityStatus === 'verified' ? '✓ Identidad verificada' : '✓ Verificación enviada'}</span>` : ''}
           ${rechazada ? `<p class="identity-banner" style="cursor:default;" data-testid="identity-rejected"><span class="identity-banner__text"><strong>Tu verificación no pasó</strong>La cara de la selfie no coincide con la de la cédula. Toma de nuevo las dos fotos: la cédula bien enfocada y sin reflejos, y la selfie de frente con buena luz.</span></p>` : ''}
           ${slot('cedula', '1. Foto de tu cédula', 'Del lado de la foto, que se lea bien', 'environment', 'shield')}
-          ${slot('selfie', '2. Selfie', 'Tu cara de frente, con buena luz (se toma con la cámara)', 'user', 'user')}
+          ${slot('selfie', '2. Selfie', 'Tu cara de frente, con buena luz (cámara o galería)', 'user', 'user')}
           <p class="text-xs text-muted" style="font-weight:600; display:flex; gap:8px; align-items:flex-start;">${icon('lock', 'icon-16')} <span>Tus fotos se guardan cifradas y en privado. Nunca se muestran en tus publicaciones; solo el equipo de moderación puede verlas si hace falta revisar un caso.</span></p>
           <p class="text-xs" id="identityErrorMsg" data-testid="identity-error-msg" style="display:${IDENTITY_NOTICE ? 'block' : 'none'}; color:var(--color-error); font-weight:700;">${IDENTITY_NOTICE || ''}</p>
         </div>
