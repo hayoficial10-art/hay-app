@@ -91,7 +91,7 @@ const SCREENS_ACCOUNT = [
           })()}
         </div>
       </div>
-      ${tabBar('profile')}
+      ${tabBar('favorites')}
     </div>`,
   },
 

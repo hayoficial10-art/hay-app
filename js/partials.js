@@ -17,9 +17,13 @@ function statusBar() {
    size = alto de cada bloque en px. opts.lift sube la "A" un poquito
    (versión de bienvenida); opts.onBlue pone la "Y" en blanco para que
    se lea sobre el fondo azul. */
+/* V1.40: el logo es la imagen oficial 3D (letras H, A, y con el lema
+   debajo), con fondo transparente. size = alto aproximado de las letras;
+   la imagen mide 1,7 veces eso porque incluye el lema. Las opciones
+   lift/onBlue/onYellow ya no cambian nada (se aceptan por compatibilidad). */
 function hayLogo(size = 30, opts = {}) {
-  const cls = ['hay-wordmark', opts.lift ? 'hay-wordmark--lift' : '', opts.onBlue ? 'hay-wordmark--on-blue' : '', opts.onYellow ? 'hay-wordmark--on-yellow' : ''].join(' ').trim();
-  return `<span class="${cls}" style="--wm:${size}px" role="img" aria-label="HAY"${opts.testid ? ` data-testid="${opts.testid}"` : ''}><span aria-hidden="true">H</span><span aria-hidden="true">A</span><span aria-hidden="true">Y</span></span>`;
+  const h = Math.round(size * 1.7);
+  return `<img class="hay-logo-img" src="assets/hay-logo-v2.png" alt="HAY — Lo tienes, publícalo, véndelo." style="height:${h}px" decoding="async"${opts.testid ? ` data-testid="${opts.testid}"` : ''} />`;
 }
 
 /* V1.33: avatar del usuario — su foto de perfil si la tiene, si no sus iniciales. */
@@ -40,10 +44,11 @@ function tabBar(activeTab, opts = {}) {
       <span>${label}</span>
     </button>`;
 
+  // V1.40: Favoritos ocupa el lugar de Buscar (el buscador está arriba en Inicio)
   return `
-  <nav class="tabbar tabbar--labels" aria-label="Navegación principal">
+  <nav class="tabbar tabbar--labels tabbar--color" aria-label="Navegación principal">
     ${item('home', 'home', 'Inicio')}
-    ${item('search', 'search', 'Buscar')}
+    ${item('favorites', 'heart', 'Favoritos')}
     <button class="tabbar__item tabbar__item--fab" data-nav="publish-step1" aria-label="Publicar" data-testid="tab-publish">
       <span class="tabbar__fab-circle">${icon('plus')}</span>
       <span>Publicar</span>
@@ -56,6 +61,7 @@ function tabBar(activeTab, opts = {}) {
 const TAB_TARGETS = {
   home: 'home',
   search: 'search',
+  favorites: 'favorites',
   chat: 'messages',
   profile: 'profile',
 };

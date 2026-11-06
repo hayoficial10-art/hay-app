@@ -1,5 +1,47 @@
 # HAY — VERSION.md
 
+**VERSIÓN:** 1.40
+**FECHA:** 6 de noviembre de 2026
+**BASE:** v1.39. Contiene todo lo de la v1.39, más lo nuevo de la v1.40.
+
+## V1.40 — diseño nuevo «alegre» (Google Stitch) y logo oficial
+
+### Logo
+- El logo de arriba es ahora la imagen oficial 3D (H amarilla, A turquesa, «y» coral, con el
+  lema «Lo tienes, publícalo, véndelo.» y las tres rayas de color), con fondo transparente:
+  sin borde ni recuadro blanco. Archivo: `assets/hay-logo-v2.png`.
+- Se usa en todas las pantallas que llevaban el logo de letras (Inicio, bienvenida, acceso)
+  y en Términos, Privacidad y Eliminar cuenta.
+
+### Colores (archivo nuevo `css/tema-alegre.css`)
+- Paleta del logo, todo en colores sólidos (sin degradados): turquesa #22C7E8, amarillo
+  #FFC21A, coral #FF4F6D, verde #6BD43A, anaranjado #F5A300, tinta #1B2350, fondo #F5F7FB.
+- Sobre turquesa, amarillo, coral y verde el texto va en tinta azul marino.
+- El fucsia de las cabeceras pasa a turquesa.
+- Ningún botón blanco: «Continuar con Google» va en azul marino y «Continuar con Apple» en turquesa.
+
+### Barra de navegación de abajo
+- Cada ícono con su color: Inicio turquesa, Favoritos coral, Publicar amarillo (botón
+  redondo central), Mensajes verde, Perfil anaranjado. La pestaña activa va dentro de
+  una pastilla de su color.
+- **Favoritos** ocupa el lugar de **Buscar** (el buscador sigue arriba en Inicio).
+
+### Inicio
+- Cabecera clara: ubicación, logo al centro y campana; buscador blanco con botón de
+  filtros turquesa.
+- Bloque amarillo «¡Publica gratis y vende hoy mismo!» con el botón «Empieza a vender».
+- Fila de ventajas: Trato directo, 0 % comisión, Cerca de ti, Venta rápida.
+- «Explorar categorías» con cuadros de colores (mismo filtro de siempre).
+- Tarjetas de producto blancas con sombra suave; el precio en bolívares sigue igual.
+
+### Versión
+- `HAY_VERSION`, `APP_VERSION`, `package.json` y el service worker pasan a 1.40 (la app
+  se actualiza sola en los teléfonos al abrirla).
+
+
+
+---
+
 **VERSIÓN:** 1.39
 **FECHA:** 4 de noviembre de 2026
 **BASE:** v1.38. Contiene todo lo de la v1.38, más lo nuevo de la v1.39.

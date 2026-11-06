@@ -150,38 +150,55 @@ const SCREENS_MAIN = [
     block: 'main',
     label: '6. Inicio (Feed)',
     html: () => `
-    <div class="phone__screen screen--fucsia-top">
+    <div class="phone__screen screen--alegre">
       ${statusBar()}
       <div class="screen-body">
-        <!-- V1.33: cabecera fucsia con el logo, la ubicación, la campana y el buscador -->
-        <header class="fucsia-header home-header" data-testid="home-header">
-          <div class="flex-between">
-            ${hayLogo(34)}
+        <!-- V1.40: cabecera clara (diseño Stitch): logo al centro, ubicación y campana; buscador blanco con botón de filtros turquesa -->
+        <header class="alegre-header home-header" data-testid="home-header">
+          <div class="alegre-header__row">
             ${HAY_APP_MODE
-              ? `<button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home" data-testid="btn-home-gps">${icon('pin')}${(getSavedLocation() && getSavedLocation().zone) || (getSavedLocation() ? 'Mi ubicación' : 'Activar ubicación')}</button>`
-              : `<span class="home-location" title="Ubicación actual">${icon('pin')}Miami, FL</span>`}
+              ? `<button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home" data-testid="btn-home-gps">${icon('pin')}<span>${(getSavedLocation() && getSavedLocation().zone) || (getSavedLocation() ? 'Mi ubicación' : 'Ubicación')}</span></button>`
+              : `<span class="home-location" title="Ubicación actual">${icon('pin')}<span>Miami, FL</span></span>`}
+            ${hayLogo(38)}
             <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" data-testid="btn-notifications" style="flex-shrink:0;">${icon('bell')}${unreadBadgeHtml()}</button>
           </div>
-          <button class="searchbar searchbar--white" style="text-align:left" data-nav="search" data-testid="btn-open-search">
-            ${icon('search')}
-            <span class="text-faint">¿Qué buscas?</span>
-          </button>
+          <div class="alegre-search">
+            <button class="searchbar searchbar--white" style="text-align:left" data-nav="search" data-testid="btn-open-search">
+              ${icon('search')}
+              <span class="text-faint">Buscar productos, marcas y más…</span>
+            </button>
+            <button class="alegre-search__filter" data-nav="search" aria-label="Filtros de búsqueda" data-testid="btn-open-filters">${icon('filter')}</button>
+          </div>
         </header>
-        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-home">
+        <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-home">
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
+          <button class="promo-block promo-block--alegre" data-nav="publish-step1" data-testid="btn-home-publish" style="text-align:left;">
+            <span class="promo-block__body">
+              <span class="promo-block__badge">100% GRATIS</span>
+              <span class="promo-block__title">¡Publica gratis y vende hoy mismo!</span>
+              <span class="promo-block__text">Conecta directo con compradores en tu zona. Sin comisiones.</span>
+              <span class="promo-block__btn">Empieza a vender ${icon('chevronRight')}</span>
+            </span>
+            <span class="promo-block__art" aria-hidden="true">${icon('tag')}</span>
+          </button>
+          <div class="benefits-row" data-testid="home-benefits">
+            <span class="benefit benefit--cyan"><span class="benefit__icon">${icon('chat')}</span>Trato directo</span>
+            <span class="benefit benefit--green"><span class="benefit__icon">${icon('check')}</span>0% comisión</span>
+            <span class="benefit benefit--yellow"><span class="benefit__icon">${icon('pin')}</span>Cerca de ti</span>
+            <span class="benefit benefit--coral"><span class="benefit__icon">${icon('bolt')}</span>Venta rápida</span>
+          </div>
+          <div class="flex-between">
+            <span class="section-label">Explorar categorías</span>
+          </div>
+          <div class="chip-row chip-row--tiles" data-testid="home-categories">
+            ${categoryChips()}
+          </div>
           <div class="pill-row pill-row--color" data-testid="home-seller-type">
             ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
           </div>
-          <div class="chip-row chip-row--color" data-testid="home-categories" style="overflow-x:auto; flex-wrap:nowrap;">
-            ${categoryChips()}
-          </div>
-          <button class="promo-block" data-nav="publish-step1" data-testid="btn-home-publish" style="text-align:left;">
-            <span><span class="promo-block__title">¿Algo que ya no usas?</span><span class="promo-block__text">Publícalo gratis en 1 minuto.</span></span>
-            <span class="promo-block__btn">Publicar</span>
-          </button>
           <div class="flex-between">
             <span class="section-label">Cerca de ti</span>
-            <button class="text-xs link-cyan" data-nav="search" data-testid="btn-see-all">Ver todo</button>
+            <button class="text-xs link-cyan" data-nav="search" data-testid="btn-see-all">Ver todo ${icon('chevronRight')}</button>
           </div>
           <div class="product-grid" data-testid="home-product-grid">
             ${HAY_APP_MODE && !PRODUCTS.length ? `<p class="empty-msg" style="grid-column:1/-1;">Cargando publicaciones…</p>` : PRODUCTS.length ? PRODUCTS.slice(0, HAY_APP_MODE ? 60 : 8).map((p) => productCard(p)).join('') : `<div class="empty-state" style="grid-column:1/-1; padding:var(--space-6) 0;">${heroIcon('boxOpen', 'cyan', { size: 120 })}<p class="empty-msg" style="margin-top:0;">Todavía no hay publicaciones.<br/>¡Sé el primero en publicar con el botón +!</p></div>`}
@@ -263,7 +280,7 @@ const SCREENS_MAIN = [
           </div>
         </div>
       </div>
-      ${tabBar('search')}
+      ${tabBar('home')}
     </div>`,
   },
 
