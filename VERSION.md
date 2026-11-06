@@ -1,8 +1,26 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.41
+**VERSIÓN:** 1.42
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.40. Contiene todo lo de la v1.40, más lo nuevo de la v1.41.
+**BASE:** v1.41. Contiene todo lo de la v1.41, más lo nuevo de la v1.42.
+
+## V1.42 — el teléfono baja el ícono nuevo
+
+### Error
+Tras la v1.41, al reinstalar la app seguía saliendo el ícono viejo: Chrome tenía
+guardados los archivos del ícono con el mismo nombre.
+
+### Arreglo
+- Los íconos tienen nombre nuevo, así Chrome los baja otra vez:
+  `assets/icono-hay-192.png`, `assets/icono-hay-512.png`,
+  `assets/icono-hay-maskable-512.png`, `assets/icono-hay-apple-180.png`.
+- La barra de arriba del navegador y de la app instalada ya no es fucsia: toma el
+  fondo claro de la app (#F5F7FB).
+- Versión 1.42 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.41 — ícono nuevo de la app
 
