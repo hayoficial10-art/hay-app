@@ -1,8 +1,21 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.40
+**VERSIÓN:** 1.41
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.39. Contiene todo lo de la v1.39, más lo nuevo de la v1.40.
+**BASE:** v1.40. Contiene todo lo de la v1.40, más lo nuevo de la v1.41.
+
+## V1.41 — ícono nuevo de la app
+
+- El ícono de la app (pantalla de inicio del teléfono, pestaña del navegador y Play Store)
+  es ahora el logo oficial 3D con el lema, sobre fondo blanco:
+  `assets/icon-192.png`, `assets/icon-512.png`, `assets/icon-maskable-512.png`
+  (con margen para que Android no lo recorte), `assets/apple-touch-icon.png` y
+  `play-store/icono-512.png`.
+- Versión 1.41 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.40 — diseño nuevo «alegre» (Google Stitch) y logo oficial
 

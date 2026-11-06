@@ -44,7 +44,7 @@ const { createStorage } = require('./storage');
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.40';
+const APP_VERSION = '1.41';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
