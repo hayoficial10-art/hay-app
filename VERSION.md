@@ -1,15 +1,18 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.47
+**VERSIÓN:** 1.48
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.46. Contiene todo lo de la v1.46, más lo nuevo de la v1.47.
+**BASE:** v1.47. Igual que la v1.46 (se deshizo el cambio de la v1.47).
 
-## V1.47 — logo nuevo también dentro de la app
+## V1.48 — vuelve el logo de letras dentro de la app
 
-- El logo de arriba dentro de la app (Inicio, acceso, bienvenida y el pie de Mi perfil)
-  es ahora el logo nuevo cuadrado (tienda con carrito y «HAY»), con esquinas
-  redondeadas: `assets/hay-logo-cuadro.png`. Se quitó el de las letras sueltas.
-- Versión 1.47 (app, servidor, service worker).
+- Se deshizo la v1.47: arriba dentro de la app (Inicio, acceso, bienvenida, Mi perfil)
+  vuelve el logo de las letras HAY con el lema (`assets/hay-logo-v2.png`).
+- El logo nuevo (tienda con carrito) sigue como ícono de la app y en la pantalla de
+  inicio, como en la v1.46.
+- Versión 1.48 (app, servidor, service worker).
+
+## V1.47 — (deshecha en la v1.48) logo nuevo también dentro de la app
 
 
 

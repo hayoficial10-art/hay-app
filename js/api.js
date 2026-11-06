@@ -14,7 +14,7 @@ const HAY_ORIGIN = (location.protocol.startsWith('http') && location.port !== '8
   : 'http://localhost:3000';
 const HAY_API_BASE = HAY_ORIGIN + '/api';
 // V1.35: versión visible en la app (Configuración y Mi perfil)
-const HAY_VERSION = '1.47';
+const HAY_VERSION = '1.48';
 // Modo app real (app.html) vs. galería de prototipo (index.html)
 const HAY_APP_MODE = Boolean(window.HAY_APP_MODE);
 // URL completa de una foto subida (/uploads/...)
