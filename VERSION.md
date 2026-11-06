@@ -1,8 +1,25 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.45
+**VERSIÓN:** 1.46
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.44. Contiene todo lo de la v1.44, más lo nuevo de la v1.45.
+**BASE:** v1.45. Contiene todo lo de la v1.45, más lo nuevo de la v1.46.
+
+## V1.46 — logo nuevo para el ícono y el inicio de la app
+
+- Logo nuevo (tienda con toldo rojo y blanco, carrito con bolsas, «HAY» en 3D y el lema
+  sobre la franja tricolor):
+  - **Ícono de la app** (pantalla de inicio del teléfono, navegador y Play Store):
+    `assets/icono-hay3-192.png`, `icono-hay3-512.png`, `icono-hay3-maskable-512.png`
+    (con margen azul para que Android no lo recorte), `icono-hay3-apple-180.png` y
+    `play-store/icono-512.png`. Nombre nuevo para que el teléfono baje el ícono nuevo.
+  - **Pantalla de inicio de la app** (lo primero que se ve al abrirla): el logo nuevo
+    centrado sobre fondo claro (`assets/hay-logo-inicio.png`).
+- El logo de arriba dentro de la app (Inicio, Mi perfil) sigue siendo el de las letras HAY.
+- Versión 1.46 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.45 — Publicar en una sola página (diseño Stitch)
 

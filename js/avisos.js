@@ -129,7 +129,7 @@ function showToast(n) {
 // Notificación del teléfono (cuando la app está en segundo plano)
 async function showSystemNotification(n) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return false;
-  const opts = { body: notifBody(n), icon: 'assets/icono-hay-192.png', badge: 'assets/icono-hay-192.png', tag: 'hay-' + n.threadId, renotify: true, data: { threadId: n.threadId } };
+  const opts = { body: notifBody(n), icon: 'assets/icono-hay3-192.png', badge: 'assets/icono-hay3-192.png', tag: 'hay-' + n.threadId, renotify: true, data: { threadId: n.threadId } };
   try {
     const reg = navigator.serviceWorker && (await navigator.serviceWorker.getRegistration());
     if (reg) await reg.showNotification(notifTitle(n), opts);

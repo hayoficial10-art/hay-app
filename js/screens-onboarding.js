@@ -17,7 +17,8 @@ const SCREENS_ONBOARDING = [
       <span class="splash-shape splash-shape--dot" aria-hidden="true"></span>
       <div class="screen-body" style="position:relative; z-index:1;">
         <div class="screen-content screen-content--centered" style="flex:1; gap:var(--space-5);">
-          <div class="auth-logo" data-testid="splash-logo">${hayLogo(92, { lift: true, onBlue: true })}</div>
+          <!-- V1.46: logo de inicio de la app (tienda con carrito y «HAY») -->
+          <div class="auth-logo" data-testid="splash-logo"><img class="splash-logo-img" src="assets/hay-logo-inicio.png" alt="HAY — Lo tienes, publícalo, véndelo." decoding="async" fetchpriority="high" /></div>
           <p class="splash-tagline">Lo tienes, publícalo, véndelo.</p>
           <p class="splash-sub">Compra y vende con gente de tu zona, sin complicaciones.</p>
         </div>

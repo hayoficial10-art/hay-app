@@ -11,19 +11,19 @@
   "theme_color": "#F5F7FB",
   "icons": [
     {
-      "src": "assets/icono-hay-192.png",
+      "src": "assets/icono-hay3-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icono-hay-512.png",
+      "src": "assets/icono-hay3-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "assets/icono-hay-maskable-512.png",
+      "src": "assets/icono-hay3-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
