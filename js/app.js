@@ -508,7 +508,12 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
           PUBLISH_DRAFT.lat = loc.lat;
           PUBLISH_DRAFT.lng = loc.lng;
           if (loc.zone) PUBLISH_DRAFT.zone = loc.zone;
-          navigateTo(phoneEl, 'publish-step4', { skipFetch: true });
+          // V1.45: Publicar es una sola página — se vuelve a pintar sin perder el lugar
+          const sb = phoneEl.querySelector('.screen-body');
+          const keepY = sb ? sb.scrollTop : 0;
+          navigateTo(phoneEl, 'publish-step1', { skipFetch: true });
+          const sb2 = phoneEl.querySelector('.screen-body');
+          if (sb2) sb2.scrollTop = keepY;
           const m2 = phoneEl.querySelector('#gpsMsg');
           if (m2) { m2.textContent = loc.zone ? 'Ubicación lista ✓ Puedes corregir el nombre de la zona.' : 'Ubicación lista ✓ Escribe el nombre de tu zona.'; m2.style.display = 'block'; }
         } else {
@@ -1638,6 +1643,16 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       const errEl = phoneEl.querySelector('#publishErrorMsg');
       if (errEl) errEl.style.display = 'none';
       const isEditing = Boolean(EDITING_LISTING_ID);
+      // V1.45: en la página única se revisa aquí lo mínimo antes de enviar
+      const falta = HAY_APP_MODE && !draftPhotoList().length ? 'Agrega al menos una foto del artículo.'
+        : !String(PUBLISH_DRAFT.title || '').trim() ? 'Escribe el título del artículo.'
+        : !(Number(PUBLISH_DRAFT.price) > 0) ? 'Escribe el precio en dólares.'
+        : '';
+      if (falta) {
+        if (errEl) { errEl.textContent = falta; errEl.style.display = 'block'; errEl.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+        return;
+      }
+      const btnLabel = confirmPublishBtn.innerHTML;
       confirmPublishBtn.disabled = true;
       confirmPublishBtn.textContent = isEditing ? 'Guardando...' : 'Publicando...';
 
@@ -1672,7 +1687,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       }
       if (!result.ok) {
         confirmPublishBtn.disabled = false;
-        confirmPublishBtn.textContent = isEditing ? 'Guardar cambios' : 'Publicar';
+        confirmPublishBtn.innerHTML = btnLabel;
         if (errEl) {
           errEl.textContent = (isEditing ? 'No se pudo guardar: ' : 'No se pudo publicar: ') + result.error + (HAY_APP_MODE ? '' : ' (¿está corriendo el backend en localhost:3000?)');
           errEl.style.display = 'block';

@@ -452,3 +452,80 @@
 .chat-tip__icon svg { width: 20px; height: 20px; stroke: var(--hay-navy); }
 .chat-tip p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--color-text-muted); }
 .chat-tip strong { display: block; font-size: 14px; color: var(--hay-navy); font-weight: 900; }
+
+/* ---------- V1.45: Publicar en una sola página (diseño Stitch) ---------- */
+.pub-head { flex-shrink: 0; display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-2) var(--space-5) var(--space-2); background: var(--screen-wash); }
+.pub-head__back { width: 44px; height: 44px; flex-shrink: 0; border-radius: 999px; background: var(--hay-turquoise) !important; color: var(--hay-navy); }
+.pub-head__back svg { stroke: var(--hay-navy); }
+.pub-head__text { min-width: 0; }
+.pub-head .screen-title { margin: 0; font-size: 24px; font-weight: 900; line-height: 1.15; }
+.pub-head__text p { margin: 2px 0 0; font-size: 13px; font-weight: 600; color: var(--color-text-muted); line-height: 1.35; }
+.pub-page { gap: var(--space-4) !important; padding-bottom: var(--space-6); }
+.pub-card { background: #ffffff; border-radius: 24px; padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06); }
+.pub-card__head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.pub-card__head h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--hay-navy); }
+.pub-dot { width: 10px; height: 10px; border-radius: 999px; flex-shrink: 0; }
+.pub-dot--cyan { background: var(--hay-turquoise); }
+.pub-dot--yellow { background: var(--hay-yellow); }
+.pub-dot--green { background: var(--hay-green); }
+.pub-dot--coral { background: var(--hay-pink); }
+.pub-count { flex-shrink: 0; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: var(--color-surface-2); color: var(--color-text-muted); }
+.pub-hint { margin: 0; font-size: 13px; color: var(--color-text-muted); }
+.pub-card .photo-rules { margin: 0; }
+.pub-card .photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
+.pub-card .photo-actions .btn { min-height: 48px; }
+.pub-photos { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+.pub-photos .photo-slot--empty { background: var(--hay-turquoise-highlight); border: 2px dashed var(--hay-turquoise); color: var(--hay-turquoise-active); flex-direction: column; gap: 4px; font-size: 12px; font-weight: 800; }
+.pub-photos .photo-slot--empty svg { stroke: var(--hay-turquoise-active); }
+
+.pub-card .field { gap: 6px; }
+.pub-card .field label { font-size: 14px; font-weight: 800; color: var(--hay-navy); }
+.pub-card .field input, .pub-card .field textarea { background: var(--color-surface-2); border-color: transparent; border-radius: 16px; }
+.pub-card .field textarea { min-height: 110px; }
+
+/* Categorías como fichas que se envuelven */
+.pub-cats { display: flex !important; flex-wrap: wrap; gap: 8px !important; grid-template-columns: none !important; }
+.pub-cats .category-tile {
+  flex-direction: row; align-items: center; gap: 6px;
+  min-height: 40px; padding: 0 12px 0 6px; border-radius: 999px;
+  background: var(--color-surface-2); border: 2px solid transparent;
+  font-size: 13px; font-weight: 700; color: var(--hay-navy); width: auto; aspect-ratio: auto;
+}
+.pub-cats .category-tile__icon { width: 28px !important; height: 28px !important; border-radius: 999px !important; background: #ffffff !important; flex-shrink: 0; }
+.pub-cats .category-tile__icon svg { width: 16px; height: 16px; stroke: var(--hay-navy); }
+.pub-cats .category-tile.is-selected { background: var(--hay-turquoise); border-color: var(--hay-navy); font-weight: 900; }
+
+/* Estado del producto: tres botones de color */
+.pub-cond { gap: 8px; }
+.pub-cond .pill { min-height: 48px; border-radius: 16px; font-weight: 800; color: var(--hay-navy); background: var(--color-surface-2); border: 2px solid transparent; }
+.pub-cond .pill.is-selected { background: var(--hay-yellow); border-color: var(--hay-navy); color: var(--hay-navy); }
+.pub-cond .pill.is-selected::before { content: '✓ '; }
+
+/* Precio */
+.pub-price { display: flex; align-items: center; gap: 8px; background: var(--color-surface-2); border-radius: 16px; padding: 0 14px; min-height: 58px; }
+.pub-price__sign { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: var(--hay-navy); }
+.pub-price input { flex: 1; min-width: 0; border: 0 !important; background: transparent !important; padding: 0 !important; font-family: var(--font-display); font-size: 26px !important; font-weight: 900; color: var(--hay-navy); }
+.pub-price input:focus { outline: none; box-shadow: none !important; }
+.pub-price__cur { font-size: 13px; font-weight: 800; color: var(--color-text-muted); }
+.pub-bs { display: flex; align-items: center; gap: 12px; background: var(--hay-green-highlight); border-radius: 16px; padding: 10px 14px; }
+.pub-bs__icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 999px; background: var(--hay-green); color: var(--hay-navy); font-weight: 900; display: flex; align-items: center; justify-content: center; }
+.pub-bs small { display: block; font-size: 12px; font-weight: 700; color: var(--hay-green-active); }
+.pub-bs strong { display: block; font-family: var(--font-display); font-size: 18px; font-weight: 900; color: var(--hay-navy); }
+.pub-bs > div { flex: 1; min-width: 0; }
+.pub-bs__rate { font-size: 11px; font-weight: 700; color: var(--hay-green-active); text-align: right; line-height: 1.3; }
+.pub-card .toggle-row { background: transparent; padding: 0; box-shadow: none; }
+
+/* Ubicación y seguridad */
+.pub-gps { align-self: flex-start; width: auto; }
+.pub-safe { display: flex; gap: 10px; align-items: flex-start; background: var(--color-surface-2); border-radius: 16px; padding: 12px 14px; }
+.pub-safe svg { width: 22px; height: 22px; flex-shrink: 0; stroke: var(--hay-turquoise-active); }
+.pub-safe p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--color-text-muted); }
+.pub-safe strong { display: block; font-size: 14px; color: var(--hay-navy); font-weight: 900; }
+
+.pub-submit { min-height: 58px; font-size: 17px; font-weight: 900; gap: 8px; box-shadow: 0 8px 20px rgba(255, 194, 26, .35); }
+.pub-submit svg { width: 20px; height: 20px; stroke: var(--hay-navy); }
+.pub-terms { margin: 0; text-align: center; font-size: 12px; color: var(--color-text-muted); }
+.pub-cats .category-tile { font-size: 13px !important; min-height: 36px !important; padding: 0 12px 0 4px !important; }
+.pub-cats .category-tile span:last-child { white-space: nowrap; }
+.pub-cats .category-tile::after, .pub-cats .category-tile::before { display: none !important; }
+.pub-card .photo-actions .btn { font-size: 15px; white-space: nowrap; padding: 0 12px; }

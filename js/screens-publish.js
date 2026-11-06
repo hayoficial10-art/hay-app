@@ -63,216 +63,169 @@ function publishStepHeader(step, title, backTarget) {
   </div>`;
 }
 
+/* V1.45: Publicar en UNA sola página (diseño Stitch): fotos, qué vendes,
+   precio y detalles/ubicación, con el botón «Publicar artículo ahora» al final.
+   Usa los mismos data-* de siempre (data-draft-field, data-photo-input,
+   .category-tile, #btnConfirmPublish…), así la lógica de app.js no cambia:
+   las fotos se siguen revisando en el teléfono y en el servidor.
+   Los ids viejos publish-step2…5 muestran esta misma página (para «Editar»
+   una publicación y para volver después de verificar la identidad). */
+function publishSinglePage() {
+  const photos = draftPhotoList();
+  const editing = Boolean(EDITING_LISTING_ID);
+  const condOpts = [
+    { v: 'Nuevo', ic: 'sparkle' },
+    { v: 'Como nuevo', ic: 'star' },
+    { v: 'Usado', ic: 'reorder' },
+  ];
+  return `
+    <div class="phone__screen screen--alegre">
+      ${statusBar()}
+      <header class="pub-head">
+        <button class="icon-btn pub-head__back" data-nav="exit-publish-confirm" aria-label="Salir de publicar" data-testid="btn-back-publish-step1">${icon('back')}</button>
+        <div class="pub-head__text">
+          <h1 class="screen-title">${editing ? 'Editar publicación' : 'Publicar artículo'}</h1>
+          <p>Completa los datos y conéctate con compradores al instante</p>
+        </div>
+      </header>
+      <div class="screen-body">
+        <div class="screen-content pub-page" data-testid="screen-publish-step1">
+
+          <section class="pub-card" data-testid="publish-photos">
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--cyan"></span>Fotos del producto</h2><span class="pub-count" data-testid="photo-count">${photos.length} de ${MAX_LISTING_PHOTOS} fotos</span></div>
+            <p class="pub-hint">La primera foto será la portada. Usa buena luz natural.</p>
+            <p class="photo-rules" data-testid="photo-rules">Solo fotos del artículo. No se permiten fotos de personas ni contenido sexual o violento.</p>
+            <div class="photo-actions">
+              <label class="btn btn--turquoise" style="cursor:pointer;" data-testid="btn-open-camera">
+                ${icon('camera')} Tomar foto
+                <input type="file" accept="image/*" capture="environment" data-photo-input data-testid="input-photo-camera" style="display:none;" />
+              </label>
+              <label class="btn btn--green" style="cursor:pointer;" data-testid="btn-open-gallery">
+                ${icon('gallery')} Galería
+                <input type="file" accept="image/*" multiple data-photo-input data-testid="input-photo-file" style="display:none;" />
+              </label>
+            </div>
+            <p class="text-xs" id="photoCheckMsg" data-testid="photo-check-msg" style="display:none; font-weight:700;"></p>
+            <p class="text-xs photo-error" id="photoErrorMsg" data-testid="photo-error-msg" role="alert" style="display:none;"></p>
+            ${photos.length ? `<div class="photo-grid pub-photos" data-testid="photo-grid">
+              ${photos.map((src, i) => `
+              <div class="photo-slot photo-slot--img" style="position:relative;">
+                <img src="${src}" alt="Foto ${i + 1}" />
+                ${i === 0 ? '<span class="photo-slot--cover">PORTADA</span>' : ''}
+                <span class="photo-slot__remove" role="button" aria-label="Quitar foto" data-remove-photo="${i}" data-testid="btn-remove-photo-${i + 1}">${icon('close')}</span>
+              </div>`).join('')}
+              ${photos.length < MAX_LISTING_PHOTOS ? `<label class="photo-slot photo-slot--empty" aria-label="Agregar foto" data-testid="btn-add-photo-${photos.length + 1}" style="cursor:pointer;">${icon('camera')}<span>Subir foto</span><input type="file" accept="image/*" multiple data-photo-input style="display:none;" /></label>` : ''}
+            </div>` : ''}
+          </section>
+
+          <section class="pub-card" data-testid="publish-what">
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--yellow"></span>¿Qué estás vendiendo?</h2></div>
+            <div class="field">
+              <label for="pub-title">Título del artículo</label>
+              <input id="pub-title" type="text" value="${String(PUBLISH_DRAFT.title || '').replace(/"/g, '&quot;')}" maxlength="60" placeholder="Ej. Bicicleta rin 26" data-testid="input-publish-title" data-draft-field="title" />
+            </div>
+            <div class="field">
+              <label>Categoría</label>
+              <div class="category-grid pub-cats" data-testid="category-grid">
+                ${CATEGORY_ICONS.map((c) => {
+                  const sel = PUBLISH_DRAFT.category === c.label;
+                  return `<button class="category-tile ${sel ? 'is-selected' : ''}" data-testid="category-${c.label.split(' ')[0].toLowerCase()}" data-cat-label="${c.label}" data-cat-icon="${c.icon}"><span class="category-tile__icon">${icon(c.icon)}</span><span>${c.label}</span></button>`;
+                }).join('')}
+              </div>
+            </div>
+            <div class="field">
+              <label>Estado del producto</label>
+              <div class="pill-row pub-cond" data-testid="condition-pills" data-draft-field="condition">
+                ${condOpts.map((o) => `<span class="pill ${PUBLISH_DRAFT.condition === o.v ? 'is-selected' : ''}">${o.v}</span>`).join('')}
+              </div>
+            </div>
+          </section>
+
+          <section class="pub-card" data-testid="publish-price">
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--green"></span>Fija tu precio</h2>${HAY_APP_MODE ? '<span class="pub-count">Doble moneda</span>' : ''}</div>
+            <div class="field">
+              <label for="pub-price">Precio en dólares (USD)</label>
+              <div class="pub-price">
+                <span class="pub-price__sign">$</span>
+                <input id="pub-price" type="text" inputmode="decimal" value="${PUBLISH_DRAFT.price || ''}" placeholder="0" data-testid="input-publish-price" data-draft-field="price" />
+                <span class="pub-price__cur">USD</span>
+              </div>
+            </div>
+            ${HAY_APP_MODE ? `<div class="pub-bs">
+              <span class="pub-bs__icon">Bs</span>
+              <div><small>Equivale a</small><strong id="pubPriceBs" data-testid="publish-price-bs">${bsLabel(PUBLISH_DRAFT.price) || (DOLAR_BCV ? 'Escribe el precio' : 'Equivalencia no disponible')}</strong></div>
+              ${DOLAR_BCV ? `<span class="pub-bs__rate">Dólar BCV<br/>Bs ${Number(DOLAR_BCV.tasa).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>` : ''}
+            </div>` : ''}
+            <div class="toggle-row">
+              <div class="toggle-row__text">
+                <strong>Acepto ofertas</strong>
+                <span>Los compradores podrán proponerte un precio</span>
+              </div>
+              <button class="toggle ${PUBLISH_DRAFT.acceptsOffers ? 'is-on' : ''}" role="switch" aria-checked="${PUBLISH_DRAFT.acceptsOffers}" aria-label="Acepto ofertas" data-testid="toggle-accept-offers" data-draft-field="acceptsOffers"></button>
+            </div>
+          </section>
+
+          <section class="pub-card" data-testid="publish-details">
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--coral"></span>Detalles y ubicación</h2></div>
+            <div class="field">
+              <label for="pub-desc">Descripción</label>
+              <textarea id="pub-desc" placeholder="Cuenta cómo está, qué incluye y cómo lo entregas." data-testid="input-publish-description" data-draft-field="description">${PUBLISH_DRAFT.description || ''}</textarea>
+            </div>
+            <div class="field">
+              <label for="pub-zone">Zona de entrega</label>
+              ${HAY_APP_MODE ? `<button class="btn btn--green btn--sm pub-gps" data-action="gps-publish" data-testid="btn-publish-gps">${icon('pin')} ${typeof PUBLISH_DRAFT.lat === 'number' ? 'Actualizar mi ubicación' : 'Usar mi ubicación actual'}</button>
+              <p class="gps-msg" id="gpsMsg" data-testid="gps-msg" style="display:none;"></p>` : ''}
+              ${HAY_APP_MODE && typeof PUBLISH_DRAFT.lat === 'number' ? osmMap(PUBLISH_DRAFT.lat, PUBLISH_DRAFT.lng, 'publish-map') : ''}
+              <input id="pub-zone" type="text" value="${String(PUBLISH_DRAFT.zone || '').replace(/"/g, '&quot;')}" placeholder="Ej. Chacao, Caracas" data-testid="input-publish-zone" data-draft-field="zone" />
+            </div>
+            <div class="pub-safe">
+              ${icon('shield')}
+              <p><strong>Venta segura cara a cara</strong>Coordina la entrega en lugares públicos y concurridos (plazas, centros comerciales).</p>
+            </div>
+          </section>
+
+          <p class="text-xs" id="publishErrorMsg" data-testid="publish-error-msg" role="alert" style="display:none; color:var(--color-error); font-weight:700;"></p>
+          <button class="btn btn--yellow pub-submit" id="btnConfirmPublish" data-testid="btn-confirm-publish">${icon('send')} ${editing ? 'Guardar cambios' : 'Publicar artículo ahora'}</button>
+          <p class="pub-terms">Al publicar, aceptas los Términos y Normas de la comunidad de HAY.</p>
+        </div>
+      </div>
+    </div>`;
+}
+
 const SCREENS_PUBLISH = [
   {
     id: 'publish-step1',
     block: 'publish',
     label: '11. Paso 1 · Fotos',
-    html: () => `
-    <div class="phone__screen">
-      ${statusBar()}
-      ${publishStepHeader(1, 'Agrega fotos', 'exit-publish-confirm')}
-      <div class="screen-body">
-        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-publish-step1">
-          ${heroIcon('camera', 'cyan', { size: 150 })}
-          <p class="screen-subtitle text-center">Usa buena luz natural. La primera foto será la portada de tu publicación.</p>
-          <p class="photo-rules" data-testid="photo-rules">Solo fotos del artículo. No se permiten fotos de personas ni contenido sexual o violento.</p>
-          <!-- V1.33: la cámara se abre directo con "Tomar foto" (capture). Con
-               "multiple" Android solo ofrecía la galería, por eso van separados. -->
-          <div class="photo-actions">
-            <label class="btn btn--turquoise" style="cursor:pointer;" data-testid="btn-open-camera">
-              ${icon('camera')} Tomar foto
-              <input type="file" accept="image/*" capture="environment" data-photo-input data-testid="input-photo-camera" style="display:none;" />
-            </label>
-            <label class="btn btn--outline" style="cursor:pointer;" data-testid="btn-open-gallery">
-              ${icon('gallery')} Galería
-              <input type="file" accept="image/*" multiple data-photo-input data-testid="input-photo-file" style="display:none;" />
-            </label>
-          </div>
-          <p class="text-xs" id="photoCheckMsg" data-testid="photo-check-msg" style="display:none; font-weight:700;"></p>
-          <p class="text-xs photo-error" id="photoErrorMsg" data-testid="photo-error-msg" role="alert" style="display:none;"></p>
-          <div class="photo-grid" data-testid="photo-grid">
-            ${draftPhotoList()
-              .map(
-                (src, i) => `
-            <div class="photo-slot photo-slot--img" style="position:relative;">
-              <img src="${src}" alt="Foto ${i + 1}" />
-              ${i === 0 ? '<span class="photo-slot--cover">PORTADA</span>' : ''}
-              <span class="photo-slot__remove" role="button" aria-label="Quitar foto" data-remove-photo="${i}" data-testid="btn-remove-photo-${i + 1}">${icon('close')}</span>
-            </div>`
-              )
-              .join('')}
-            ${Array.from({ length: Math.max(0, MAX_LISTING_PHOTOS - draftPhotoList().length) })
-              .map(
-                (_, i) => `
-            <label class="photo-slot photo-slot--empty" aria-label="Agregar foto" data-testid="btn-add-photo-${draftPhotoList().length + i + 1}" style="cursor:pointer;">
-              ${icon('camera')}
-              <input type="file" accept="image/*" multiple data-photo-input style="display:none;" />
-            </label>`
-              )
-              .join('')}
-          </div>
-          <p class="field--help" data-testid="photo-count">Hasta ${MAX_LISTING_PHOTOS} fotos · ${draftPhotoList().length} de ${MAX_LISTING_PHOTOS} agregadas</p>
-        </div>
-      </div>
-      <div class="bottom-cta">
-        <button class="btn btn--turquoise" data-nav="publish-step2" data-testid="btn-publish-step1-continue" ${HAY_APP_MODE && draftPhotoList().length === 0 ? 'disabled' : ''}>Continuar</button>
-      </div>
-    </div>`,
+    html: () => publishSinglePage(),
   },
 
   {
     id: 'publish-step2',
     block: 'publish',
     label: '12. Paso 2 · Categoría',
-    html: () => `
-    <div class="phone__screen">
-      ${statusBar()}
-      ${publishStepHeader(2, 'Elige una categoría', 'publish-step1')}
-      <div class="screen-body">
-        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-publish-step2">
-          <div class="searchbar">${icon('search')}<input type="text" placeholder="Buscar categoría..." /></div>
-          <div class="category-grid" data-testid="category-grid">
-            ${CATEGORY_ICONS.map((c) => {
-              const sel = PUBLISH_DRAFT.category === c.label;
-              return `
-            <button class="category-tile ${sel ? 'is-selected' : ''}" data-testid="category-${c.label.split(' ')[0].toLowerCase()}" data-cat-label="${c.label}" data-cat-icon="${c.icon}">
-              <span class="category-tile__icon" style="background:${sel ? 'var(--hay-turquoise-highlight)' : 'var(--color-surface-2)'}">${icon(c.icon)}</span>
-              <span>${c.label}</span>
-            </button>`;
-            }).join('')}
-          </div>
-        </div>
-      </div>
-      <div class="bottom-cta">
-        <button class="btn btn--turquoise" data-nav="publish-step3" data-testid="btn-publish-step2-continue">Continuar</button>
-      </div>
-    </div>`,
+    html: () => publishSinglePage(),
   },
 
   {
     id: 'publish-step3',
     block: 'publish',
     label: '13. Paso 3 · Detalles',
-    html: () => `
-    <div class="phone__screen">
-      ${statusBar()}
-      ${publishStepHeader(3, 'Cuéntanos más', 'publish-step2')}
-      <div class="screen-body">
-        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-publish-step3">
-          <div class="field">
-            <label for="pub-title">Título</label>
-            <input id="pub-title" type="text" value="${PUBLISH_DRAFT.title}" maxlength="60" placeholder="Ej. Mochila nueva" data-testid="input-publish-title" data-draft-field="title" />
-            <span class="field--help">${PUBLISH_DRAFT.title.length}/60 caracteres</span>
-          </div>
-          <div class="field">
-            <label>Categoría</label>
-            <div class="input-icon" data-testid="publish-step3-category">
-              ${icon(PUBLISH_DRAFT.categoryIcon)}
-              <span class="grow" style="font-weight:600; color:var(--hay-navy);">${PUBLISH_DRAFT.category}</span>
-            </div>
-          </div>
-          <div class="field">
-            <label for="pub-desc">Descripción</label>
-            <textarea id="pub-desc" placeholder="Cuéntale a los demás..." data-testid="input-publish-description" data-draft-field="description">${PUBLISH_DRAFT.description}</textarea>
-          </div>
-          <div class="stack-sm">
-            <span class="section-label">Condición</span>
-            <div class="pill-row" data-testid="condition-pills" data-draft-field="condition">
-              <span class="pill ${PUBLISH_DRAFT.condition === 'Nuevo' ? 'is-selected' : ''}">Nuevo</span>
-              <span class="pill ${PUBLISH_DRAFT.condition === 'Usado' ? 'is-selected' : ''}">Usado</span>
-              <span class="pill ${PUBLISH_DRAFT.condition === 'Como nuevo' ? 'is-selected' : ''}">Como nuevo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="bottom-cta">
-        <button class="btn btn--turquoise" data-nav="publish-step4" data-testid="btn-publish-step3-continue">Continuar</button>
-      </div>
-    </div>`,
+    html: () => publishSinglePage(),
   },
 
   {
     id: 'publish-step4',
     block: 'publish',
     label: '14. Paso 4 · Precio y ubicación',
-    html: () => `
-    <div class="phone__screen">
-      ${statusBar()}
-      ${publishStepHeader(4, 'Precio y ubicación', 'publish-step3')}
-      <div class="screen-body">
-        <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-publish-step4">
-          <div class="price-hero">
-            ${heroIcon('', 'yellow', { size: 110, text: '$' })}
-            <label for="pub-price" class="price-hero__label">Precio (USD)</label>
-            <div class="field" style="width:100%;">
-              <input id="pub-price" type="text" value="$ ${PUBLISH_DRAFT.price}" data-testid="input-publish-price" data-draft-field="price" style="text-align:center; font-family:var(--font-display); font-size:28px; font-weight:700; background:#fff; border-color:#fff;" />
-            </div>
-            ${HAY_APP_MODE ? `<p class="price-bs price-bs--lg" id="pubPriceBs" data-testid="publish-price-bs">${bsLabel(PUBLISH_DRAFT.price) || (DOLAR_BCV ? '' : 'Equivalencia en bolívares no disponible')}</p>
-            ${DOLAR_BCV ? `<p class="text-xs text-muted">Dólar BCV: Bs ${Number(DOLAR_BCV.tasa).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>` : ''}` : ''}
-          </div>
-          <div class="toggle-row card">
-            <div class="toggle-row__text">
-              <strong>Acepto ofertas</strong>
-              <span>Los compradores podrán proponerte un precio distinto</span>
-            </div>
-            <button class="toggle ${PUBLISH_DRAFT.acceptsOffers ? 'is-on' : ''}" role="switch" aria-checked="${PUBLISH_DRAFT.acceptsOffers}" aria-label="Acepto ofertas" data-testid="toggle-accept-offers" data-draft-field="acceptsOffers"></button>
-          </div>
-          <div class="stack-sm">
-            <span class="section-label">Zona de encuentro</span>
-            ${HAY_APP_MODE && typeof PUBLISH_DRAFT.lat === 'number'
-              ? osmMap(PUBLISH_DRAFT.lat, PUBLISH_DRAFT.lng, 'publish-map')
-              : `<div class="map-ph"><div class="map-ph__pin">${icon('pin')}</div></div>`}
-            ${HAY_APP_MODE ? `<button class="btn btn--green btn--sm" data-action="gps-publish" data-testid="btn-publish-gps">${icon('pin')} ${typeof PUBLISH_DRAFT.lat === 'number' ? 'Actualizar mi ubicación (GPS)' : 'Usar mi ubicación (GPS)'}</button>
-            <p class="gps-msg" id="gpsMsg" data-testid="gps-msg" style="display:none;"></p>` : ''}
-            <div class="field">
-              <label for="pub-zone" class="sr-only">Zona</label>
-              <input id="pub-zone" type="text" value="${PUBLISH_DRAFT.zone}" placeholder="Ej. Chacao, Caracas" data-testid="input-publish-zone" data-draft-field="zone" />
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="bottom-cta">
-        <button class="btn btn--turquoise" data-nav="publish-step5" data-testid="btn-publish-step4-continue">Continuar</button>
-      </div>
-    </div>`,
+    html: () => publishSinglePage(),
   },
 
   {
     id: 'publish-step5',
     block: 'publish',
     label: '15. Paso 5 · Revisión',
-    html: () => `
-    <div class="phone__screen">
-      ${statusBar()}
-      ${publishStepHeader(5, EDITING_LISTING_ID ? 'Revisa los cambios' : 'Revisa tu publicación', 'publish-step4')}
-      <div class="screen-body">
-        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-publish-step5">
-          <p class="screen-subtitle">Así se verá tu producto en el feed y en la búsqueda.</p>
-          <div class="product-card" style="width:100%; position:relative; pointer-events:none;">
-            ${draftPhotoList().length
-              ? `<div class="ph-art ph-art--photo" style="aspect-ratio:16/10;"><img src="${draftPhotoList()[0]}" alt="Portada" /><span class="ph-art__badge">${PUBLISH_DRAFT.condition}</span></div>`
-              : `<div class="ph-art ph-art--2" style="aspect-ratio:16/10;">${icon(PUBLISH_DRAFT.categoryIcon)}<span class="ph-art__badge">${PUBLISH_DRAFT.condition}</span></div>`}
-            <div class="dots" style="margin:2px 0;"><div class="dots__dot is-active"></div><div class="dots__dot"></div><div class="dots__dot"></div></div>
-            <p class="product-card__title" style="font-size:17px;">${PUBLISH_DRAFT.title || '(sin título)'}</p>
-            <span class="product-card__price" style="font-size:24px;">$${PUBLISH_DRAFT.price || 0}</span>
-            ${HAY_APP_MODE && bsLabel(PUBLISH_DRAFT.price) ? `<span class="price-bs">${bsLabel(PUBLISH_DRAFT.price)}</span>` : ''}
-            <span class="product-card__meta">${icon('pin')} ${PUBLISH_DRAFT.zone || 'Sin zona indicada'}</span>
-          </div>
-          <div class="card stack-sm">
-            <div class="flex-between"><span class="text-xs text-muted">Categoría</span><span class="text-xs fw-800">${PUBLISH_DRAFT.category}</span></div>
-            <div class="flex-between"><span class="text-xs text-muted">Condición</span><span class="text-xs fw-800">${PUBLISH_DRAFT.condition}</span></div>
-            <div class="flex-between"><span class="text-xs text-muted">Acepta ofertas</span><span class="text-xs fw-800">${PUBLISH_DRAFT.acceptsOffers ? 'Sí' : 'No'}</span></div>
-            <div class="flex-between"><span class="text-xs text-muted">Fotos</span><span class="text-xs fw-800">${draftPhotoList().length || PUBLISH_DRAFT.photos} de ${MAX_LISTING_PHOTOS}</span></div>
-          </div>
-          <p class="text-xs text-faint" id="publishErrorMsg" data-testid="publish-error-msg" style="display:none; color:var(--color-error);"></p>
-        </div>
-      </div>
-      <div class="bottom-cta">
-        <button class="btn btn--outline" data-nav="publish-step2" data-testid="btn-edit-publish-review">Editar</button>
-        <button class="btn btn--turquoise" id="btnConfirmPublish" data-testid="btn-confirm-publish">${EDITING_LISTING_ID ? 'Guardar cambios' : 'Publicar'}</button>
-      </div>
-    </div>`,
+    html: () => publishSinglePage(),
   },
 
   {

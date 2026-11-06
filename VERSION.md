@@ -1,8 +1,30 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.44
+**VERSIÓN:** 1.45
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.43. Contiene todo lo de la v1.43, más lo nuevo de la v1.44.
+**BASE:** v1.44. Contiene todo lo de la v1.44, más lo nuevo de la v1.45.
+
+## V1.45 — Publicar en una sola página (diseño Stitch)
+
+- Publicar ya no va por 5 pasos: todo está en una sola página con cuatro tarjetas:
+  1. **Fotos del producto** (Tomar foto / Galería, hasta 6, la primera es la portada).
+  2. **¿Qué estás vendiendo?** (título, categoría en fichas, estado Nuevo / Como nuevo / Usado).
+  3. **Fija tu precio** (precio en dólares, equivalencia en bolívares con el dólar BCV,
+     «Acepto ofertas»).
+  4. **Detalles y ubicación** (descripción, «Usar mi ubicación actual», zona de entrega
+     y el aviso «Venta segura cara a cara»).
+  Al final, el botón amarillo **«Publicar artículo ahora»**.
+- Antes de enviar se revisa que haya al menos una foto, un título y un precio; si falta
+  algo, la app lo dice arriba del botón.
+- Las fotos se siguen revisando igual (en el teléfono y en el servidor): no se permiten
+  personas, contenido sexual ni violento.
+- «Editar» una publicación abre esta misma página con los datos cargados.
+- Al tocar «Usar mi ubicación actual» la página no salta arriba.
+- Versión 1.45 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.44 — Mi perfil, Detalle y Chat con el diseño nuevo
 
