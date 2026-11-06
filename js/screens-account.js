@@ -298,6 +298,11 @@ const SCREENS_ACCOUNT = [
                 <span class="list-row__icon tone-navy">${icon('shield')}</span>
                 <div class="list-row__body"><p class="list-row__title">Panel de moderador</p><p class="list-row__sub">Revisar reportes</p></div>
                 ${icon('chevronRight', 'list-row__chevron')}
+              </button>
+              <button class="list-row" style="width:100%; background:none; border:none; padding-left:var(--space-4); padding-right:var(--space-4);" data-nav="admin-link" data-testid="btn-settings-admin">
+                <span class="list-row__icon tone-yellow">${icon('user')}</span>
+                <div class="list-row__body"><p class="list-row__title">Administrador</p><p class="list-row__sub">Vincular con WhatsApp y correo</p></div>
+                ${icon('chevronRight', 'list-row__chevron')}
               </button>`
                   : ''
               }
@@ -372,6 +377,52 @@ const SCREENS_ACCOUNT = [
       </div>
     </div>`;
     },
+  },
+
+  {
+    // V1.51: pantalla «Administrador» (solo la pantalla, todavía sin funcionar):
+    // vincular la cuenta de administrador con WhatsApp y con correo.
+    id: 'admin-link',
+    block: 'account',
+    label: '26e. Administrador',
+    html: () => `
+    <div class="phone__screen">
+      ${statusBar()}
+      ${topBar({ back: 'settings', title: 'Administrador', testid: 'admin-link', stacked: true })}
+      <div class="screen-body">
+        <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-admin-link">
+          <p class="screen-subtitle" style="margin-top:calc(-1 * var(--space-3));">Vincula tu cuenta de administrador con WhatsApp y con tu correo.</p>
+          <div class="stack-sm">
+            <span class="settings-section-title">WhatsApp</span>
+            <div class="card stack-sm">
+              <div class="flex-row" style="gap:var(--space-3);">
+                <span class="list-row__icon tone-green">${icon('chat')}</span>
+                <div class="list-row__body"><p class="list-row__title">Vincular con WhatsApp</p><p class="list-row__sub" style="white-space:normal;">Tu número con código de país</p></div>
+              </div>
+              <div class="field">
+                <input type="tel" placeholder="Ej. +58 412 000 0000" data-testid="input-admin-whatsapp" />
+              </div>
+              <button class="btn btn--green" onclick="var m=this.parentNode.querySelector('.admin-link__msg');m.style.display='block';" data-testid="btn-admin-link-whatsapp">${icon('chat')} Vincular WhatsApp</button>
+              <p class="text-xs admin-link__msg" style="display:none; font-weight:700; color:var(--color-text-muted);">Esta opción estará lista pronto.</p>
+            </div>
+          </div>
+          <div class="stack-sm">
+            <span class="settings-section-title">Correo</span>
+            <div class="card stack-sm">
+              <div class="flex-row" style="gap:var(--space-3);">
+                <span class="list-row__icon tone-cyan">${icon('mail')}</span>
+                <div class="list-row__body"><p class="list-row__title">Vincular con correo</p><p class="list-row__sub" style="white-space:normal;">Tu correo de administrador</p></div>
+              </div>
+              <div class="field">
+                <input type="email" placeholder="Ej. nombre@gmail.com" data-testid="input-admin-email" />
+              </div>
+              <button class="btn btn--turquoise" onclick="var m=this.parentNode.querySelector('.admin-link__msg');m.style.display='block';" data-testid="btn-admin-link-email">${icon('mail')} Vincular correo</button>
+              <p class="text-xs admin-link__msg" style="display:none; font-weight:700; color:var(--color-text-muted);">Esta opción estará lista pronto.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`,
   },
 
   {

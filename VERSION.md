@@ -1,8 +1,22 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.50
+**VERSIÓN:** 1.51
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.49.
+**BASE:** v1.50.
+
+## V1.51 — pantalla «Administrador»
+
+- Configuración: debajo de «Panel de moderador» está la opción nueva **Administrador**
+  («Vincular con WhatsApp y correo»). Solo la ven los administradores.
+- Pantalla nueva **Administrador** con dos tarjetas: «Vincular con WhatsApp» (número) y
+  «Vincular con correo». Por ahora es solo la pantalla: los botones dicen
+  «Esta opción estará lista pronto».
+- Nada más cambia.
+- Versión 1.51 (app, servidor, service worker).
+
+
+---
+
 
 ## V1.50 — tamaños y simetría en todas las pantallas
 
