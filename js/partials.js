@@ -22,8 +22,9 @@ function statusBar() {
    la imagen mide 1,7 veces eso porque incluye el lema. Las opciones
    lift/onBlue/onYellow ya no cambian nada (se aceptan por compatibilidad). */
 function hayLogo(size = 30, opts = {}) {
-  const h = Math.round(size * 1.7);
-  return `<img class="hay-logo-img" src="assets/hay-logo-v2.png" alt="HAY — Lo tienes, publícalo, véndelo." style="height:${h}px" decoding="async"${opts.testid ? ` data-testid="${opts.testid}"` : ''} />`;
+  // V1.47: logo nuevo (tienda con carrito y «HAY»), cuadrado
+  const h = Math.round(size * 1.9);
+  return `<img class="hay-logo-img hay-logo-img--cuadro" src="assets/hay-logo-cuadro.png" alt="HAY — Lo tienes, publícalo, véndelo." style="height:${h}px;width:${h}px" decoding="async"${opts.testid ? ` data-testid="${opts.testid}"` : ''} />`;
 }
 
 /* V1.33: avatar del usuario — su foto de perfil si la tiene, si no sus iniciales. */

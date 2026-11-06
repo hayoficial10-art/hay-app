@@ -7,7 +7,7 @@
      la segunda vez aparecen al instante. Máx. 300 fotos guardadas.
    - Al tocar una notificación de mensaje, abre la app en ese chat.
    Nunca guarda respuestas de la API (datos privados). */
-const VERSION = '1.46';
+const VERSION = '1.47';
 const CACHE = 'hay-v' + VERSION;
 const PHOTOS = 'hay-fotos-v1';
 const MAX_PHOTOS = 300;
@@ -16,7 +16,7 @@ const SHELL = [
   'css/tokens.css', 'css/base.css', 'css/components.css', 'css/tema-fucsia.css', 'css/avisos.css', 'css/app-mode.css', 'css/tema-alegre.css',
   'js/icons.js', 'js/api.js', 'js/avisos.js', 'js/moderacion.js', 'js/verificacion.js', 'js/partials.js', 'js/screens-onboarding.js', 'js/screens-main.js',
   'js/screens-publish.js', 'js/screens-transaction.js', 'js/screens-account.js', 'js/app.js',
-  'assets/hay-logo.png', 'assets/hay-logo-v2.png', 'assets/hay-logo-inicio.png', 'assets/icono-hay3-192.png', 'assets/icono-hay3-512.png',
+  'assets/hay-logo.png', 'assets/hay-logo-v2.png', 'assets/hay-logo-inicio.png', 'assets/hay-logo-cuadro.png', 'assets/icono-hay3-192.png', 'assets/icono-hay3-512.png',
 ];
 
 self.addEventListener('install', (e) => {
