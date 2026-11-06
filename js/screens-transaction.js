@@ -70,7 +70,7 @@ const SCREENS_TRANSACTION = [
             <span class="link-cyan" style="font-size:14px; flex-shrink:0;">Ver perfil</span>
           </button>
           ${isOwnListing ? `<p class="badge badge--cyan" style="align-self:flex-start;" data-testid="own-listing-notice">Esta es tu propia publicación</p>` : ''}
-          ${hasRealSeller && !isOwnListing && CURRENT_USER && CURRENT_USER.isAdmin ? `<button class="btn btn--outline" style="color:var(--color-error); border-color:var(--color-error);" data-testid="btn-admin-delete-listing">${icon('trash')} Eliminar publicación (moderador)</button>` : ''}
+          ${hasRealSeller && !isOwnListing && CURRENT_USER && CURRENT_USER.isAdmin ? `<button class="btn profile-logout" data-testid="btn-admin-delete-listing">${icon('trash')} Eliminar publicación (moderador)</button>` : ''}
 
           <p style="font-size:16px; line-height:1.55; color:var(--hay-navy);">${description}</p>
 
@@ -83,7 +83,7 @@ const SCREENS_TRANSACTION = [
         </div>
       </div>
       <div class="bottom-cta bottom-cta--bar">
-        <button class="btn btn--outline" style="flex:0 0 auto; width:auto; padding-left:22px; padding-right:22px;" data-nav="make-offer" data-testid="btn-make-offer">Hacer oferta</button>
+        <button class="btn btn--green" data-nav="make-offer" data-testid="btn-make-offer">Hacer oferta</button>
         <button class="btn btn--turquoise" data-nav="chat-detail" data-testid="btn-buy-now">${icon('chat')} Escribir</button>
       </div>
     </div>`;

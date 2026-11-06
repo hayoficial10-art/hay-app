@@ -1,4 +1,4 @@
-/* simetria.css — V1.49
+/* simetria.css — V1.49 / V1.50
  * Tamaños y simetría tomados de las pantallas de referencia (teléfono de
  * ~393 px de ancho). Solo medidas: los colores siguen siendo los de HAY.
  *  - Márgenes laterales iguales: 16 px a cada lado.
@@ -106,3 +106,30 @@
 /* ---------- Verificación: botones de foto del mismo tamaño ---------- */
 .photo-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .photo-actions .btn { width: 100%; min-height: 44px; }
+
+/* =====================================================================
+ * V1.50 — la misma simetría en todas las pantallas
+ * ===================================================================== */
+
+/* Barras de abajo con dos botones (Detalle, Confirmar venta, Calificar,
+   Reportar, Eliminar cuenta…): los dos del mismo ancho y alto */
+.bottom-cta { gap: 8px; }
+.bottom-cta > .btn { flex: 1 1 0; min-width: 0; width: auto; min-height: 52px; }
+
+/* Pantallas con la barra de abajo: lo último no queda tapado por el botón + */
+.screen-body:has(+ .tabbar) > .screen-content::after { content: ''; display: block; flex-shrink: 0; height: 36px; }
+
+/* Publicar: categorías en 2 columnas del mismo ancho */
+.pub-cats { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px !important; }
+.pub-cats .category-tile { width: 100%; min-height: 44px !important; justify-content: flex-start; padding: 0 10px 0 6px !important; }
+.pub-cats .category-tile span:last-child { white-space: normal; text-align: left; line-height: 1.15; }
+
+/* Buscar: Todos / Personas / Negocios en tres partes iguales */
+.pill-row--color { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pill-row--color .pill { justify-content: center; text-align: center; }
+
+/* Pestañas (Mis publicaciones, tipo de número…): partes iguales */
+.segmented__item { flex: 1 1 0; text-align: center; justify-content: center; }
+
+/* Seguridad: botones Llamar / WhatsApp del mismo ancho */
+a.btn.btn--sm[data-testid^="btn-contact-"] { min-width: 104px; justify-content: center; }

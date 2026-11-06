@@ -1,8 +1,29 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.49
+**VERSIÓN:** 1.50
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.48.
+**BASE:** v1.49.
+
+## V1.50 — tamaños y simetría en todas las pantallas
+
+- Se revisaron todas las pantallas (acceso, Inicio, Buscar, Publicar, Detalle,
+  ofertas, chat, venta, calificación, reportes, Mi perfil, Configuración, Seguridad,
+  moderación y verificación) con las medidas de la v1.49. Cambios en `css/simetria.css`:
+  - Barras de abajo con dos botones: los dos del mismo ancho y alto (antes «Hacer oferta»
+    y «Cancelar» de Confirmar venta eran más angostos).
+  - Pantallas con la barra de abajo: lo último de la página ya no queda tapado por el botón +.
+  - Publicar: las categorías van en 2 columnas del mismo ancho.
+  - Buscar: Todos / Personas / Negocios en tres partes iguales.
+  - Pestañas (Mis publicaciones y otras): partes iguales.
+  - Seguridad: botones «Llamar» y «WhatsApp» del mismo ancho.
+- Botones que se veían verdes con letras rojas ahora son rojos como «Cerrar sesión» de
+  Mi perfil: «Cerrar sesión» en Configuración y «Eliminar publicación (moderador)».
+- «Hacer oferta» en el Detalle es verde, del mismo tamaño que «Escribir».
+- Las fotos de los productos no cambian.
+- Versión 1.50 (app, servidor, service worker).
+
+
+---
 
 ## V1.49 — tamaños y simetría de referencia; selfie desde la galería
 
