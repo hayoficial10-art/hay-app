@@ -322,3 +322,33 @@
   box-shadow: 0 8px 20px rgba(27, 35, 80, .15);
   margin-top: -28px;
 }
+
+/* ---------- V1.43: Inicio más limpio ---------- */
+/* Bloque amarillo más sencillo y un poco más pequeño */
+.promo-block--alegre { padding: 16px 16px 16px 18px; border-radius: 24px; }
+.promo-block--alegre .promo-block__body { gap: 6px; }
+.promo-block--alegre .promo-block__title { font-size: 20px; }
+.promo-block--alegre .promo-block__text { font-size: 14px; }
+.promo-block--alegre .promo-block__btn { min-height: 40px; font-size: 14px; padding: 0 16px; }
+.promo-block__art { width: 56px; height: 56px; border-radius: 16px; }
+.promo-block__art svg { width: 30px; height: 30px; }
+
+/* «Cerca de ti» con Todos / Personas / Negocios pequeños a la derecha */
+.feed-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.feed-head .section-label { flex-shrink: 0; }
+.pill-row--mini { gap: 4px; padding: 3px; border-radius: 999px; background: var(--color-surface-2); }
+.pill-row--mini .pill {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.pill-row--mini .pill.is-selected { background: var(--hay-turquoise); color: var(--hay-navy); }
+.promo-block--alegre .promo-block__title { font-size: 19px; }
+.promo-block__art { width: 46px; height: 46px; border-radius: 14px; }
+.promo-block__art svg { width: 24px; height: 24px; }

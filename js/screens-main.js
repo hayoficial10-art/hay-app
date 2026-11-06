@@ -174,9 +174,8 @@ const SCREENS_MAIN = [
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
           <button class="promo-block promo-block--alegre" data-nav="publish-step1" data-testid="btn-home-publish" style="text-align:left;">
             <span class="promo-block__body">
-              <span class="promo-block__badge">100% GRATIS</span>
-              <span class="promo-block__title">¡Publica gratis y vende hoy mismo!</span>
-              <span class="promo-block__text">Conecta directo con compradores en tu zona. Sin comisiones.</span>
+              <span class="promo-block__title">Publica gratis y vende hoy</span>
+              <span class="promo-block__text">Sin comisiones, directo con quien compra.</span>
               <span class="promo-block__btn">Empieza a vender ${icon('chevronRight')}</span>
             </span>
             <span class="promo-block__art" aria-hidden="true">${icon('tag')}</span>
@@ -193,12 +192,12 @@ const SCREENS_MAIN = [
           <div class="chip-row chip-row--tiles" data-testid="home-categories">
             ${categoryChips()}
           </div>
-          <div class="pill-row pill-row--color" data-testid="home-seller-type">
-            ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
-          </div>
-          <div class="flex-between">
+          <!-- V1.43: Todos / Personas / Negocios, pequeños, al lado de «Cerca de ti» -->
+          <div class="feed-head">
             <span class="section-label">Cerca de ti</span>
-            <button class="text-xs link-cyan" data-nav="search" data-testid="btn-see-all">Ver todo ${icon('chevronRight')}</button>
+            <div class="pill-row pill-row--mini" data-testid="home-seller-type">
+              ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
+            </div>
           </div>
           <div class="product-grid" data-testid="home-product-grid">
             ${HAY_APP_MODE && !PRODUCTS.length ? `<p class="empty-msg" style="grid-column:1/-1;">Cargando publicaciones…</p>` : PRODUCTS.length ? PRODUCTS.slice(0, HAY_APP_MODE ? 60 : 8).map((p) => productCard(p)).join('') : `<div class="empty-state" style="grid-column:1/-1; padding:var(--space-6) 0;">${heroIcon('boxOpen', 'cyan', { size: 120 })}<p class="empty-msg" style="margin-top:0;">Todavía no hay publicaciones.<br/>¡Sé el primero en publicar con el botón +!</p></div>`}

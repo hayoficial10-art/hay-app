@@ -7,7 +7,7 @@
      la segunda vez aparecen al instante. Máx. 300 fotos guardadas.
    - Al tocar una notificación de mensaje, abre la app en ese chat.
    Nunca guarda respuestas de la API (datos privados). */
-const VERSION = '1.42';
+const VERSION = '1.43';
 const CACHE = 'hay-v' + VERSION;
 const PHOTOS = 'hay-fotos-v1';
 const MAX_PHOTOS = 300;

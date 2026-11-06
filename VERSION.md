@@ -1,8 +1,22 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.42
+**VERSIÓN:** 1.43
 **FECHA:** 6 de noviembre de 2026
-**BASE:** v1.41. Contiene todo lo de la v1.41, más lo nuevo de la v1.42.
+**BASE:** v1.42. Contiene todo lo de la v1.42, más lo nuevo de la v1.43.
+
+## V1.43 — Inicio más limpio
+
+- Los botones **Todos / Personas / Negocios** ya no ocupan una fila grande: ahora son
+  pequeños y van a la derecha del título «Cerca de ti», así las publicaciones se ven antes.
+  El filtro funciona igual que antes.
+- Se quitó «Ver todo» de esa fila (el buscador de arriba hace lo mismo).
+- Bloque amarillo más sencillo y un poco más pequeño: «Publica gratis y vende hoy» /
+  «Sin comisiones, directo con quien compra.» y el botón «Empieza a vender».
+- Versión 1.43 (app, servidor, service worker).
+
+
+
+---
 
 ## V1.42 — el teléfono baja el ícono nuevo
 
