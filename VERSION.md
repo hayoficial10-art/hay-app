@@ -1,8 +1,22 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.51
-**FECHA:** 6 de noviembre de 2026
-**BASE:** v1.50.
+**VERSIÓN:** 1.52
+**FECHA:** 8 de noviembre de 2026
+**BASE:** v1.51.
+
+## V1.52 — anuncios de Adsterra en Inicio
+
+- Archivo nuevo `js/anuncios.js` (cargado en `app.html` y guardado en la caché del service worker).
+- Solo en la pantalla de **Inicio**:
+  - Banner **320x50** debajo del recuadro «¿Algo que ya no usas?».
+  - Banner **300x250** cada 8 publicaciones en la lista de productos (también al cargar más con el scroll).
+- Cada anuncio lleva arriba la palabra «Publicidad» y va dentro de su propio iframe, para que su código no afecte a la app.
+- Sin anuncios en registro, verificación, publicar, chat ni demás pantallas. Sin popunder ni anuncios para adultos.
+- Nada más cambia.
+- Versión 1.52 (app, servidor, service worker).
+
+
+---
 
 ## V1.51 — pantalla «Administrador»
 
