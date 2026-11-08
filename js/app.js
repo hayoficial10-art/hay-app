@@ -41,9 +41,10 @@ function startChatPoll(phoneEl, threadId) {
     const data = await apiFetchThreadMessages(threadId);
     if (!data) return; // backend no disponible momentáneamente: no cortar el polling, reintentar en el próximo ciclo
     const freshMessages = data.messages || [];
-    const changed = JSON.stringify(freshMessages) !== JSON.stringify(CHAT_MESSAGES);
+    const changed = JSON.stringify(freshMessages) !== JSON.stringify(CHAT_MESSAGES) || JSON.stringify(data.sale || null) !== JSON.stringify(CURRENT_CHAT.sale || null);
     if (changed) {
       CHAT_MESSAGES = freshMessages;
+      CURRENT_CHAT.sale = data.sale || null; // V1.55
       if (phoneEl.dataset.currentScreen === 'chat-detail') {
         navigateTo(phoneEl, 'chat-detail', { skipFetch: true });
       }
@@ -291,6 +292,7 @@ function navigateTo(phoneEl, targetId, opts) {
       CHAT_LOADING = false;
       if (data) {
         CHAT_MESSAGES = data.messages || [];
+        CURRENT_CHAT.sale = data.sale || null; // V1.55
         CURRENT_CHAT.threadId = threadId;
         if (!CURRENT_CHAT.otherUserEmail && data.otherUser) CURRENT_CHAT.otherUserEmail = data.otherUser.email;
         if (!CURRENT_CHAT.listingTitle && data.listingTitle) CURRENT_CHAT.listingTitle = data.listingTitle;
@@ -681,7 +683,9 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       // La reputación de ese usuario cambió: invalidar la caché para
       // que la próxima vez que se muestre (detalle/perfil) se pida de nuevo.
       RATINGS_CACHE.delete(result.rating.toUserId);
-      navigateTo(phoneEl, 'my-listings');
+      const fueComprador = LAST_SALE && LAST_SALE.asBuyer;
+      LAST_SALE = null;
+      navigateTo(phoneEl, fueComprador ? 'home' : 'my-listings');
     });
   }
 
@@ -1285,7 +1289,27 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       }
       const i = CHAT_MESSAGES.findIndex((m) => m.id === messageId);
       if (i !== -1) CHAT_MESSAGES[i] = result.message;
-      navigateTo(phoneEl, 'chat-detail', { skipFetch: true });
+      // V1.55: recargar para ver la nota de oferta aceptada y las ofertas rechazadas solas
+      navigateTo(phoneEl, 'chat-detail');
+    });
+  });
+
+  // V1.55: calificar desde el chat (vendedor o comprador) cuando la venta está cerrada
+  phoneEl.querySelectorAll('[data-rate-from-chat]').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const s = CURRENT_CHAT && CURRENT_CHAT.sale;
+      if (!s) return;
+      LAST_SALE = {
+        listingId: CURRENT_CHAT.listingId,
+        listingTitle: CURRENT_CHAT.listingTitle,
+        buyerId: CURRENT_CHAT.otherUserId,
+        buyerEmail: CURRENT_CHAT.otherUserEmail,
+        finalPrice: s.finalPrice,
+        asBuyer: CURRENT_USER && CURRENT_USER.id === s.soldTo,
+      };
+      SELECTED_RATING_STARS = 0;
+      navigateTo(phoneEl, 'rate-transaction');
     });
   });
 
@@ -1729,7 +1753,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         }
         navigateTo(phoneEl, HAY_APP_MODE && (CURRENT_USER || seen) ? 'home' : 'onboarding-slides', { replaceHistory: true });
       }
-    }, HAY_APP_MODE && CURRENT_USER ? 500 : 1600); // V1.35: quien ya entró antes no espera
+    }, HAY_APP_MODE ? 0 : 1600); // V1.55: en la app no se repite la bienvenida (el teléfono ya muestra la suya)
   }
 }
 
@@ -1803,7 +1827,8 @@ async function init() {
     // V1.27: app real — una sola pantalla a tamaño completo
     resetPublishDraft();
     const root = document.getElementById('screensGrid');
-    root.innerHTML = `<div class="phone phone--app" id="phone-app" data-testid="phone-app"><div class="phone__notch"></div>${SCREEN_MAP.splash.html()}</div>`;
+    // V1.55: sin segunda pantalla de bienvenida; se pasa directo a la pantalla que toca
+    root.innerHTML = `<div class="phone phone--app" id="phone-app" data-testid="phone-app"><div class="phone__notch"></div><div class="phone__screen"></div></div>`;
     mountNavigation();
     const phoneEl = document.getElementById('phone-app');
     phoneEl.dataset.currentScreen = 'splash';

@@ -277,14 +277,15 @@ const SCREENS_TRANSACTION = [
           ` : CHAT_MESSAGES.length === 0 ? `
             <p class="empty-msg">Todavía no hay mensajes. ¡Escribe el primero!</p>
           ` : CHAT_MESSAGES.map((m) => `
-            ${m.type === 'offer' ? `
+            ${m.type === 'system' ? `
+            <div class="chat-system-note" data-testid="chat-system-${m.id}">${m.text}</div>` : m.type === 'offer' ? `
             <div class="bubble ${m.fromUserId === CURRENT_USER.id ? 'bubble--out' : 'bubble--in'} bubble--offer" data-testid="offer-bubble-${m.id}">
               <strong class="offer-label">OFERTA</strong><span class="offer-amount">$${m.amount}</span>
               ${m.text}
               ${m.offerStatus === 'accepted' ? `
               <p class="offer-status offer-status--ok">✓ Oferta aceptada</p>
-              ${m.toUserId === CURRENT_USER?.id ? `
-              <button class="btn btn--sm btn--green" style="margin-top:8px;" data-mark-sold-from-offer data-message-id="${m.id}" data-listing-id="${m.listingId}" data-buyer-id="${m.fromUserId}" data-amount="${m.amount}" data-testid="btn-mark-sold-${m.id}">Marcar como vendido</button>
+              ${CURRENT_CHAT?.sale?.sellerId === CURRENT_USER?.id && CURRENT_CHAT?.sale?.status === 'active' && CURRENT_CHAT?.sale?.acceptedOfferId === m.id ? `
+              <button class="btn btn--sm btn--green" style="margin-top:8px;" data-mark-sold-from-offer data-message-id="${m.id}" data-listing-id="${m.listingId}" data-buyer-id="${CURRENT_CHAT.sale.acceptedBuyerId || m.fromUserId}" data-amount="${m.amount}" data-testid="btn-mark-sold-${m.id}">Marcar como vendido</button>
               ` : ''}` : ''}
               ${m.offerStatus === 'rejected' ? `<p class="offer-status offer-status--no">✕ Oferta rechazada</p>` : ''}
               ${m.offerStatus === 'countered' ? `<p class="offer-status">↻ Contraofertada</p>` : ''}
@@ -308,6 +309,15 @@ const SCREENS_TRANSACTION = [
               ? `<div class="bubble bubble--out">${m.text}</div>`
               : `<div class="bubble-row bubble-row--in"><span class="bubble-avatar">${icon('user')}</span><div class="bubble bubble--in">${m.text}</div></div>`}`}
           `).join('')}
+          ${(() => {
+            // V1.55: al cerrarse la venta, vendedor y comprador pueden calificarse
+            const s = CURRENT_CHAT && CURRENT_CHAT.sale;
+            if (!s || s.status !== 'sold' || !s.soldTo || !CURRENT_USER) return '';
+            if (CURRENT_USER.id !== s.sellerId && CURRENT_USER.id !== s.soldTo) return '';
+            return s.alreadyRated
+              ? `<div class="chat-system-note">Venta cerrada. Ya calificaste esta venta.</div>`
+              : `<div class="chat-system-note">Venta cerrada.<button class="btn btn--sm btn--yellow" style="margin-top:8px;" data-rate-from-chat data-testid="btn-rate-from-chat">Calificar</button></div>`;
+          })()}
         </div>
       </div>
       <p class="text-xs" id="chatErrorMsg" data-testid="chat-error-msg" style="display:none; color:var(--color-error); padding:0 var(--space-4);"></p>
@@ -385,6 +395,7 @@ const SCREENS_TRANSACTION = [
       // verdad) en vez del "Carlos M." fijo de antes.
       const sale = LAST_SALE;
       const buyerLabel = sale ? (sale.buyerEmail || sale.buyerId) : 'el comprador';
+      const verbo = sale && sale.asBuyer ? 'Comprándole a' : 'Vendiéndole a';
       const initials = sale && sale.buyerEmail ? sale.buyerEmail.slice(0, 2).toUpperCase() : '??';
       return `
     <div class="phone__screen">
@@ -407,7 +418,7 @@ const SCREENS_TRANSACTION = [
           </div>
           <div class="text-center stack-sm">
             <h2 class="screen-title" style="font-size:26px;">¿Cómo fue tu experiencia?</h2>
-            <p class="screen-subtitle">Vendiéndole a ${buyerLabel}</p>
+            <p class="screen-subtitle">${verbo} ${buyerLabel}</p>
           </div>
           <div class="field">
             <label for="rate-comment">Cuéntanos más (opcional)</label>

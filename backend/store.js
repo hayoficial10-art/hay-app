@@ -178,6 +178,13 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
       async withoutThumbs(limit = 30) {
         return clone(data.listings.filter((l) => (l.photoUrls || []).length && !l.photoThumbs).slice(0, limit));
       },
+      // V1.55: activas con oferta aceptada vencida o sin actividad (cierre automático)
+      async dueForSweep(acceptCutoff, inactiveCutoff, limit = 200) {
+        return clone(data.listings.filter((l) => isActive(l) && l.sellerId && (
+          (l.acceptedAt && l.acceptedAt < acceptCutoff) ||
+          ((l.lastActivityAt || l.updatedAt || l.createdAt) < inactiveCutoff)
+        )).slice(0, limit));
+      },
       async titles(ids) {
         const set = new Set(ids);
         const out = {};
@@ -259,6 +266,10 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
           if (!prev || m.createdAt > prev.createdAt) last.set(m.threadId, m);
         }
         return clone(Array.from(last.values()));
+      },
+      // V1.55: ofertas pendientes de una publicación
+      async pendingOffers(listingId) {
+        return clone(data.messages.filter((m) => m.listingId === listingId && m.type === 'offer' && m.offerStatus === 'pending'));
       },
       // V1.35: mensajes recibidos después de una fecha (avisos y sonido)
       async incoming(userId, sinceIso, limit = 20) {
@@ -507,6 +518,16 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
       async withoutThumbs(limit = 30) {
         return rowsData(await q("SELECT data FROM listings WHERE NOT (data ? 'photoThumbs') AND jsonb_array_length(COALESCE(data->'photoUrls', '[]'::jsonb)) > 0 ORDER BY created_at DESC LIMIT $1", [limit]));
       },
+      // V1.55: activas con oferta aceptada vencida o sin actividad (cierre automático)
+      async dueForSweep(acceptCutoff, inactiveCutoff, limit = 200) {
+        return rowsData(await q(
+          `SELECT data FROM listings WHERE status = 'active' AND seller_id IS NOT NULL AND (
+             (data->>'acceptedAt' IS NOT NULL AND data->>'acceptedAt' < $1) OR
+             COALESCE(data->>'lastActivityAt', data->>'updatedAt', data->>'createdAt') < $2
+           ) LIMIT $3`,
+          [acceptCutoff, inactiveCutoff, limit]
+        ));
+      },
       async titles(ids) {
         if (!ids.length) return {};
         const r = await q('SELECT id, title FROM listings WHERE id = ANY($1::text[])', [ids]);
@@ -589,6 +610,10 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
            ORDER BY thread_id, created_at DESC, id DESC LIMIT 500`,
           [userId]
         ));
+      },
+      // V1.55: ofertas pendientes de una publicación
+      async pendingOffers(listingId) {
+        return rowsData(await q("SELECT data FROM messages WHERE data->>'listingId' = $1 AND data->>'type' = 'offer' AND data->>'offerStatus' = 'pending' LIMIT 200", [listingId]));
       },
       // V1.35: mensajes recibidos después de una fecha (avisos y sonido)
       async incoming(userId, sinceIso, limit = 20) {

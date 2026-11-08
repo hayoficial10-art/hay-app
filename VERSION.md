@@ -1,8 +1,28 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.54
+**VERSIÓN:** 1.55
 **FECHA:** 8 de noviembre de 2026
-**BASE:** v1.53.
+**BASE:** v1.54.
+
+## V1.55 — cierre de la venta y retiro automático
+
+- Al aceptar una oferta:
+  - Las demás ofertas de ese producto se rechazan solas y ya no se pueden aceptar otras ni hacer nuevas.
+  - Aparece en el chat una nota: acordar por el chat lugar, hora y forma de pago; pagar al recibir.
+- Si en 3 días no se marca la venta, HAY la cierra sola: queda vendida al comprador de la oferta,
+  sale de Inicio y se avisa en el chat.
+- Publicación sin actividad durante 30 días: se retira sola (queda en «Pausadas» con el aviso).
+  «Reanudar» la renueva por 30 días más.
+- «Marcar como vendida» desde «Mis publicaciones» toma el comprador y el precio de la oferta aceptada.
+- Producto vendido o pausado: nadie más puede escribir ni ofertar. Vendedor y comprador sí siguen
+  hablando por el chat para la entrega.
+- El comprador también puede calificar: botón «Calificar» en el chat cuando la venta está cerrada.
+- Corregido: en la oferta enviada, «OFERTA» y el monto no se veían (azul sobre azul).
+- Al abrir la app ya no se repite la pantalla de bienvenida.
+- Versión 1.55 (app, servidor, service worker).
+
+
+---
 
 ## V1.54 — corrección: la publicidad sacaba al usuario de la app
 

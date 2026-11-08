@@ -12,6 +12,7 @@ function listingRow(p) {
       <p class="product-row__title">${p.title}</p>
       <span class="product-row__price">$${p.price}</span>
       <span class="badge badge--${statusBadge.cls}" style="align-self:flex-start; margin-top:2px;">${statusBadge.text}</span>
+      ${p.status === 'paused' && p.pausedReason === 'inactive' ? `<span class="text-xs text-muted" data-testid="listing-inactive-${p.id}">Retirada por 30 días sin actividad. Toca Reanudar para renovarla.</span>` : ''}
     </div>
     <div class="product-row__actions">
       ${p.status !== 'sold' ? `<button class="icon-btn icon-btn--ghost" aria-label="Editar" data-listing-id="${p.id}" data-testid="btn-edit-listing-${p.id}">${icon('edit')}</button>` : ''}

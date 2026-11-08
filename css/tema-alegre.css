@@ -445,6 +445,9 @@
 
 /* Mensajes: burbujas como en el diseño (las mías en tinta, las del otro blancas) */
 .bubble--out { background: var(--hay-navy) !important; color: #ffffff !important; }
+/* V1.55: en la oferta enviada (fondo azul oscuro) el rótulo y el monto van en blanco */
+.bubble--out.bubble--offer .offer-label, .bubble--out.bubble--offer .offer-amount { color: #ffffff; }
+.chat-system-note { align-self: center; max-width: 90%; text-align: center; font-size: 13px; line-height: 1.4; color: var(--hay-navy); background: #fff6d6; border-radius: 14px; padding: 8px 12px; display: flex; flex-direction: column; align-items: center; }
 .bubble--in { background: #ffffff; box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06); }
 .chat-send { background: var(--hay-turquoise); }
 .chat-tip { display: flex; gap: 12px; align-items: flex-start; margin: var(--space-3) var(--space-4) 0; padding: 12px 14px; background: #ffffff; border-radius: 18px; box-shadow: 0 1px 2px rgba(27, 35, 80, .06), 0 4px 12px rgba(27, 35, 80, .06); }

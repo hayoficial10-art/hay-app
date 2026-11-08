@@ -44,7 +44,7 @@ const { createStorage } = require('./storage');
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.54';
+const APP_VERSION = '1.55';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -428,6 +428,57 @@ function verifyGoogleAccessToken(accessToken) {
   });
 }
 
+// V1.55: cierre automático de publicaciones
+//   - Oferta aceptada hace más de ACCEPT_CLOSE_DAYS días sin marcar la venta: se marca vendida
+//     al comprador de esa oferta (sale de Inicio y ambos pueden calificarse).
+//   - Sin actividad durante INACTIVE_DAYS días: se pausa; el vendedor la renueva con «Reanudar».
+const ACCEPT_CLOSE_DAYS = 3;
+const INACTIVE_DAYS = 30;
+const DAY_MS = 24 * 3600 * 1000;
+async function touchListing(listing) {
+  const last = listing.lastActivityAt || listing.updatedAt || listing.createdAt || '';
+  if (Date.now() - (Date.parse(last) || 0) < DAY_MS) return;
+  listing.lastActivityAt = new Date().toISOString();
+  await store.listings.update(listing.id, listing);
+}
+async function sweepListings() {
+  const now = Date.now();
+  const due = await store.listings.dueForSweep(
+    new Date(now - ACCEPT_CLOSE_DAYS * DAY_MS).toISOString(),
+    new Date(now - INACTIVE_DAYS * DAY_MS).toISOString()
+  );
+  for (const l of due) {
+    const nowIso = new Date().toISOString();
+    if (l.acceptedAt && Date.parse(l.acceptedAt) < now - ACCEPT_CLOSE_DAYS * DAY_MS && l.acceptedBuyerId) {
+      l.status = 'sold';
+      l.soldTo = l.acceptedBuyerId;
+      if (l.acceptedAmount) l.finalPrice = l.acceptedAmount;
+      l.soldAt = nowIso;
+      l.autoClosed = true;
+      l.updatedAt = nowIso;
+      await store.listings.update(l.id, l);
+      await store.messages.insert({
+        threadId: threadIdFor(l.id, l.sellerId, l.acceptedBuyerId),
+        listingId: l.id,
+        fromUserId: l.acceptedBuyerId,
+        toUserId: l.sellerId,
+        text: `HAY cerró esta venta sola: pasaron ${ACCEPT_CLOSE_DAYS} días desde que se aceptó la oferta. La publicación ya no aparece en Inicio. Ya pueden calificarse.`,
+        type: 'system',
+        createdAt: nowIso,
+      });
+    } else {
+      l.status = 'paused';
+      l.pausedReason = 'inactive';
+      l.updatedAt = nowIso;
+      await store.listings.update(l.id, l);
+    }
+  }
+  if (due.length) console.log('[HAY backend] Cierre automático:', due.length, 'publicaciones revisadas');
+}
+function runSweep() {
+  sweepListings().catch((e) => console.error('[HAY backend] Error en el cierre automático:', e && e.message ? e.message : e));
+}
+
 // Conversaciones: id = publicación + los dos usuarios (orden fijo)
 function threadIdFor(listingId, userIdA, userIdB) {
   const sorted = [userIdA, userIdB].sort();
@@ -743,6 +794,10 @@ async function handle(req, res) {
     const VALID_STATUSES = ['active', 'paused', 'sold'];
     if (!VALID_STATUSES.includes(body.status)) return sendJSON(res, 400, { error: 'Estado inválido. Debe ser: ' + VALID_STATUSES.join(', ') });
     if (body.status === 'sold') {
+      // V1.55: si hay una oferta aceptada, el comprador y el precio salen de ahí
+      if ((body.buyerId === undefined || body.buyerId === null) && listing.acceptedBuyerId) body.buyerId = listing.acceptedBuyerId;
+      if ((body.finalPrice === undefined || body.finalPrice === null) && listing.acceptedAmount) body.finalPrice = listing.acceptedAmount;
+      listing.soldAt = new Date().toISOString();
       if (body.buyerId !== undefined && body.buyerId !== null) {
         const buyerId = String(body.buyerId);
         if (!(await store.users.get(buyerId))) return sendJSON(res, 404, { error: 'El comprador indicado no existe' });
@@ -754,6 +809,11 @@ async function handle(req, res) {
         if (Number.isNaN(finalPrice) || finalPrice <= 0) return sendJSON(res, 400, { error: 'El precio final debe ser un número válido y mayor a 0' });
         listing.finalPrice = finalPrice;
       }
+    }
+    if (body.status === 'active') {
+      // V1.55: reanudar = renovar (vuelve a contar los 30 días)
+      delete listing.pausedReason;
+      listing.lastActivityAt = new Date().toISOString();
     }
     listing.status = body.status;
     listing.updatedAt = new Date().toISOString();
@@ -785,6 +845,20 @@ async function handle(req, res) {
     if (toUserId === user.id) return sendJSON(res, 400, { error: 'No puedes enviarte un mensaje a ti mismo' });
     if (!(await store.users.get(toUserId))) return sendJSON(res, 404, { error: 'El destinatario no existe' });
     const type = body.type === 'offer' ? 'offer' : 'text';
+    // V1.55: reglas según el estado de la publicación
+    const msgListing = await store.listings.get(listingId);
+    if (!msgListing) return sendJSON(res, 404, { error: 'Publicación no encontrada' });
+    const msgBuyer = msgListing.soldTo || msgListing.acceptedBuyerId || null;
+    const isDealPair = msgBuyer && [user.id, toUserId].includes(msgListing.sellerId) && [user.id, toUserId].includes(msgBuyer);
+    if ((msgListing.status && msgListing.status !== 'active') && !isDealPair) {
+      return sendJSON(res, 400, { error: 'Esta publicación ya no está disponible' });
+    }
+    if (type === 'offer' && (msgListing.status && msgListing.status !== 'active')) {
+      return sendJSON(res, 400, { error: 'Esta publicación ya no está disponible' });
+    }
+    if (type === 'offer' && msgListing.acceptedOfferId) {
+      return sendJSON(res, 400, { error: 'Este producto ya tiene una oferta aceptada' });
+    }
     let amount = null;
     if (type === 'offer') {
       amount = Number(body.amount);
@@ -802,6 +876,7 @@ async function handle(req, res) {
       offerStatus: type === 'offer' ? 'pending' : null,
       createdAt: new Date().toISOString(),
     });
+    await touchListing(msgListing);
     return sendJSON(res, 201, { message, threadId });
   }
 
@@ -817,10 +892,24 @@ async function handle(req, res) {
       store.listings.get(parsed.listingId),
       store.messages.byThread(parts[2]),
     ]);
+    // V1.55: estado de la venta para mostrar «Calificar» a vendedor y comprador
+    let sale = null;
+    if (listing) {
+      sale = {
+        status: listing.status || 'active',
+        sellerId: listing.sellerId,
+        soldTo: listing.soldTo || null,
+        finalPrice: listing.finalPrice ?? null,
+        acceptedOfferId: listing.acceptedOfferId || null,
+        acceptedBuyerId: listing.acceptedBuyerId || null,
+        alreadyRated: listing.status === 'sold' && listing.soldTo ? await store.ratings.exists(listing.id, user.id) : false,
+      };
+    }
     return sendJSON(res, 200, {
       threadId: parts[2],
       listingId: parsed.listingId,
       listingTitle: listing ? listing.title : null,
+      sale,
       otherUser: otherUser ? { id: otherUser.id, email: otherUser.email } : { id: otherUserId, email: null },
       messages,
     });
@@ -859,6 +948,14 @@ async function handle(req, res) {
     if (msg.offerStatus !== 'pending') return sendJSON(res, 400, { error: 'Esta oferta ya fue respondida' });
     const body = await jsonBody(req, res);
     if (!body) return;
+    // V1.55: la publicación debe seguir disponible y sin otra oferta aceptada
+    const offerListing = await store.listings.get(msg.listingId);
+    if (!offerListing || (offerListing.status && offerListing.status !== 'active')) {
+      return sendJSON(res, 400, { error: 'Esta publicación ya no está disponible' });
+    }
+    if (body.response !== 'rejected' && offerListing.acceptedOfferId) {
+      return sendJSON(res, 400, { error: 'Este producto ya tiene una oferta aceptada' });
+    }
     if (!['accepted', 'rejected', 'countered'].includes(body.response)) {
       return sendJSON(res, 400, { error: 'La respuesta debe ser "accepted", "rejected" o "countered"' });
     }
@@ -883,6 +980,32 @@ async function handle(req, res) {
     }
     msg.offerStatus = body.response;
     await store.messages.update(msg.id, msg);
+    if (body.response === 'accepted') {
+      // V1.55: queda registrado quién compra; las demás ofertas se rechazan solas
+      const nowIso = new Date().toISOString();
+      const buyerId = offerListing.sellerId === user.id ? msg.fromUserId : user.id;
+      offerListing.acceptedOfferId = msg.id;
+      offerListing.acceptedBuyerId = buyerId;
+      offerListing.acceptedAmount = msg.amount;
+      offerListing.acceptedAt = nowIso;
+      offerListing.lastActivityAt = nowIso;
+      await store.listings.update(offerListing.id, offerListing);
+      for (const other of await store.messages.pendingOffers(offerListing.id)) {
+        if (other.id === msg.id) continue;
+        other.offerStatus = 'rejected';
+        other.autoRejected = true;
+        await store.messages.update(other.id, other);
+      }
+      await store.messages.insert({
+        threadId: msg.threadId,
+        listingId: msg.listingId,
+        fromUserId: user.id,
+        toUserId: msg.fromUserId,
+        text: `Oferta de $${msg.amount} aceptada. Acuerden por este chat el lugar, la hora y la forma de pago. Paguen al recibir el producto. Si en ${ACCEPT_CLOSE_DAYS} días no se marca la venta, HAY la cierra sola.`,
+        type: 'system',
+        createdAt: new Date(Date.now() + 1).toISOString(),
+      });
+    }
     return sendJSON(res, 200, { message: msg });
   }
 
@@ -1393,6 +1516,8 @@ server.headersTimeout = 66000;
 async function start() {
   await store.init();
   await store.sessions.purgeOlderThan(new Date(Date.now() - SESSION_TTL_MS).toISOString());
+  runSweep();
+  setInterval(runSweep, 3600 * 1000).unref(); // V1.55: cada hora
   server.listen(PORT, () => {
     console.log(`[HAY backend] v${APP_VERSION} · modo ${IS_PROD ? 'PRODUCCIÓN' : 'desarrollo'} · datos: ${store.kind === 'postgres' ? 'PostgreSQL' : 'archivos en ' + DATA_DIR} · fotos: ${photoStorage.kind}`);
     if (IS_PROD && store.kind !== 'postgres') console.warn('[HAY backend] AVISO: producción sin DATABASE_URL — usando archivos. Para muchos usuarios configura PostgreSQL.');
