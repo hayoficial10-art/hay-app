@@ -1,8 +1,19 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.53
+**VERSIÓN:** 1.54
 **FECHA:** 8 de noviembre de 2026
-**BASE:** v1.52.
+**BASE:** v1.53.
+
+## V1.54 — corrección: la publicidad sacaba al usuario de la app
+
+- Los anuncios de Adsterra redirigían toda la app a otra página (un casino) y no dejaban entrar.
+- Ahora cada anuncio queda encerrado en su recuadro (iframe con `sandbox`): no puede cambiar la
+  página de la app. Solo abre una pestaña nueva si el usuario toca el anuncio.
+- Nada más cambia.
+- Versión 1.54 (app, servidor, service worker).
+
+
+---
 
 ## V1.53 — corrección: los anuncios no se mostraban
 

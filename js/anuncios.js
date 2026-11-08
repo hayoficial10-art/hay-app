@@ -1,4 +1,4 @@
-/* HAY — anuncios de Adsterra (V1.52, corregido en V1.53)
+/* HAY — anuncios de Adsterra (V1.52, corregido en V1.53 y V1.54)
    Solo en la pantalla de Inicio:
    - Banner 320x50 debajo del recuadro «¿Algo que ya no usas?».
    - Banner 300x250 cada 8 publicaciones en la lista de productos.
@@ -32,7 +32,11 @@
     f.setAttribute('scrolling', 'no');
     // V1.53: página propia del mismo sitio (hay-app.onrender.com), para que
     // Adsterra reconozca el dominio aprobado (con srcdoc no lo reconocía).
-    f.src = 'assets/anuncio-' + a.w + '.html?v=1.53';
+    f.src = 'assets/anuncio-' + a.w + '.html?v=1.54';
+    // V1.54: el anuncio queda encerrado en su recuadro. Sin «allow-top-navigation» ni
+    // «allow-same-origin», no puede sacar al usuario de la app ni llevarlo a otra página.
+    // Solo abre una pestaña nueva si el usuario toca el anuncio.
+    f.setAttribute('sandbox', 'allow-scripts allow-popups allow-popups-to-escape-sandbox');
     box.appendChild(label);
     box.appendChild(f);
     return box;
