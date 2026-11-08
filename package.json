@@ -1,6 +1,6 @@
 {
   "name": "hay-app",
-  "version": "1.55.0",
+  "version": "1.56.0",
   "private": true,
   "description": "HAY — Lo tienes, publícalo, véndelo. Marketplace C2C.",
   "scripts": {

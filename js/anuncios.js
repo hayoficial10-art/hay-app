@@ -1,4 +1,4 @@
-/* HAY — anuncios de Adsterra (V1.52, corregido en V1.53 y V1.54)
+/* HAY — anuncios de Adsterra (V1.52, corregido en V1.53, V1.54 y V1.56)
    Solo en la pantalla de Inicio:
    - Banner 320x50 debajo del recuadro «¿Algo que ya no usas?».
    - Banner 300x250 cada 8 publicaciones en la lista de productos.
@@ -32,11 +32,20 @@
     f.setAttribute('scrolling', 'no');
     // V1.53: página propia del mismo sitio (hay-app.onrender.com), para que
     // Adsterra reconozca el dominio aprobado (con srcdoc no lo reconocía).
-    f.src = 'assets/anuncio-' + a.w + '.html?v=1.54';
-    // V1.54: el anuncio queda encerrado en su recuadro. Sin «allow-top-navigation» ni
-    // «allow-same-origin», no puede sacar al usuario de la app ni llevarlo a otra página.
-    // Solo abre una pestaña nueva si el usuario toca el anuncio.
-    f.setAttribute('sandbox', 'allow-scripts allow-popups allow-popups-to-escape-sandbox');
+    f.src = 'assets/anuncio-' + a.w + '.html?v=1.56';
+    // V1.54: el anuncio queda encerrado en su recuadro: sin «allow-top-navigation» no puede
+    // sacar al usuario de la app. Solo abre una pestaña nueva si el usuario toca el anuncio.
+    // V1.56: se agrega «allow-same-origin» porque sin él Adsterra no cargaba (recuadros vacíos).
+    f.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox');
+    // V1.56: si a los 8 segundos no llegó ningún anuncio, el espacio se oculta
+    setTimeout(() => {
+      let lleno = false;
+      try {
+        const d = f.contentDocument;
+        lleno = Boolean(d && d.body && d.body.querySelector('iframe, img, a, ins, object, embed, video'));
+      } catch (e) { lleno = true; }
+      if (!lleno) box.style.display = 'none';
+    }, 8000);
     box.appendChild(label);
     box.appendChild(f);
     return box;

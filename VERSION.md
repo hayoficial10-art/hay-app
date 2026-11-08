@@ -1,8 +1,19 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.55
+**VERSIÓN:** 1.56
 **FECHA:** 8 de noviembre de 2026
-**BASE:** v1.54.
+**BASE:** v1.55.
+
+## V1.56 — corrección: los recuadros de publicidad salían vacíos
+
+- El bloqueo de la v1.54 impedía que Adsterra cargara el anuncio. Se ajusta para que cargue,
+  manteniendo el bloqueo que impide sacar al usuario de la app.
+- Si a los 8 segundos no llega ningún anuncio, el espacio de publicidad se oculta.
+- Nada más cambia.
+- Versión 1.56 (app, servidor, service worker).
+
+
+---
 
 ## V1.55 — cierre de la venta y retiro automático
 
