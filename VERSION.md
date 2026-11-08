@@ -1,8 +1,20 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.52
+**VERSIÓN:** 1.53
 **FECHA:** 8 de noviembre de 2026
-**BASE:** v1.51.
+**BASE:** v1.52.
+
+## V1.53 — corrección: los anuncios no se mostraban
+
+- Cada anuncio ahora se carga desde una página propia del sitio (`assets/anuncio-320.html` y
+  `assets/anuncio-300.html`) en vez de un iframe `srcdoc`. Con `srcdoc` la dirección del anuncio
+  era «about:srcdoc» y Adsterra no reconocía el dominio aprobado (hay-app.onrender.com).
+- Los anuncios cargan apenas aparecen (sin espera).
+- Nada más cambia.
+- Versión 1.53 (app, servidor, service worker).
+
+
+---
 
 ## V1.52 — anuncios de Adsterra en Inicio
 

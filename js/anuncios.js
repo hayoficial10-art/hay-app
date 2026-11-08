@@ -1,8 +1,8 @@
-/* HAY — anuncios de Adsterra (V1.52)
+/* HAY — anuncios de Adsterra (V1.52, corregido en V1.53)
    Solo en la pantalla de Inicio:
    - Banner 320x50 debajo del recuadro «¿Algo que ya no usas?».
    - Banner 300x250 cada 8 publicaciones en la lista de productos.
-   Cada anuncio va dentro de su propio iframe (srcdoc) para que su código no
+   Cada anuncio va dentro de su propio iframe (página del mismo sitio) para que su código no
    choque con el de la app ni con el de los otros anuncios. No toca nada más. */
 (function () {
   const ADS = {
@@ -30,10 +30,9 @@
     const f = document.createElement('iframe');
     f.width = a.w; f.height = a.h; f.title = 'Publicidad';
     f.setAttribute('scrolling', 'no');
-    f.loading = 'lazy';
-    f.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;overflow:hidden;background:transparent}</style></head><body>'
-      + "<script>atOptions={'key':'" + a.key + "','format':'iframe','height':" + a.h + ",'width':" + a.w + ",'params':{}};<\/script>"
-      + '<script src="https://bauval.org/22/' + a.key + '"><\/script></body></html>';
+    // V1.53: página propia del mismo sitio (hay-app.onrender.com), para que
+    // Adsterra reconozca el dominio aprobado (con srcdoc no lo reconocía).
+    f.src = 'assets/anuncio-' + a.w + '.html?v=1.53';
     box.appendChild(label);
     box.appendChild(f);
     return box;
