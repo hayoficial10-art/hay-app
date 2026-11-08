@@ -1,8 +1,20 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.56
+**VERSIÓN:** 1.57
 **FECHA:** 8 de noviembre de 2026
-**BASE:** v1.55.
+**BASE:** v1.56.
+
+## V1.57 — la publicidad no interviene al iniciar la app
+
+- Los anuncios empiezan a cargar 5 segundos después de que la app termina de abrir.
+- Cada anuncio carga solo cuando el usuario se acerca a él al bajar por Inicio.
+- Mientras el anuncio no llega, el recuadro está oculto y no deja espacio en blanco.
+  Si no llega en 15 segundos, se quita.
+- Nada más cambia.
+- Versión 1.57 (app, servidor, service worker).
+
+
+---
 
 ## V1.56 — corrección: los recuadros de publicidad salían vacíos
 
