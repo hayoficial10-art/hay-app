@@ -1,8 +1,16 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.61
+**VERSIÓN:** 1.62
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.60.
+**BASE:** v1.61.
+
+## V1.62 — botones de fotos angostos
+
+- «Tomar foto» y «Galería» angostos (al ancho del texto), más bajos y centrados.
+- Versión 1.62 (app, servidor, service worker).
+
+
+---
 
 ## V1.61 — botones de fotos más pequeños
 

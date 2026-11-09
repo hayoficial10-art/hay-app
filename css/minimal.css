@@ -117,3 +117,7 @@
 /* V1.61: Tomar foto / Galería, pequeños e iguales en todas las pantallas */
 .photo-actions .btn, .pub-card .photo-actions .btn { min-height: 34px !important; height: 34px; font-size: 13px !important; padding: 0 12px !important; }
 .photo-actions .btn svg { width: 16px !important; height: 16px !important; }
+/* V1.62: Tomar foto / Galería angostos (al ancho del texto) y más pequeños */
+.photo-actions, .pub-card .photo-actions { display: flex !important; grid-template-columns: none !important; justify-content: center; gap: 8px !important; }
+.photo-actions .btn, .pub-card .photo-actions .btn { width: auto !important; flex: 0 0 auto !important; min-height: 30px !important; height: 30px; font-size: 12px !important; padding: 0 12px !important; }
+.photo-actions .btn svg { width: 14px !important; height: 14px !important; }
