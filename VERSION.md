@@ -1,8 +1,19 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.59
+**VERSIÓN:** 1.60
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.58.
+**BASE:** v1.59.
+
+## V1.60 — fichas iguales en cada fila
+
+- Categorías (Inicio, Buscar y Publicar): todas las fichas del mismo ancho y alto;
+  los nombres largos pasan a dos líneas dentro de la ficha.
+- Todos/Personas/Negocios, Nuevo/Como nuevo/Usado y Activas/Pausadas/Vendidas: partes iguales.
+- La ficha marcada solo cambia de color (sin borde oscuro).
+- Versión 1.60 (app, servidor, service worker).
+
+
+---
 
 ## V1.59 — mismo tamaño para lo que es igual
 

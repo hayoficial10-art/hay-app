@@ -79,3 +79,38 @@
 /* Los grupos de 3 (Todos/Personas/Negocios, Nuevo/Como nuevo/Usado) ocupan partes iguales */
 .pill-row--color .pill, .pub-cond .pill { flex: 1 1 0; }
 .pill-row--mini { display: flex !important; }
+
+/* ------------------------------------------------------------------
+   V1.60: en una misma fila, todas las fichas del mismo ancho y alto.
+   Los nombres largos pasan a dos líneas dentro de la ficha.
+   La ficha marcada solo cambia de color (sin borde oscuro).
+   ------------------------------------------------------------------ */
+/* Categorías (Inicio y Buscar): fila deslizable de fichas iguales */
+[data-testid="home-categories"] .chip,
+[data-testid="search-categories"] .chip {
+  width: 116px !important; min-width: 116px !important; max-width: 116px !important;
+  height: 42px !important; min-height: 42px !important;
+  white-space: normal !important; text-align: left; line-height: 1.1 !important;
+  font-size: 12px !important; padding: 0 10px !important; justify-content: flex-start !important;
+}
+/* Categorías al publicar: cuadrícula de fichas iguales */
+.pub-cats { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px !important; }
+.pub-cats .category-tile {
+  width: 100% !important; height: 42px !important; min-height: 42px !important;
+  white-space: normal !important; line-height: 1.1 !important; font-size: 12px !important;
+  padding: 0 8px 0 4px !important; justify-content: flex-start !important; text-align: left;
+}
+.pub-cats .category-tile span:last-child { white-space: normal !important; }
+/* Todos / Personas / Negocios y demás grupos: partes iguales */
+.pill-row--mini, .pill-row--color, .pub-cond, .segmented { display: grid !important; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.pill-row--mini .pill, .pill-row--color .pill, .pub-cond .pill, .segmented__item { width: 100% !important; justify-content: center !important; }
+/* Marcada: solo color, mismo borde que las demás */
+.chip.is-active, .chip-row .chip.is-active, .chip--turquoise.is-active, .chip--pink.is-active,
+.pill.is-selected, .pub-cats .category-tile.is-selected, .segmented__item.is-active {
+  border-color: transparent !important; box-shadow: none !important; text-decoration: none !important; outline: none !important;
+}
+.chip, .pill, .pub-cats .category-tile { border-color: transparent !important; }
+.pub-cats .category-tile.is-selected::after, .pub-cats .category-tile.is-selected::before { display: none !important; }
+.pub-cats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.pub-cats .category-tile span:last-child { font-size: 12px !important; line-height: 1.1 !important; overflow: hidden; }
+.chip svg { flex-shrink: 0; }
