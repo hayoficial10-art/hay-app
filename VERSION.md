@@ -1,8 +1,17 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.63
+**VERSIÓN:** 1.64
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.62.
+**BASE:** v1.63.
+
+## V1.64 — Inicio: cuadritos de categorías y cajitas Todos/Personas/Negocios
+
+- Categorías de Inicio otra vez en cuadritos de color, más pequeños.
+- «Cerca de ti»: Todos / Personas / Negocios en cajitas suaves con ícono arriba, pequeñas e iguales.
+- Versión 1.64 (app, servidor, service worker).
+
+
+---
 
 ## V1.63 — botones de fotos simétricos
 

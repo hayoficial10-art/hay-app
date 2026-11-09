@@ -123,3 +123,35 @@
 .photo-actions .btn svg { width: 14px !important; height: 14px !important; }
 /* V1.63: Tomar foto y Galería del mismo ancho (simétricos), pequeños y centrados */
 .photo-actions .btn, .pub-card .photo-actions .btn { width: 120px !important; min-width: 120px !important; max-width: 120px !important; justify-content: center !important; }
+
+/* ------------------------------------------------------------------
+   V1.64 (Inicio): categorías en cuadritos de color (más pequeños) y
+   Todos / Personas / Negocios en cajitas suaves con ícono arriba.
+   ------------------------------------------------------------------ */
+[data-testid="home-categories"].chip-row--tiles { gap: 10px !important; }
+[data-testid="home-categories"].chip-row--tiles .chip {
+  width: 62px !important; min-width: 62px !important; max-width: 62px !important; flex: 0 0 62px !important;
+  height: auto !important; min-height: 0 !important; padding: 0 !important;
+  flex-direction: column !important; align-items: center !important; justify-content: flex-start !important;
+  gap: 5px !important; background: transparent !important; border: 0 !important; border-radius: 0 !important;
+  white-space: normal !important; text-align: center !important; font-size: 11px !important; line-height: 1.15 !important;
+}
+[data-testid="home-categories"].chip-row--tiles .chip svg {
+  width: 56px !important; height: 56px !important; padding: 15px; border-radius: 18px; box-sizing: border-box;
+}
+[data-testid="home-categories"].chip-row--tiles .chip.is-active { text-decoration: underline !important; text-underline-offset: 3px; }
+
+.feed-head { align-items: center; gap: 8px; }
+.pill-row--tiles { display: grid !important; grid-template-columns: repeat(3, 62px); gap: 6px !important; background: none !important; padding: 0 !important; }
+.pill-row--tiles .pill.pill--tile {
+  width: 62px !important; height: 58px !important; min-height: 58px !important; padding: 6px 2px !important;
+  flex-direction: column !important; gap: 3px !important; border-radius: 16px !important;
+  font-size: 11px !important; font-weight: 800 !important; color: var(--hay-navy) !important;
+  border: 2px solid transparent !important; box-shadow: none !important;
+}
+.pill--tile-all { background: var(--hay-turquoise-highlight) !important; }
+.pill--tile-persona { background: var(--hay-green-highlight) !important; }
+.pill--tile-negocio { background: var(--hay-yellow-highlight) !important; }
+.pill--tile .pill__icon { width: 26px; height: 26px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.65); }
+.pill--tile .pill__icon svg { width: 15px !important; height: 15px !important; stroke: var(--hay-navy); }
+.pill-row--tiles .pill.pill--tile.is-selected { border-color: var(--hay-navy) !important; }

@@ -171,14 +171,14 @@ const SCREENS_MAIN = [
         </header>
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-home">
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <div class="chip-row chip-row--color" data-testid="home-categories" style="overflow-x:auto; flex-wrap:nowrap;">
+          <div class="chip-row chip-row--tiles" data-testid="home-categories">
             ${categoryChips()}
           </div>
           <!-- V1.43: Todos / Personas / Negocios, pequeños, al lado de «Cerca de ti» -->
           <div class="feed-head">
             <span class="section-label">Cerca de ti</span>
-            <div class="pill-row pill-row--mini" data-testid="home-seller-type">
-              ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
+            <div class="pill-row pill-row--tiles" data-testid="home-seller-type">
+              ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill pill--tile pill--tile-${s.value} ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}"><span class="pill__icon">${icon(({ all: 'boxOpen', persona: 'user', negocio: 'briefcase' })[s.value])}</span>${s.label}</span>`).join('')}
             </div>
           </div>
           <div class="product-grid" data-testid="home-product-grid">
