@@ -84,8 +84,9 @@
     const home = document.querySelector('[data-testid="screen-home"]');
     if (!home) return;
     if (!home.querySelector('[data-ad-slot="b320"]')) {
-      const promo = home.querySelector('[data-testid="btn-home-publish"]');
-      if (promo) promo.after(crearSlot('b320'));
+      // V1.58: sin el bloque «Publica gratis», el anuncio va debajo de las categorías
+      const ancla = home.querySelector('[data-testid="home-categories"]');
+      if (ancla) ancla.after(crearSlot('b320'));
     }
     const grid = home.querySelector('[data-testid="home-product-grid"]');
     if (!grid) return;

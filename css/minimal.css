@@ -1,0 +1,55 @@
+/* minimal.css — V1.58: diseño más sencillo.
+   Se carga al final: botones, títulos y tarjetas más pequeños y livianos,
+   sin cambiar colores ni la lógica de la app. */
+
+/* Botones: más bajos y con letra normal */
+.btn { min-height: 44px; font-size: 15px; padding: 8px 18px; gap: 6px; }
+.btn svg { width: 18px; height: 18px; }
+.btn--sm { min-height: 34px; font-size: 13px; padding: 6px 14px; }
+.pub-submit { min-height: 48px !important; font-size: 16px !important; box-shadow: none !important; }
+.pub-card .photo-actions .btn { min-height: 40px !important; font-size: 14px !important; }
+.bottom-cta .btn, .btn--block-row .btn { min-height: 44px; }
+
+/* Botones redondos (atrás, cerrar, campana) */
+.icon-btn, .pub-head__back { width: 38px !important; height: 38px !important; }
+.icon-btn svg, .pub-head__back svg { width: 18px; height: 18px; }
+
+/* X de cerrar en pantallas de aviso: arriba a la derecha */
+.screen-close { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 16px; z-index: 5; }
+
+/* Títulos más discretos */
+.screen-title { font-size: 22px; }
+.profile-head .screen-title, .pub-head .screen-title { font-size: 22px !important; }
+.success-screen .screen-title, .screen-content--centered .screen-title { font-size: 26px !important; }
+.screen-subtitle { font-size: 15px !important; }
+.pub-head { align-items: center !important; }
+
+/* Íconos grandes de adorno: más pequeños */
+.screen-content--centered .hero { transform: scale(.7); margin: -20px 0; }
+
+/* Publicar: tarjetas compactas */
+.pub-card { padding: 14px !important; gap: 10px !important; }
+.pub-card__head h2 { font-size: 17px !important; }
+.photo-rules { padding: 8px 12px !important; font-size: 13px !important; border-radius: 12px !important; }
+.pub-card .field textarea { min-height: 80px; }
+
+/* Categorías al publicar: fichas pequeñas que se acomodan solas, sin cortar el texto */
+.pub-cats { display: flex !important; flex-wrap: wrap !important; gap: 6px !important; }
+.pub-cats .category-tile { width: auto !important; min-height: 32px !important; font-size: 13px !important; padding: 0 12px 0 4px !important; }
+.pub-cats .category-tile span:last-child { white-space: nowrap !important; }
+.pub-cats .category-tile__icon { width: 24px !important; height: 24px !important; }
+.pub-cats .category-tile__icon svg { width: 14px !important; height: 14px !important; }
+
+/* Ventana «¿Salir sin publicar?»: sin ícono grande */
+.modal-scrim .hero { display: none; }
+.modal-scrim .card { padding: 20px !important; gap: 14px; }
+.modal-scrim .screen-title { font-size: 19px !important; }
+
+/* Barra de abajo: botón + un poco más pequeño */
+.tabbar__fab-circle, .tabbar--color .tabbar__fab-circle { width: 52px !important; height: 52px !important; }
+
+/* Buscar: filtros pequeños y una sola fila de categorías */
+[data-testid="search-categories"] .chip { min-height: 34px; font-size: 13px; }
+
+.bottom-cta > .btn { min-height: 44px; }
+.pub-cond .pill { min-height: 34px; font-size: 13px; }

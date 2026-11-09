@@ -76,6 +76,11 @@ function topBar({ back, title, right, testid, stacked }) {
   </header>`;
 }
 
+/* V1.58: botón X para cerrar pantallas de aviso (éxito, enviado...) */
+function closeBtn(target, testid) {
+  return `<button class="icon-btn screen-close" data-nav="${target}" aria-label="Cerrar" data-testid="btn-close-${testid}">${icon('close')}</button>`;
+}
+
 function stars(filled) {
   let out = '<span class="stars">';
   for (let i = 0; i < 5; i++) {

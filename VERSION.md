@@ -1,8 +1,27 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.57
-**FECHA:** 8 de noviembre de 2026
-**BASE:** v1.56.
+**VERSIÓN:** 1.58
+**FECHA:** 9 de noviembre de 2026
+**BASE:** v1.57.
+
+## V1.58 — app más sencilla
+
+- Botones, títulos e íconos más pequeños en todas las pantallas (nuevo archivo css/minimal.css).
+- Botón atrás o X en las pantallas que no lo tenían: Buscar, Oferta enviada, ¡Publicado!,
+  Reporte enviado, Registro completado, Verificación completada, Enlace enviado y Calificar.
+- Menos texto: se acortaron títulos, avisos y explicaciones en todas las pantallas.
+- Inicio: se quitan el bloque «Publica gratis» y las 4 fichas (Trato directo, 0% comisión…),
+  repetidos con el botón +. La publicidad de arriba queda debajo de las categorías.
+- Buscar: se quitan el panel de filtros y «Ordenar», que no funcionaban.
+- Publicar: categorías en fichas pequeñas; ventana de salida sin ícono grande y con texto corto.
+- Detalle: se quita «Compartir» (no funcionaba). Mensajes: se quita la lupa (no funcionaba).
+- Registro y entrada: se quita «Continuar con Apple» (no funcionaba).
+- Mi perfil: se quitan lo repetido (Favoritos, Crear publicación, engranaje, aviso de verificada);
+  «Cerrar sesión» queda solo en Mi perfil.
+- Versión 1.58 (app, servidor, service worker).
+
+
+---
 
 ## V1.57 — la publicidad no interviene al iniciar la app
 

@@ -82,19 +82,17 @@ function publishSinglePage() {
     <div class="phone__screen screen--alegre">
       ${statusBar()}
       <header class="pub-head">
-        <button class="icon-btn pub-head__back" data-nav="exit-publish-confirm" aria-label="Salir de publicar" data-testid="btn-back-publish-step1">${icon('back')}</button>
+        <button class="icon-btn pub-head__back" data-nav="exit-publish-confirm" aria-label="Salir de publicar" data-testid="btn-back-publish-step1">${icon('close')}</button>
         <div class="pub-head__text">
-          <h1 class="screen-title">${editing ? 'Editar publicación' : 'Publicar artículo'}</h1>
-          <p>Completa los datos y conéctate con compradores al instante</p>
+          <h1 class="screen-title">${editing ? 'Editar' : 'Publicar'}</h1>
         </div>
       </header>
       <div class="screen-body">
         <div class="screen-content pub-page" data-testid="screen-publish-step1">
 
           <section class="pub-card" data-testid="publish-photos">
-            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--cyan"></span>Fotos del producto</h2><span class="pub-count" data-testid="photo-count">${photos.length} de ${MAX_LISTING_PHOTOS} fotos</span></div>
-            <p class="pub-hint">La primera foto será la portada. Usa buena luz natural.</p>
-            <p class="photo-rules" data-testid="photo-rules">Solo fotos del artículo. No se permiten fotos de personas ni contenido sexual o violento.</p>
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--cyan"></span>Fotos</h2><span class="pub-count" data-testid="photo-count">${photos.length}/${MAX_LISTING_PHOTOS}</span></div>
+            <p class="photo-rules" data-testid="photo-rules">Solo fotos del artículo, sin personas.</p>
             <div class="photo-actions">
               <label class="btn btn--turquoise" style="cursor:pointer;" data-testid="btn-open-camera">
                 ${icon('camera')} Tomar foto
@@ -119,9 +117,9 @@ function publishSinglePage() {
           </section>
 
           <section class="pub-card" data-testid="publish-what">
-            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--yellow"></span>¿Qué estás vendiendo?</h2></div>
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--yellow"></span>¿Qué vendes?</h2></div>
             <div class="field">
-              <label for="pub-title">Título del artículo</label>
+              <label for="pub-title">Título</label>
               <input id="pub-title" type="text" value="${String(PUBLISH_DRAFT.title || '').replace(/"/g, '&quot;')}" maxlength="60" placeholder="Ej. Bicicleta rin 26" data-testid="input-publish-title" data-draft-field="title" />
             </div>
             <div class="field">
@@ -134,7 +132,7 @@ function publishSinglePage() {
               </div>
             </div>
             <div class="field">
-              <label>Estado del producto</label>
+              <label>Estado</label>
               <div class="pill-row pub-cond" data-testid="condition-pills" data-draft-field="condition">
                 ${condOpts.map((o) => `<span class="pill ${PUBLISH_DRAFT.condition === o.v ? 'is-selected' : ''}">${o.v}</span>`).join('')}
               </div>
@@ -142,9 +140,9 @@ function publishSinglePage() {
           </section>
 
           <section class="pub-card" data-testid="publish-price">
-            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--green"></span>Fija tu precio</h2>${HAY_APP_MODE ? '<span class="pub-count">Doble moneda</span>' : ''}</div>
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--green"></span>Precio</h2></div>
             <div class="field">
-              <label for="pub-price">Precio en dólares (USD)</label>
+              <label for="pub-price" class="sr-only">Precio en dólares</label>
               <div class="pub-price">
                 <span class="pub-price__sign">$</span>
                 <input id="pub-price" type="text" inputmode="decimal" value="${PUBLISH_DRAFT.price || ''}" placeholder="0" data-testid="input-publish-price" data-draft-field="price" />
@@ -159,34 +157,29 @@ function publishSinglePage() {
             <div class="toggle-row">
               <div class="toggle-row__text">
                 <strong>Acepto ofertas</strong>
-                <span>Los compradores podrán proponerte un precio</span>
               </div>
               <button class="toggle ${PUBLISH_DRAFT.acceptsOffers ? 'is-on' : ''}" role="switch" aria-checked="${PUBLISH_DRAFT.acceptsOffers}" aria-label="Acepto ofertas" data-testid="toggle-accept-offers" data-draft-field="acceptsOffers"></button>
             </div>
           </section>
 
           <section class="pub-card" data-testid="publish-details">
-            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--coral"></span>Detalles y ubicación</h2></div>
+            <div class="pub-card__head"><h2><span class="pub-dot pub-dot--coral"></span>Detalles</h2></div>
             <div class="field">
               <label for="pub-desc">Descripción</label>
-              <textarea id="pub-desc" placeholder="Cuenta cómo está, qué incluye y cómo lo entregas." data-testid="input-publish-description" data-draft-field="description">${PUBLISH_DRAFT.description || ''}</textarea>
+              <textarea id="pub-desc" placeholder="Cómo está y qué incluye" data-testid="input-publish-description" data-draft-field="description">${PUBLISH_DRAFT.description || ''}</textarea>
             </div>
             <div class="field">
-              <label for="pub-zone">Zona de entrega</label>
+              <label for="pub-zone">Zona</label>
               ${HAY_APP_MODE ? `<button class="btn btn--green btn--sm pub-gps" data-action="gps-publish" data-testid="btn-publish-gps">${icon('pin')} ${typeof PUBLISH_DRAFT.lat === 'number' ? 'Actualizar mi ubicación' : 'Usar mi ubicación actual'}</button>
               <p class="gps-msg" id="gpsMsg" data-testid="gps-msg" style="display:none;"></p>` : ''}
               ${HAY_APP_MODE && typeof PUBLISH_DRAFT.lat === 'number' ? osmMap(PUBLISH_DRAFT.lat, PUBLISH_DRAFT.lng, 'publish-map') : ''}
               <input id="pub-zone" type="text" value="${String(PUBLISH_DRAFT.zone || '').replace(/"/g, '&quot;')}" placeholder="Ej. Chacao, Caracas" data-testid="input-publish-zone" data-draft-field="zone" />
             </div>
-            <div class="pub-safe">
-              ${icon('shield')}
-              <p><strong>Venta segura cara a cara</strong>Coordina la entrega en lugares públicos y concurridos (plazas, centros comerciales).</p>
-            </div>
           </section>
 
           <p class="text-xs" id="publishErrorMsg" data-testid="publish-error-msg" role="alert" style="display:none; color:var(--color-error); font-weight:700;"></p>
-          <button class="btn btn--yellow pub-submit" id="btnConfirmPublish" data-testid="btn-confirm-publish">${icon('send')} ${editing ? 'Guardar cambios' : 'Publicar artículo ahora'}</button>
-          <p class="pub-terms">Al publicar, aceptas los Términos y Normas de la comunidad de HAY.</p>
+          <button class="btn btn--yellow pub-submit" id="btnConfirmPublish" data-testid="btn-confirm-publish">${icon('send')} ${editing ? 'Guardar' : 'Publicar'}</button>
+          <p class="pub-terms">Al publicar aceptas las normas de HAY.</p>
         </div>
       </div>
     </div>`;
@@ -242,9 +235,10 @@ const SCREENS_PUBLISH = [
       <span class="confetti" aria-hidden="true" style="width:20px;height:9px;background:var(--hay-purple);top:300px;left:90px;transform:rotate(25deg);"></span>
       <div class="screen-body" style="position:relative; z-index:1;">
         <div class="screen-content screen-content--centered" data-testid="screen-publish-success">
+          ${closeBtn('home', 'publish-success')}
           ${heroIcon('check', 'green', { size: 170, halo: true })}
           <h2 class="screen-title" style="font-size:38px;">¡Publicado!</h2>
-          <p class="screen-subtitle" style="font-size:17px;">Tu "${PUBLISH_DRAFT.title}" ya se ve en Inicio. Te avisamos cuando alguien te escriba.</p>
+          <p class="screen-subtitle" style="font-size:17px;">Ya se ve en Inicio.</p>
           <button class="btn btn--ink" data-nav="my-listings" data-testid="btn-view-my-listing">Ver mi publicación</button>
           <button class="btn btn--ghost" style="color:var(--hay-navy); text-decoration:underline; text-underline-offset:4px;" data-nav="home" data-testid="btn-go-home-after-publish">Volver al inicio</button>
         </div>
@@ -261,12 +255,11 @@ const SCREENS_PUBLISH = [
       <div class="screen-body">
         <div class="modal-scrim">
           <div class="card stack text-center" style="background:var(--color-surface); width:100%; align-items:center; padding:var(--space-6) var(--space-5);">
-            ${heroIcon('trash', 'pink', { size: 110 })}
-            <h3 class="screen-title" style="font-size:22px">¿Descartar publicación?</h3>
-            <p class="screen-subtitle">Perderás las fotos y datos que agregaste hasta ahora.</p>
+            <h3 class="screen-title" style="font-size:22px">¿Salir sin publicar?</h3>
+            
             <div class="btn--block-row" style="width:100%;">
-              <button class="btn btn--outline" data-nav="publish-step1" data-testid="btn-cancel-exit-publish">Seguir editando</button>
-              <button class="btn btn--danger" data-nav="home" data-testid="btn-confirm-exit-publish">Descartar</button>
+              <button class="btn btn--outline" data-nav="publish-step1" data-testid="btn-cancel-exit-publish">Seguir</button>
+              <button class="btn btn--danger" data-nav="home" data-testid="btn-confirm-exit-publish">Salir</button>
             </div>
           </div>
         </div>

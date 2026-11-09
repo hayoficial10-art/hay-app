@@ -46,9 +46,6 @@ const SCREENS_TRANSACTION = [
           <div class="product-hero__bar">
             <button class="icon-btn" data-nav="home" aria-label="Volver" data-testid="btn-back-product-detail">${icon('back')}</button>
             <div class="flex-row" style="gap:var(--space-2);">
-              <button class="icon-btn" aria-label="Compartir" data-testid="btn-share-product">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="M8.2 10.7l7.6-4.4M8.2 13.3l7.6 4.4"/></svg>
-              </button>
               ${listing ? `<button class="icon-btn icon-btn--pink ${isFav(listing.id) ? 'is-fav' : ''}" aria-pressed="${isFav(listing.id)}" aria-label="${isFav(listing.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}" data-fav-id="${listing.id}" data-testid="btn-fab-favorite">${icon('heart')}</button>` : ''}
             </div>
           </div>
@@ -59,7 +56,7 @@ const SCREENS_TRANSACTION = [
             <span class="badge badge--active">${condition}</span>
           </div>
           <h2 class="product-detail__title">${title}</h2>
-          <span class="product-card__meta" style="margin-top:-6px;">${icon('pin')} ${zone || 'Zona no indicada'}${HAY_APP_MODE && listing && distanceLabel(listing) ? ' · ' + distanceLabel(listing) : ''}</span>
+          <span class="product-card__meta">${icon('pin')} ${zone || 'Zona no indicada'}${HAY_APP_MODE && listing && distanceLabel(listing) ? ' · ' + distanceLabel(listing) : ''}</span>
 
           <button class="card flex-row" style="width:100%; text-align:left; padding:var(--space-3);" data-nav="seller-profile" data-testid="btn-open-seller-profile">
             <div class="avatar avatar--md avatar--4">${sellerInitials}</div>
@@ -67,7 +64,7 @@ const SCREENS_TRANSACTION = [
               <p style="font-weight:700; font-size:16px; color:var(--hay-navy); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${sellerLabel}</p>
               ${sellerRatingHtml}
             </div>
-            <span class="link-cyan" style="font-size:14px; flex-shrink:0;">Ver perfil</span>
+            ${icon('chevronRight', 'list-row__chevron')}
           </button>
           ${isOwnListing ? `<p class="badge badge--cyan" style="align-self:flex-start;" data-testid="own-listing-notice">Esta es tu propia publicación</p>` : ''}
           ${hasRealSeller && !isOwnListing && CURRENT_USER && CURRENT_USER.isAdmin ? `<button class="btn profile-logout" data-testid="btn-admin-delete-listing">${icon('trash')} Eliminar publicación (moderador)</button>` : ''}
@@ -75,10 +72,10 @@ const SCREENS_TRANSACTION = [
           <p style="font-size:16px; line-height:1.55; color:var(--hay-navy);">${description}</p>
 
           <div class="stack-sm">
-            <span class="section-label">Ubicación aproximada</span>
+            <span class="section-label">Ubicación</span>
             ${HAY_APP_MODE && listing && typeof listing.lat === 'number'
               ? osmMap(listing.lat, listing.lng, 'product-map')
-              : `<div class="map-ph"><div class="map-ph__pin">${icon('pin')}</div></div>${HAY_APP_MODE ? `<span class="text-xs text-muted">El vendedor no marcó la ubicación en el mapa${zone ? '; zona indicada: ' + zone : ''}.</span>` : ''}`}
+              : `<span class="text-xs text-muted">Sin mapa${zone ? ' · ' + zone : ''}</span>`}
           </div>
         </div>
       </div>
@@ -105,23 +102,21 @@ const SCREENS_TRANSACTION = [
       <div class="screen-body">
         <div class="screen-content" style="gap:var(--space-4); padding-top:0;" data-testid="screen-make-offer">
             <button class="icon-btn" data-nav="product-detail" aria-label="Cerrar" data-testid="btn-close-make-offer">${icon('back')}</button>
-            ${heroIcon('offer', 'pink', { size: 140 })}
             <h3 class="screen-title text-center" style="font-size:24px">Haz una oferta</h3>
             <div class="flex-row card" style="padding:var(--space-2);">
               ${listingArt(listing || { art: 1, icon: productIcon }, '', 'width:52px; aspect-ratio:1/1; border-radius:10px;')}
               <div class="grow">
                 <p style="font-size:15px; font-weight:700; color:var(--hay-navy)">${title}</p>
-                <span class="text-xs text-muted">Precio publicado: $${price}</span>
+                <span class="text-xs text-muted">$${price}</span>
               </div>
             </div>
             <div class="field">
               <label for="offer-amount">Tu oferta (USD)</label>
               <input id="offer-amount" type="text" value="${Math.max(0, Math.round(price * 0.85))}" data-testid="input-offer-amount" style="font-family:var(--font-display); font-size:28px; font-weight:700;" />
-              <span class="field--help">El vendedor recibirá tu oferta y podrá aceptar, rechazar o contraofertar.</span>
             </div>
             <div class="field">
-              <label for="offer-msg">Mensaje (opcional)</label>
-              <textarea id="offer-msg" placeholder="Ej. Puedo pasar a recogerla hoy mismo" data-testid="input-offer-message"></textarea>
+              <label for="offer-msg">Mensaje</label>
+              <textarea id="offer-msg" placeholder="Opcional" data-testid="input-offer-message"></textarea>
             </div>
             <p class="text-xs" id="offerErrorMsg" data-testid="offer-error-msg" style="display:none; color:var(--color-error);"></p>
             <button class="btn btn--yellow" id="btnSendOffer" data-testid="btn-send-offer">Enviar oferta</button>
@@ -144,11 +139,11 @@ const SCREENS_TRANSACTION = [
       ${statusBar()}
       <div class="screen-body">
         <div class="screen-content screen-content--centered" data-testid="screen-offer-sent">
+          ${closeBtn('home', 'offer-sent')}
           ${heroIcon('offer', 'yellow', { size: 160 })}
           <h2 class="screen-title">¡Oferta enviada!</h2>
-          <p class="screen-subtitle">Le avisamos a ${sellerLabel} que ofreces $${amount} por "${title}". Te notificaremos su respuesta.</p>
+          <p class="screen-subtitle">$${amount} por "${title}".</p>
           <button class="btn btn--turquoise" data-nav="chat-detail" data-testid="btn-go-chat-after-offer">Ir al chat</button>
-          <button class="btn btn--outline" data-nav="home" data-testid="btn-go-home-after-offer">Seguir explorando</button>
         </div>
       </div>
     </div>`;
@@ -186,7 +181,7 @@ const SCREENS_TRANSACTION = [
       const sellerListingsHtml = hasRealSeller
         ? sellerActiveListings.length
           ? `<div class="product-grid">${sellerActiveListings.slice(0, HAY_APP_MODE ? 10 : 4).map((l) => productCard(mapListingFromApi(l))).join('')}</div>`
-          : `<p class="text-xs text-faint">No tiene otras publicaciones activas por ahora.</p>`
+          : `<p class="text-xs text-faint">No tiene otras.</p>`
         : `<div class="product-grid">${PRODUCTS.slice(0, 4).map((p) => productCard(p)).join('')}</div>`;
       return `
     <div class="phone__screen">
@@ -205,7 +200,7 @@ const SCREENS_TRANSACTION = [
             <button class="btn btn--turquoise" style="flex:1" data-nav="chat-detail" data-testid="btn-message-seller">Mensaje</button>
           </div>
           <div class="flex-between">
-            <span class="section-label">Sus publicaciones activas</span>
+            <span class="section-label">Publicaciones</span>
             <span class="badge badge--cyan">${hasRealSeller ? sellerActiveListings.length : 6}</span>
           </div>
           ${sellerListingsHtml}
@@ -269,7 +264,7 @@ const SCREENS_TRANSACTION = [
         <!-- V1.44: consejo de compra segura (diseño Stitch) -->
         <div class="chat-tip" data-testid="chat-safety-tip">
           <span class="chat-tip__icon">${icon('shield')}</span>
-          <p><strong>Consejo de compra segura HAY</strong>Nunca pagues por adelantado ni compartas claves. Acuerden el pago al momento de la entrega, en un lugar público.</p>
+          <p>Paga al recibir, en un lugar público.</p>
         </div>
         <div class="chat-messages" data-testid="chat-messages">
           ${CHAT_LOADING ? `
@@ -357,13 +352,12 @@ const SCREENS_TRANSACTION = [
             <span class="price-hero__label">Total</span>
             <span class="price-hero__value" data-testid="confirm-sale-total">$${finalPriceValue || publishedPrice || 0}</span>
           </div>
-          <p class="screen-subtitle text-center">Vas a marcar este producto como vendido. Esta acción lo quitará del feed de HAY.</p>
-          ${!sale ? `<p class="text-xs" style="color:var(--color-error); text-align:center;">No hay una venta en curso. Vuelve al chat y acepta una oferta primero.</p>` : `
+          ${!sale ? `<p class="text-xs" style="color:var(--color-error); text-align:center;">Primero acepta una oferta en el chat.</p>` : `
           <div class="card flex-row" style="padding:var(--space-3);">
             ${listingArt(listing || { art: 1, icon: 'tag' }, '', 'width:56px; aspect-ratio:1/1; border-radius:10px;')}
             <div class="grow">
               <p class="text-sm fw-800" style="color:var(--hay-navy)">${title}</p>
-              <span class="text-xs text-faint">Precio publicado: $${publishedPrice}</span>
+              <span class="text-xs text-faint">$${publishedPrice}</span>
             </div>
           </div>
           <div class="field">
@@ -371,7 +365,7 @@ const SCREENS_TRANSACTION = [
             <input id="sale-buyer" type="text" value="${buyerLabel}" disabled data-testid="input-sale-buyer" />
           </div>
           <div class="field">
-            <label for="sale-price">Precio final de venta (USD)</label>
+            <label for="sale-price">Precio final (USD)</label>
             <input id="sale-price" type="text" value="${finalPriceValue}" data-testid="input-sale-final-price" />
           </div>
           <p class="text-xs" id="saleErrorMsg" data-testid="sale-error-msg" style="display:none; color:var(--color-error);"></p>
@@ -402,6 +396,7 @@ const SCREENS_TRANSACTION = [
       ${statusBar()}
       <div class="screen-body">
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-rate-transaction">
+          ${closeBtn('my-listings', 'rate-transaction')}
           <div class="text-center stack-sm" style="align-items:center; margin-top:var(--space-4);">
             <div class="avatar avatar--md avatar--2">${initials}</div>
             <span class="badge badge--active">¡Venta completada!</span>
@@ -417,12 +412,12 @@ const SCREENS_TRANSACTION = [
               .join('')}
           </div>
           <div class="text-center stack-sm">
-            <h2 class="screen-title" style="font-size:26px;">¿Cómo fue tu experiencia?</h2>
+            <h2 class="screen-title" style="font-size:26px;">¿Cómo te fue?</h2>
             <p class="screen-subtitle">${verbo} ${buyerLabel}</p>
           </div>
           <div class="field">
-            <label for="rate-comment">Cuéntanos más (opcional)</label>
-            <textarea id="rate-comment" placeholder="Ej. Puntual, buena comunicación y el producto tal cual la descripción." data-testid="input-rate-comment"></textarea>
+            <label for="rate-comment">Comentario</label>
+            <textarea id="rate-comment" placeholder="Opcional" data-testid="input-rate-comment"></textarea>
           </div>
           <p class="text-xs" id="rateErrorMsg" data-testid="rate-error-msg" style="display:none; color:var(--color-error);"></p>
         </div>
@@ -447,9 +442,7 @@ const SCREENS_TRANSACTION = [
       const ctx = REPORT_CONTEXT || { type: 'problem', returnScreen: 'settings' };
       const isUserReport = ctx.type === 'user';
       const title = isUserReport ? `Reportar a ${ctx.targetLabel || 'este vendedor'}` : 'Reportar un problema';
-      const subtitle = isUserReport
-        ? 'Contanos qué pasó. Tu reporte es confidencial y nuestro equipo lo va a revisar.'
-        : 'Contanos qué encontraste. Tu reporte es confidencial y nuestro equipo lo va a revisar.';
+      const subtitle = 'Es confidencial.';
       const reasons = isUserReport
         ? ['Estafa o fraude', 'Comportamiento abusivo', 'Producto falso o prohibido', 'Otro']
         : ['Error técnico', 'Contenido inapropiado', 'Problema de seguridad', 'Otro'];
@@ -469,8 +462,7 @@ const SCREENS_TRANSACTION = [
       ${topBar({ back: ctx.returnScreen || 'home', title: 'Reportar', testid: 'report' })}
       <div class="screen-body">
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-report">
-          ${heroIcon('alert', 'pink', { size: 130, halo: true })}
-          <div class="stack-sm text-center">
+                    <div class="stack-sm text-center">
             <h2 class="screen-title" style="font-size:22px">${title}</h2>
             <p class="screen-subtitle">${subtitle}</p>
           </div>
@@ -484,8 +476,8 @@ const SCREENS_TRANSACTION = [
             </div>
           </div>
           <div class="field">
-            <label for="report-details">Detalles (opcional)</label>
-            <textarea id="report-details" placeholder="Agrega cualquier detalle que ayude a entender lo que pasó." data-testid="input-report-details"></textarea>
+            <label for="report-details">Detalles</label>
+            <textarea id="report-details" placeholder="Opcional" data-testid="input-report-details"></textarea>
           </div>
           <p class="text-xs" id="reportErrorMsg" data-testid="report-error-msg" style="display:none; color:var(--color-error);"></p>
         </div>
@@ -507,9 +499,10 @@ const SCREENS_TRANSACTION = [
       ${statusBar()}
       <div class="screen-body">
         <div class="screen-content screen-content--centered" data-testid="screen-report-sent">
+          ${closeBtn('home', 'report-sent')}
           ${heroIcon('check', 'green', { size: 160 })}
           <h2 class="screen-title">Reporte enviado</h2>
-          <p class="screen-subtitle">Gracias por avisarnos. Nuestro equipo lo va a revisar y, si hace falta, se pondrá en contacto contigo.</p>
+          <p class="screen-subtitle">Gracias. Lo revisaremos.</p>
           <button class="btn btn--turquoise" id="btnReportDone" data-testid="btn-report-done">Listo</button>
         </div>
       </div>

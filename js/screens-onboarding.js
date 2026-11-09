@@ -77,7 +77,7 @@ const SCREENS_ONBOARDING = [
             </div>
             <div class="stack-sm">
               <h2 class="screen-title">Crea tu cuenta</h2>
-              <p class="auth-hero__sub">Únete a HAY. Publica en menos de un minuto, es gratis.</p>
+              <p class="auth-hero__sub">Es gratis.</p>
             </div>
           </div>
           <form class="stack" onsubmit="return false;">
@@ -115,10 +115,9 @@ const SCREENS_ONBOARDING = [
             <p class="text-xs text-muted" style="font-weight:600;" data-testid="register-terms">Al crear tu cuenta aceptas los <a class="link-cyan" href="terminos.html" target="_blank" rel="noopener">Términos de uso</a> y la <a class="link-cyan" href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a> de HAY.</p>
             <button class="btn btn--turquoise" id="btnRegisterSubmit" data-testid="btn-register-submit">Crear cuenta</button>
           </form>
-          <div class="divider-text">o continúa con</div>
+          <div class="divider-text">o</div>
           <div class="stack-sm">
             <button class="social-btn" data-testid="btn-google-signup">${icon('google')} Continuar con Google</button>
-            <button class="social-btn" data-testid="btn-apple-signup">${icon('apple')} Continuar con Apple</button>
           </div>
           <p class="text-center text-sm text-muted mt-auto" style="font-weight:700;">¿Ya tienes cuenta? <button class="btn--ghost link-cyan" style="display:inline;width:auto;min-height:auto;padding:0;font-size:inherit" data-nav="login" data-testid="link-go-login">Inicia sesión</button></p>
         </div>
@@ -141,8 +140,7 @@ const SCREENS_ONBOARDING = [
               ${hayLogo(30, { onYellow: true })}
             </div>
             <div class="stack-sm">
-              <h2 class="screen-title">Hola, qué bueno verte</h2>
-              <p class="auth-hero__sub">Entra para ver tus mensajes y publicaciones.</p>
+              <h2 class="screen-title">Entrar</h2>
             </div>
           </div>
           <form class="stack" onsubmit="return false;">
@@ -161,10 +159,9 @@ const SCREENS_ONBOARDING = [
             <p class="text-xs" id="authErrorMsg" data-testid="login-error" style="display:none; color:var(--color-error); font-weight:600;"></p>
             <button class="btn btn--turquoise" id="btnLoginSubmit" data-testid="btn-login-submit">Entrar</button>
           </form>
-          <div class="divider-text">o continúa con</div>
+          <div class="divider-text">o</div>
           <div class="stack-sm">
             <button class="social-btn" data-testid="btn-google-login">${icon('google')} Continuar con Google</button>
-            <button class="social-btn" data-testid="btn-apple-login">${icon('apple')} Continuar con Apple</button>
           </div>
           <p class="text-center text-sm text-muted mt-auto" style="font-weight:700;">¿No tienes cuenta? <button class="btn--ghost link-cyan" style="display:inline;width:auto;min-height:auto;padding:0;font-size:inherit" data-nav="register" data-testid="link-go-register">Regístrate</button></p>
         </div>
@@ -182,10 +179,9 @@ const SCREENS_ONBOARDING = [
       <div class="screen-body">
         <div class="screen-content" data-testid="screen-forgot-password">
           <button class="icon-btn icon-btn--ghost" data-nav="login" aria-label="Volver" data-testid="btn-back-forgot">${icon('back')}</button>
-          ${heroIcon('lock', 'yellow', { size: 140 })}
-          <div class="stack-sm text-center">
+                    <div class="stack-sm text-center">
             <h2 class="screen-title" style="font-size:24px;">¿Olvidaste tu contraseña?</h2>
-            <p class="screen-subtitle">Escribe tu email y te enviamos un enlace para crear una nueva.</p>
+            <p class="screen-subtitle">Te enviamos un enlace a tu correo.</p>
           </div>
           <form class="stack" onsubmit="return false;">
             <label for="fp-email" class="sr-only">Email</label>
@@ -210,9 +206,10 @@ const SCREENS_ONBOARDING = [
       ${statusBar()}
       <div class="screen-body">
         <div class="screen-content" data-testid="screen-forgot-sent">
+          <button class="icon-btn" data-nav="login" aria-label="Volver" data-testid="btn-back-forgot-sent">${icon('back')}</button>
           <div style="margin-top:var(--space-10);">${heroIcon('check', 'green', { size: 160 })}</div>
           <h2 class="screen-title text-center">¡Enlace generado!</h2>
-          <p class="screen-subtitle text-center">Revisa tu correo y sigue las instrucciones para crear una nueva contraseña.</p>
+          <p class="screen-subtitle text-center">Revisa tu correo.</p>
           ${PASSWORD_RESET_DEV_TOKEN ? `
           <div class="field card">
             <p class="text-xs text-muted" style="margin-bottom:var(--space-2);">Modo desarrollo (sin servidor de email conectado): el enlace real se imprimió en la consola del backend. Para poder probarlo ahora mismo, completa la nueva contraseña acá:</p>
@@ -222,7 +219,7 @@ const SCREENS_ONBOARDING = [
           <p class="text-xs" id="authErrorMsg" data-testid="reset-error" style="display:none; color:var(--color-error); font-weight:600;"></p>
           <button class="btn btn--turquoise" id="btnConfirmResetPassword" data-testid="btn-confirm-reset-password">Cambiar contraseña</button>
           ` : ''}
-          <button class="btn btn--outline" data-nav="login" data-testid="btn-back-to-login">Volver a inicio de sesión</button>
+          <button class="btn btn--outline" data-nav="login" data-testid="btn-back-to-login">Volver</button>
         </div>
       </div>
     </div>`,

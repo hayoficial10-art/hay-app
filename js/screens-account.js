@@ -59,7 +59,7 @@ const SCREENS_ACCOUNT = [
           ` : MY_LISTINGS_LOADING ? `
             <p class="empty-msg">Cargando tus publicaciones...</p>
           ` : MY_LISTINGS.length === 0 ? `
-            <p class="empty-msg">Todavía no publicaste nada con esta cuenta.<br/>Toca el botón + de abajo para crear tu primera publicación.</p>
+            <p class="empty-msg">Todavía no publicaste nada.</p>
           ` : byTab[MY_LISTINGS_TAB].length === 0 ? `
             <p class="empty-msg">${emptyMsg[MY_LISTINGS_TAB]}</p>
           ` : byTab[MY_LISTINGS_TAB].map((p) => listingRow(p)).join('')}
@@ -77,13 +77,13 @@ const SCREENS_ACCOUNT = [
     html: () => `
     <div class="phone__screen">
       ${statusBar()}
-      ${topBar({ back: 'profile', title: 'Tus favoritos', testid: 'favorites', stacked: true })}
+      ${topBar({ back: 'home', title: 'Favoritos', testid: 'favorites', stacked: true })}
       <div class="screen-body">
         <div class="screen-content" style="gap:var(--space-3)" data-testid="screen-favorites">
           ${(() => {
             // V1.32: favoritos reales guardados en este teléfono
             const favs = loadFavs();
-            if (!favs.length) return `<div class="empty-state">${heroIcon('heart', 'pink', { size: 130 })}<p class="empty-msg" style="margin-top:0;">Todavía no guardas nada.<br/>Toca el corazón de un producto para tenerlo aquí.</p><button class="btn btn--turquoise" style="width:auto; padding-left:28px; padding-right:28px;" data-nav="home" data-testid="btn-favorites-explore">Explorar productos</button></div>`;
+            if (!favs.length) return `<div class="empty-state">${heroIcon('heart', 'pink', { size: 130 })}<p class="empty-msg" style="margin-top:0;">Todavía no guardas nada.</p></div>`;
             return `
           <span class="text-sm text-muted" data-testid="favorites-count">${favs.length === 1 ? '1 producto guardado' : `${favs.length} productos guardados`}</span>
           <div class="stack" data-testid="favorites-list">
@@ -149,10 +149,6 @@ const SCREENS_ACCOUNT = [
           <div class="stack text-center" style="align-items:center;">
             <div style="position:relative;">
               ${userAvatar('lg', 'fucsia', 'edit-profile-avatar')}
-              <label class="icon-btn icon-btn--filled avatar-cam" aria-label="Tomar foto de perfil" data-testid="btn-change-avatar">
-                ${icon('camera')}
-                <input type="file" accept="image/*" capture="user" data-avatar-input data-testid="input-avatar-camera" style="display:none;" />
-              </label>
             </div>
             ${HAY_APP_MODE && CURRENT_USER ? `
             <div class="photo-actions" style="width:100%;">
@@ -171,7 +167,7 @@ const SCREENS_ACCOUNT = [
           ${HAY_APP_MODE ? `
           <div class="card stack-sm text-center" data-testid="edit-profile-soon">
             <p class="section-label" style="word-break:break-word;">${CURRENT_USER ? CURRENT_USER.email : 'Sin sesión'}</p>
-            <p class="screen-subtitle">${CURRENT_USER ? 'Toca «Tomar foto» o «Galería» para poner tu foto de perfil. Muy pronto vas a poder cambiar también tu nombre y zona.' : 'Inicia sesión para cambiar tu foto de perfil.'}</p>
+            ${CURRENT_USER ? '' : '<p class="screen-subtitle">Inicia sesión para cambiar tu foto.</p>'}
           </div>` : `
           <div class="field">
             <label for="ep-name">Nombre completo</label>
@@ -311,9 +307,6 @@ const SCREENS_ACCOUNT = [
           </div>
 
           ${CURRENT_USER ? `<button class="btn--ghost" style="color:var(--color-error); align-self:center; min-height:auto; font-size:var(--text-sm);" data-nav="delete-account" data-testid="btn-go-delete-account">Eliminar mi cuenta</button>` : ''}
-          <button class="btn profile-logout" data-nav="login" data-testid="btn-logout">
-            ${icon('logout')} Cerrar sesión
-          </button>
           <p class="app-version" data-testid="app-version">HAY · versión ${HAY_VERSION}</p>
         </div>
       </div>
@@ -606,7 +599,7 @@ const SCREENS_ACCOUNT = [
                 : `<span class="list-row__icon tone-cyan" style="width:64px; height:64px; border-radius:12px;">${icon(iconName)}</span>`}
               <span class="grow">
                 <span class="list-row__title" style="display:block;">${title}</span>
-                <span class="list-row__sub" style="white-space:normal;">${img ? 'Lista ✓ · puedes cambiarla' : hint}</span>
+                <span class="list-row__sub" style="white-space:normal;">${img ? 'Lista ✓' : hint}</span>
               </span>
               ${img ? `<span class="badge badge--active">✓</span>` : ''}
             </div>
@@ -635,12 +628,12 @@ const SCREENS_ACCOUNT = [
           </div>
           <div class="text-center stack-sm">
             <h2 class="screen-title" style="font-size:24px;">Verifica tu identidad</h2>
-            <p class="screen-subtitle">${done ? 'Ya enviaste tu verificación. ¡Gracias! Si quieres, puedes reemplazar las fotos.' : 'Para publicar en HAY necesitamos una foto de tu cédula y una selfie. Así la comunidad es más segura.'}</p>
+            <p class="screen-subtitle">${done ? 'Ya la enviaste.' : 'Foto de tu cédula y una selfie. La necesitas para publicar.'}</p>
           </div>
           ${done ? `<span class="badge badge--active" style="align-self:center; padding:6px 14px;" data-testid="identity-status-done">${CURRENT_USER.identityStatus === 'verified' ? '✓ Identidad verificada' : '✓ Verificación enviada'}</span>` : ''}
           ${rechazada ? `<p class="identity-banner" style="cursor:default;" data-testid="identity-rejected"><span class="identity-banner__text"><strong>Tu verificación no pasó</strong>La cara de la selfie no coincide con la de la cédula. Toma de nuevo las dos fotos: la cédula bien enfocada y sin reflejos, y la selfie de frente con buena luz.</span></p>` : ''}
-          ${slot('cedula', '1. Foto de tu cédula', 'Del lado de la foto, que se lea bien', 'environment', 'shield')}
-          ${slot('selfie', '2. Selfie', 'Tu cara de frente, con buena luz (cámara o galería)', 'user', 'user')}
+          ${slot('cedula', '1. Foto de tu cédula', 'Que se lea bien', 'environment', 'shield')}
+          ${slot('selfie', '2. Selfie', 'De frente, con luz', 'user', 'user')}
           <p class="text-xs text-muted" style="font-weight:600; display:flex; gap:8px; align-items:flex-start;">${icon('lock', 'icon-16')} <span>Tus fotos se guardan cifradas y en privado. Nunca se muestran en tus publicaciones; solo el equipo de moderación puede verlas si hace falta revisar un caso.</span></p>
           <p class="text-xs" id="identityErrorMsg" data-testid="identity-error-msg" style="display:${IDENTITY_NOTICE ? 'block' : 'none'}; color:var(--color-error); font-weight:700;">${IDENTITY_NOTICE || ''}</p>
         </div>
@@ -705,17 +698,14 @@ const SCREENS_ACCOUNT = [
       <span class="confetti" aria-hidden="true" style="width:22px;height:10px;background:var(--hay-pink);top:220px;left:34px;transform:rotate(-30deg);"></span>
       <div class="screen-body" style="position:relative; z-index:1;">
         <div class="screen-content screen-content--centered" data-testid="screen-register-success">
+          ${closeBtn('home', 'register-success')}
           ${heroIcon('check', 'green', { size: 160, halo: true })}
-          <h2 class="screen-title" style="font-size:32px;">¡Registro completado!</h2>
-          <p class="screen-subtitle" style="font-size:17px;">Bienvenido a HAY${CURRENT_USER ? ', <strong style="word-break:break-all;">' + CURRENT_USER.email + '</strong>' : ''}. Tu cuenta ya está creada.</p>
+          <h2 class="screen-title" style="font-size:32px;">¡Listo!</h2>
+          <p class="screen-subtitle" style="font-size:17px;">Bienvenido a HAY${CURRENT_USER ? ', <strong style="word-break:break-all;">' + CURRENT_USER.email + '</strong>' : ''}.</p>
           ${REGISTER_DONE && REGISTER_DONE.welcomeEmail ? `<p class="text-sm" style="font-weight:700; color:var(--hay-green-active); display:flex; align-items:center; justify-content:center; gap:6px;" data-testid="welcome-email-sent">${icon('check', 'icon-16')} Te enviamos un correo de bienvenida.</p>` : ''}
           ${needsIdentity() ? `
-          <div class="card stack-sm" style="text-align:left; border:2px solid var(--hay-yellow-active); background:var(--hay-yellow-highlight);" data-testid="register-identity-pending">
-            <strong style="color:var(--hay-navy);">Siguiente paso: verificación de seguridad</strong>
-            <span class="text-sm" style="color:var(--hay-navy);">Falta enviar la foto de tu cédula y una selfie. La necesitas para publicar.</span>
-          </div>
-          <button class="btn btn--turquoise" id="btnRegisterDoneVerify" data-testid="btn-register-done-verify">${icon('shield')} Hacer la verificación ahora</button>
-          <button class="btn btn--green" id="btnRegisterDoneContinue" data-testid="btn-register-done-continue">Más tarde, ir a HAY</button>` : `
+          <button class="btn btn--turquoise" id="btnRegisterDoneVerify" data-testid="btn-register-done-verify">${icon('shield')} Verificar ahora</button>
+          <button class="btn btn--green" id="btnRegisterDoneContinue" data-testid="btn-register-done-continue">Más tarde</button>` : `
           <button class="btn btn--turquoise" id="btnRegisterDoneContinue" data-testid="btn-register-done-continue">Empezar</button>`}
         </div>
       </div>
@@ -733,9 +723,10 @@ const SCREENS_ACCOUNT = [
       <span class="confetti" aria-hidden="true" style="width:14px;height:14px;border-radius:50%;background:var(--hay-pink);top:140px;right:70px;"></span>
       <div class="screen-body" style="position:relative; z-index:1;">
         <div class="screen-content screen-content--centered" data-testid="screen-identity-success">
+          ${closeBtn('home', 'identity-success')}
           ${heroIcon('shield', 'green', { size: 160, halo: true })}
           <h2 class="screen-title" style="font-size:30px;">¡Verificación completada!</h2>
-          <p class="screen-subtitle" style="font-size:17px;">Recibimos la foto de tu cédula y tu selfie. Esta fase quedó completa: ya puedes publicar en HAY.</p>
+          <p class="screen-subtitle" style="font-size:17px;">Ya puedes publicar.</p>
           ${IDENTITY_DONE && IDENTITY_DONE.email ? `<p class="text-sm" style="font-weight:700; color:var(--hay-green-active); display:flex; align-items:center; justify-content:center; gap:6px;" data-testid="identity-email-sent">${icon('check', 'icon-16')} Te enviamos un correo de confirmación.</p>` : ''}
           <button class="btn btn--turquoise" id="btnIdentityDoneContinue" data-testid="btn-identity-done-continue">${IDENTITY_DONE && IDENTITY_DONE.next === 'publish-step1' ? 'Seguir con mi publicación' : IDENTITY_DONE && IDENTITY_DONE.next === 'publish-step5' ? 'Volver a mi publicación' : 'Continuar'}</button>
         </div>

@@ -165,30 +165,12 @@ const SCREENS_MAIN = [
           <div class="alegre-search">
             <button class="searchbar searchbar--white" style="text-align:left" data-nav="search" data-testid="btn-open-search">
               ${icon('search')}
-              <span class="text-faint">Buscar productos, marcas y más…</span>
+              <span class="text-faint">Buscar</span>
             </button>
-            <button class="alegre-search__filter" data-nav="search" aria-label="Filtros de búsqueda" data-testid="btn-open-filters">${icon('filter')}</button>
           </div>
         </header>
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-home">
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <button class="promo-block promo-block--alegre" data-nav="publish-step1" data-testid="btn-home-publish" style="text-align:left;">
-            <span class="promo-block__body">
-              <span class="promo-block__title">Publica gratis y vende hoy</span>
-              <span class="promo-block__text">Sin comisiones, directo con quien compra.</span>
-              <span class="promo-block__btn">Empieza a vender ${icon('chevronRight')}</span>
-            </span>
-            <span class="promo-block__art" aria-hidden="true">${icon('tag')}</span>
-          </button>
-          <div class="benefits-row" data-testid="home-benefits">
-            <span class="benefit benefit--cyan"><span class="benefit__icon">${icon('chat')}</span>Trato directo</span>
-            <span class="benefit benefit--green"><span class="benefit__icon">${icon('check')}</span>0% comisión</span>
-            <span class="benefit benefit--yellow"><span class="benefit__icon">${icon('pin')}</span>Cerca de ti</span>
-            <span class="benefit benefit--coral"><span class="benefit__icon">${icon('bolt')}</span>Venta rápida</span>
-          </div>
-          <div class="flex-between">
-            <span class="section-label">Explorar categorías</span>
-          </div>
           <div class="chip-row chip-row--tiles" data-testid="home-categories">
             ${categoryChips()}
           </div>
@@ -217,68 +199,26 @@ const SCREENS_MAIN = [
       ${statusBar()}
       <div class="screen-body">
         <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-search">
-          <h1 class="screen-title">Buscar</h1>
           <div class="flex-row">
+            <button class="icon-btn" data-nav="home" aria-label="Volver" data-testid="btn-back-search">${icon('back')}</button>
             <div class="searchbar grow">
               ${icon('search')}
-              <input type="text" placeholder="Ej. bicicleta, iPhone, sofá..." value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
+              <input type="text" placeholder="¿Qué buscas?" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
             </div>
-            <button class="icon-btn" id="openFiltersBtn" aria-label="Filtros" data-testid="btn-open-filters">${icon('filter')}</button>
           </div>
-          <div class="pill-row pill-row--color" data-testid="search-seller-type">
+          <div class="pill-row pill-row--mini" data-testid="search-seller-type">
             ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
           </div>
           <div class="chip-row chip-row--color" data-testid="search-categories" style="overflow-x:auto; flex-wrap:nowrap;">
             ${categoryChips()}
           </div>
-          <div class="flex-between">
-            <span class="text-xs text-muted" data-testid="search-results-count">${PRODUCTS.length} resultados</span>
-            <span class="text-xs fw-800 link-cyan">Ordenar: Relevancia ▾</span>
-          </div>
+          <span class="text-xs text-muted" data-testid="search-results-count">${PRODUCTS.length} resultados</span>
           <div class="product-grid" data-testid="search-results-grid">
             ${HAY_APP_MODE ? '<p class="empty-msg" style="grid-column:1/-1;">Cargando…</p>' : PRODUCTS.map((p) => productCard(p)).join('')}
           </div>
         </div>
       </div>
 
-      <!-- Panel de filtros (overlay): precio/distancia/condición, decorativos por ahora -->
-      <div class="filters-overlay" id="filtersOverlay" style="display:none; position:absolute; inset:0; background:rgba(28,27,51,0.45); z-index:60;">
-        <div style="position:absolute; bottom:0; left:0; right:0; background:#ffffff; border-radius:var(--radius-2xl) var(--radius-2xl) 0 0; max-height:86%; display:flex; flex-direction:column;">
-          <div class="topbar" style="padding-top:var(--space-5)">
-            <span class="topbar__title">Filtros</span>
-            <button class="icon-btn icon-btn--ghost" id="closeFiltersBtn" aria-label="Cerrar filtros" data-testid="btn-close-filters">${icon('close')}</button>
-          </div>
-          <div class="screen-body">
-            <div class="screen-content" style="gap:var(--space-5)">
-              <p class="text-xs text-muted" style="font-weight:700;">Precio, distancia y condición se afinan pronto — por ahora usa las categorías y el filtro Personas/Negocios de arriba.</p>
-              <div class="card stack-sm">
-                <div class="flex-row"><span class="list-row__icon tone-green">${icon('tag')}</span><span class="list-row__title">Precio</span></div>
-                <div class="flex-row">
-                  <div class="field grow"><input type="text" placeholder="Mín. $0" /></div>
-                  <span class="text-faint">—</span>
-                  <div class="field grow"><input type="text" placeholder="Máx. $200" /></div>
-                </div>
-              </div>
-              <div class="card stack-sm">
-                <div class="flex-row"><span class="list-row__icon tone-cyan">${icon('pin')}</span><span class="list-row__title">Distancia</span></div>
-                <div class="chip-row">
-                  <span class="chip">1 mi</span><span class="chip is-active">5 mi</span><span class="chip">10 mi</span><span class="chip">25 mi</span>
-                </div>
-              </div>
-              <div class="card stack-sm">
-                <div class="flex-row"><span class="list-row__icon tone-yellow">${icon('shield')}</span><span class="list-row__title">Estado</span></div>
-                <div class="pill-row">
-                  <span class="pill">Nuevo</span><span class="pill is-selected">Como nuevo</span><span class="pill">Usado</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="bottom-cta">
-            <button class="btn btn--outline" id="clearFiltersBtn" data-testid="btn-clear-filters">Limpiar</button>
-            <button class="btn btn--turquoise" id="applyFiltersBtn" data-testid="btn-apply-filters">Aplicar filtros</button>
-          </div>
-        </div>
-      </div>
       ${tabBar('home')}
     </div>`,
   },
@@ -290,14 +230,14 @@ const SCREENS_MAIN = [
     html: () => `
     <div class="phone__screen">
       ${statusBar()}
-      <div class="topbar" style="padding-top:var(--space-3);"><h1 class="topbar__title screen-title" style="font-size:var(--text-xl)">Mensajes</h1><button class="icon-btn" aria-label="Buscar chats" data-testid="btn-search-chats">${icon('search')}</button></div>
+      <div class="topbar" style="padding-top:var(--space-3);"><h1 class="topbar__title screen-title" style="font-size:var(--text-xl)">Mensajes</h1></div>
       <div class="screen-body" data-testid="screen-messages">
         ${!CURRENT_USER ? `
           <div class="empty-state">${heroIcon('chat', 'cyan', { size: 130 })}<p class="empty-msg" style="margin-top:0;">Inicia sesión para ver tus conversaciones.</p></div>
         ` : THREADS_LOADING ? `
           <p class="empty-msg">Cargando conversaciones...</p>
         ` : THREADS.length === 0 ? `
-          <div class="empty-state">${heroIcon('chat', 'cyan', { size: 130 })}<p class="empty-msg" style="margin-top:0;">Todavía no tienes mensajes.<br/>Escríbele a un vendedor desde el detalle de un producto.</p></div>
+          <div class="empty-state">${heroIcon('chat', 'cyan', { size: 130 })}<p class="empty-msg" style="margin-top:0;">Todavía no tienes mensajes.</p></div>
         ` : `<div class="conversation-list">` + THREADS.map((t, i) => `
         <button class="conversation-row" style="width:100%; text-align:left;" data-thread-id="${t.threadId}" data-testid="conversation-${t.threadId}">
           <div class="avatar avatar--md avatar--${(i % 4) + 1}">${(t.otherUser.email || '?').charAt(0).toUpperCase()}</div>
@@ -347,21 +287,14 @@ const SCREENS_MAIN = [
       ${statusBar()}
       <div class="screen-body">
         <header class="profile-head" data-testid="profile-header">
-          <div>
-            <h1 class="screen-title">Mi perfil</h1>
-            <p class="profile-head__sub">${logged ? 'Gestiona tus ventas y reputación' : 'Entra para publicar y chatear'}</p>
-          </div>
-          <button class="icon-btn profile-head__gear" data-nav="settings" aria-label="Configuración" data-testid="btn-open-settings-from-profile">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1.1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.6-1.1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.6V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.6 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.4 1z"/></svg>
-          </button>
+          <h1 class="screen-title">Mi perfil</h1>
         </header>
         <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-profile">
           ${!logged ? `
           <div class="profile-card profile-card--guest">
             ${heroIcon('user', 'cyan', { size: 120 })}
             <p class="profile-card__name" style="text-align:center;">Entra a tu cuenta</p>
-            <p class="screen-subtitle" style="text-align:center;">Para publicar, chatear y ver tus ventas.</p>
-            <button class="btn btn--yellow" data-nav="login" data-testid="btn-profile-login">Iniciar sesión</button>
+                        <button class="btn btn--yellow" data-nav="login" data-testid="btn-profile-login">Iniciar sesión</button>
             <button class="btn btn--green" data-nav="register" data-testid="btn-profile-register">Crear cuenta</button>
           </div>` : `
           <div class="profile-card" data-testid="profile-card">
@@ -380,25 +313,17 @@ const SCREENS_MAIN = [
             <button class="btn btn--turquoise btn--sm" data-nav="edit-profile" data-testid="btn-edit-profile-cta">${icon('edit')} Editar perfil</button>
           </div>
           <!-- V1.49: tres accesos iguales y centrados (tamaños y simetría de referencia) -->
-          <div class="quick-tiles quick-tiles--3" data-testid="profile-quick-tiles">
+          <div class="quick-tiles quick-tiles--2" data-testid="profile-quick-tiles">
             <button class="quick-tile quick-tile--cyan" data-nav="my-listings" data-testid="btn-go-my-listings"><span class="quick-tile__icon">${icon('boxOpen')}</span><span class="quick-tile__label">Mis publicaciones</span></button>
-            <button class="quick-tile quick-tile--pink" data-nav="favorites" data-testid="btn-go-favorites"><span class="quick-tile__icon">${icon('heart')}</span><span class="quick-tile__label">Favoritos</span></button>
             <button class="quick-tile quick-tile--yellow" data-nav="notifications" data-testid="btn-go-notifications"><span class="quick-tile__icon">${icon('bell')}</span><span class="quick-tile__label">Notificaciones</span></button>
           </div>
-          ${verified ? `
-          <div class="safe-banner" data-testid="profile-verified-banner">
-            <span class="safe-banner__icon">${icon('shield')}</span>
-            <span><strong>Tu cuenta está protegida y verificada</strong>Tus compradores saben que eres confiable.</span>
-          </div>` : HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <button class="btn btn--yellow profile-publish" data-nav="publish-step1" data-testid="btn-profile-publish">${icon('plus')} Crear nueva publicación</button>
           <div class="option-list option-list--card">
             ${u ? row('verify-identity', 'btn-go-verify-identity', 'green', 'shield', 'Verificación de identidad', `<span class="option-row__tag option-row__tag--${idTone}">${({ verified: 'Verificada', submitted: 'Enviada', rejected: 'Repetir' })[status] || 'Pendiente'}</span>`) : ''}
-            ${row('settings', 'btn-go-settings', 'purple', 'help', 'Configuración y ayuda')}
+            ${row('settings', 'btn-go-settings', 'purple', 'help', 'Configuración')}
           </div>
           ${u ? `<button class="btn profile-logout" data-nav="login" data-testid="btn-logout">${icon('logout')} Cerrar sesión</button>` : ''}`}
           <div class="profile-foot">
-            ${hayLogo(22)}
-            ${HAY_APP_MODE ? `<p class="app-version" data-testid="app-version-profile">versión ${HAY_VERSION} · Compra y venta directa entre venezolanos</p>` : ''}
+            ${HAY_APP_MODE ? `<p class="app-version" data-testid="app-version-profile">HAY · versión ${HAY_VERSION}</p>` : ''}
           </div>
         </div>
       </div>
