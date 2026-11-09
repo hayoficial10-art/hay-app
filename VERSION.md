@@ -1,8 +1,16 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.62
+**VERSIÓN:** 1.63
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.61.
+**BASE:** v1.62.
+
+## V1.63 — botones de fotos simétricos
+
+- «Tomar foto» y «Galería» del mismo ancho, pequeños y centrados.
+- Versión 1.63 (app, servidor, service worker).
+
+
+---
 
 ## V1.62 — botones de fotos angostos
 

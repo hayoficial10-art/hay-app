@@ -121,3 +121,5 @@
 .photo-actions, .pub-card .photo-actions { display: flex !important; grid-template-columns: none !important; justify-content: center; gap: 8px !important; }
 .photo-actions .btn, .pub-card .photo-actions .btn { width: auto !important; flex: 0 0 auto !important; min-height: 30px !important; height: 30px; font-size: 12px !important; padding: 0 12px !important; }
 .photo-actions .btn svg { width: 14px !important; height: 14px !important; }
+/* V1.63: Tomar foto y Galería del mismo ancho (simétricos), pequeños y centrados */
+.photo-actions .btn, .pub-card .photo-actions .btn { width: 120px !important; min-width: 120px !important; max-width: 120px !important; justify-content: center !important; }
