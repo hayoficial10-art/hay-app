@@ -53,3 +53,29 @@
 
 .bottom-cta > .btn { min-height: 44px; }
 .pub-cond .pill { min-height: 34px; font-size: 13px; }
+
+/* ------------------------------------------------------------------
+   V1.58b: mismo tamaño para lo que es igual, en todas las pantallas.
+   Tres medidas nada más:
+   - Botón grande ......... 44 de alto, letra 15
+   - Ficha / botón chico .. 34 de alto, letra 13 (categorías, Todos/Personas/Negocios,
+                            Activas/Pausadas, Nuevo/Usado, Aceptar/Rechazar…)
+   - Botón redondo ........ 38 x 38
+   ------------------------------------------------------------------ */
+.btn:not(.btn--sm):not(.btn--ghost) { min-height: 44px !important; font-size: 15px !important; padding: 0 18px !important; }
+.btn--sm, .btn.btn--sm { min-height: 34px !important; font-size: 13px !important; padding: 0 14px !important; }
+.chip, .pill, .segmented__item, .pub-cats .category-tile, .pill-row--mini .pill, .pill-row--color .pill {
+  min-height: 34px !important; height: 34px; font-size: 13px !important; font-weight: 800 !important;
+  padding: 0 14px !important; border-radius: 999px !important; display: inline-flex !important;
+  align-items: center !important; justify-content: center; gap: 6px; white-space: nowrap; flex-shrink: 0;
+  border-width: 2px !important; line-height: 1 !important;
+}
+.chip svg, .pill svg { width: 16px !important; height: 16px !important; }
+.pub-cats .category-tile { padding: 0 14px 0 6px !important; justify-content: flex-start; }
+.pub-cats .category-tile__icon { width: 22px !important; height: 22px !important; }
+.pill-row, .chip-row { gap: 6px !important; }
+.icon-btn, .pub-head__back, .screen-close { width: 38px !important; height: 38px !important; min-height: 38px !important; }
+.icon-btn svg { width: 18px !important; height: 18px !important; }
+/* Los grupos de 3 (Todos/Personas/Negocios, Nuevo/Como nuevo/Usado) ocupan partes iguales */
+.pill-row--color .pill, .pub-cond .pill { flex: 1 1 0; }
+.pill-row--mini { display: flex !important; }

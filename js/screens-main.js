@@ -171,7 +171,7 @@ const SCREENS_MAIN = [
         </header>
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-home">
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <div class="chip-row chip-row--tiles" data-testid="home-categories">
+          <div class="chip-row chip-row--color" data-testid="home-categories" style="overflow-x:auto; flex-wrap:nowrap;">
             ${categoryChips()}
           </div>
           <!-- V1.43: Todos / Personas / Negocios, pequeños, al lado de «Cerca de ti» -->

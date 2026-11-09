@@ -1,8 +1,19 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.58
+**VERSIÓN:** 1.59
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.57.
+**BASE:** v1.58.
+
+## V1.59 — mismo tamaño para lo que es igual
+
+- Tres medidas en toda la app: botón grande (44), ficha o botón chico (34) y botón redondo (38).
+- Categorías, Todos/Personas/Negocios, Activas/Pausadas/Vendidas, Nuevo/Como nuevo/Usado y
+  Aceptar/Rechazar: todas del mismo alto y letra.
+- Inicio: las categorías ahora son las mismas fichas que en Buscar (antes eran cuadros grandes).
+- Versión 1.59 (app, servidor, service worker).
+
+
+---
 
 ## V1.58 — app más sencilla
 
