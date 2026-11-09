@@ -114,3 +114,6 @@
 .pub-cats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 .pub-cats .category-tile span:last-child { font-size: 12px !important; line-height: 1.1 !important; overflow: hidden; }
 .chip svg { flex-shrink: 0; }
+/* V1.61: Tomar foto / Galería, pequeños e iguales en todas las pantallas */
+.photo-actions .btn, .pub-card .photo-actions .btn { min-height: 34px !important; height: 34px; font-size: 13px !important; padding: 0 12px !important; }
+.photo-actions .btn svg { width: 16px !important; height: 16px !important; }

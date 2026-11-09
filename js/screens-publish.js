@@ -94,11 +94,11 @@ function publishSinglePage() {
             <div class="pub-card__head"><h2><span class="pub-dot pub-dot--cyan"></span>Fotos</h2><span class="pub-count" data-testid="photo-count">${photos.length}/${MAX_LISTING_PHOTOS}</span></div>
             <p class="photo-rules" data-testid="photo-rules">Solo fotos del artículo, sin personas.</p>
             <div class="photo-actions">
-              <label class="btn btn--turquoise" style="cursor:pointer;" data-testid="btn-open-camera">
+              <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-open-camera">
                 ${icon('camera')} Tomar foto
                 <input type="file" accept="image/*" capture="environment" data-photo-input data-testid="input-photo-camera" style="display:none;" />
               </label>
-              <label class="btn btn--green" style="cursor:pointer;" data-testid="btn-open-gallery">
+              <label class="btn btn--green btn--sm" style="cursor:pointer;" data-testid="btn-open-gallery">
                 ${icon('gallery')} Galería
                 <input type="file" accept="image/*" multiple data-photo-input data-testid="input-photo-file" style="display:none;" />
               </label>

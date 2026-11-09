@@ -1,8 +1,16 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.60
+**VERSIÓN:** 1.61
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.59.
+**BASE:** v1.60.
+
+## V1.61 — botones de fotos más pequeños
+
+- «Tomar foto» y «Galería» más pequeños e iguales en Publicar, Verificar identidad y Editar perfil.
+- Versión 1.61 (app, servidor, service worker).
+
+
+---
 
 ## V1.60 — fichas iguales en cada fila
 
