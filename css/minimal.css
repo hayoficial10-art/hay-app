@@ -155,3 +155,10 @@
 .pill--tile .pill__icon { width: 26px; height: 26px; border-radius: 999px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.65); }
 .pill--tile .pill__icon svg { width: 15px !important; height: 15px !important; stroke: var(--hay-navy); }
 .pill-row--tiles .pill.pill--tile.is-selected { border-color: var(--hay-navy) !important; }
+/* V1.65: «Cerca de ti» en marco como el de Ubicación, pegado a sus cajitas */
+.feed-head { justify-content: center !important; gap: 8px !important; }
+.feed-head .section-label {
+  height: 40px; padding: 0 14px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px;
+  background: var(--hay-turquoise-highlight); color: var(--hay-navy); font-size: 13px !important; font-weight: 800;
+}
+.feed-head .section-label svg { width: 16px; height: 16px; stroke: var(--hay-turquoise-active); }

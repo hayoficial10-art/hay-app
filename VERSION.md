@@ -1,8 +1,16 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.64
+**VERSIÓN:** 1.65
 **FECHA:** 9 de noviembre de 2026
-**BASE:** v1.63.
+**BASE:** v1.64.
+
+## V1.65 — «Cerca de ti» con marco
+
+- «Cerca de ti» en un marco como el de «Ubicación» (con su ícono), pegado a Todos/Personas/Negocios.
+- Versión 1.65 (app, servidor, service worker).
+
+
+---
 
 ## V1.64 — Inicio: cuadritos de categorías y cajitas Todos/Personas/Negocios
 

@@ -176,7 +176,7 @@ const SCREENS_MAIN = [
           </div>
           <!-- V1.43: Todos / Personas / Negocios, pequeños, al lado de «Cerca de ti» -->
           <div class="feed-head">
-            <span class="section-label">Cerca de ti</span>
+            <span class="section-label">${icon('pin')}Cerca de ti</span>
             <div class="pill-row pill-row--tiles" data-testid="home-seller-type">
               ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill pill--tile pill--tile-${s.value} ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}"><span class="pill__icon">${icon(({ all: 'boxOpen', persona: 'user', negocio: 'briefcase' })[s.value])}</span>${s.label}</span>`).join('')}
             </div>
