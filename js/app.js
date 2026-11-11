@@ -400,6 +400,69 @@ async function loadFeed(phoneEl, { append = false } = {}) {
   wireFavButtons(phoneEl); // V1.32: favoritos reales
   const countEl = phoneEl.querySelector('[data-testid="search-results-count"]');
   if (countEl) countEl.textContent = `${APP_FEED.items.length}${APP_FEED.nextCursor ? '+' : ''} resultado${APP_FEED.items.length === 1 ? '' : 's'}`;
+  if (!append && grid.getAttribute('data-testid') === 'search-results-grid') scheduleWebOffers(phoneEl, filters);
+}
+
+/* V1.67: tiendas y comercios de la web, en su propio bloque arriba de lo
+   publicado en HAY. Nunca se mezclan con lo que publican las personas:
+   no aparecen con el filtro «Personas» ni con «Usado». */
+let WEB_OFFERS = { key: null, data: null, timer: null };
+function scheduleWebOffers(phoneEl, filters) {
+  clearTimeout(WEB_OFFERS.timer);
+  const q = (filters.q || '').trim();
+  const loc = typeof getSavedLocation === 'function' ? getSavedLocation() : null;
+  const wanted = q.length >= 3 && filters.sellerType !== 'persona' && filters.condition !== 'usado';
+  if (!wanted) return;
+  if (!loc) return renderWebOffers(phoneEl, { needLocation: true });
+  const key = q.toLowerCase() + '|' + loc.lat + ',' + loc.lng;
+  if (WEB_OFFERS.key === key && WEB_OFFERS.data) return renderWebOffers(phoneEl, WEB_OFFERS.data);
+  renderWebOffers(phoneEl, { loading: true });
+  WEB_OFFERS.timer = setTimeout(async () => {
+    const data = await apiFetchTiendas(q, loc);
+    const input = phoneEl.querySelector('[data-testid="input-search"]');
+    if (!input || input.value.trim().toLowerCase() !== q.toLowerCase()) return; // ya escribió otra cosa
+    if (data) WEB_OFFERS = { key, data, timer: null };
+    renderWebOffers(phoneEl, data || { error: true });
+  }, 900);
+}
+
+function renderWebOffers(phoneEl, data) {
+  const grid = phoneEl.querySelector('[data-testid="search-results-grid"]');
+  if (!grid) return;
+  grid.querySelectorAll('[data-testid="web-offers"], [data-hay-head]').forEach((n) => n.remove());
+  if (data.configured === false) return; // falta la clave del servicio: solo HAY
+  const e = escapeText;
+  let body = '';
+  if (data.needLocation) body = '<p class="web-offers__msg">Toca «Ubicación» en Inicio para ver también las tiendas y comercios de tu país.</p>';
+  else if (data.loading) body = '<p class="web-offers__msg">Buscando en tiendas de tu país…</p>';
+  else if (data.error) body = '<p class="web-offers__msg">No se pudo consultar las tiendas ahora.</p>';
+  else {
+    const prods = data.productos || [];
+    const places = data.comercios || [];
+    const link = (href, label) => href ? `<a href="${e(href)}" target="_blank" rel="noopener noreferrer">${label}</a>` : '';
+    const prodHtml = prods.map((p, i) => `
+      <a class="web-card" href="${e(p.link)}" target="_blank" rel="noopener noreferrer" data-testid="web-product">
+        ${p.thumb ? `<img class="web-card__img" src="${e(p.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" />` : ''}
+        ${i === 0 && p.price !== null ? '<span class="web-card__best">Mejor precio</span>' : ''}
+        ${p.priceText ? `<span class="web-card__price">${e(p.priceText)}</span>` : ''}
+        <p class="web-card__name">${e(p.title)}</p>
+        <span class="web-card__meta">${e(p.store)}${p.delivery ? ' · ' + e(p.delivery) : ''}</span>
+      </a>`).join('');
+    const placeHtml = places.map((c) => `
+      <div class="web-card web-card--place" data-testid="web-place">
+        <p class="web-card__name">${e(c.name)}</p>
+        <span class="web-card__meta">${[c.type, c.rating ? '★ ' + c.rating + (c.reviews ? ' (' + c.reviews + ')' : '') : '', c.priceLevel, c.distKm !== null ? c.distKm + ' km' : ''].filter(Boolean).map(e).join(' · ')}</span>
+        ${c.openState ? `<span class="web-card__meta ${/abierto|open/i.test(c.openState) && !/cerrado|closed/i.test(c.openState) ? 'web-card__open' : ''}">${e(c.openState)}</span>` : ''}
+        ${c.address ? `<span class="web-card__meta">${e(c.address)}</span>` : ''}
+        ${c.phone ? `<span class="web-card__phone">${e(c.phone)}</span>` : ''}
+        <span class="web-card__links">${link(c.menu, 'Menú / pedir')}${link(c.website, 'Sitio web')}${link(c.mapsLink, 'Mapa')}</span>
+      </div>`).join('');
+    if (!prods.length && !places.length) body = '<p class="web-offers__msg">No encontramos tiendas en la web para esto.</p>';
+    else body = (prods.length ? `<div class="web-offers__head"><h3 class="web-offers__title">Mejores precios en tiendas</h3><span class="web-offers__note">Nuevos${data.countryName ? ' · ' + e(data.countryName) : ''}</span></div><div class="web-offers__row">${prodHtml}</div>` : '')
+      + (places.length ? `<div class="web-offers__head"><h3 class="web-offers__title">Comercios cerca de ti</h3><span class="web-offers__note">Google Maps</span></div><div class="web-offers__row">${placeHtml}</div>` : '');
+  }
+  grid.insertAdjacentHTML('afterbegin', `<section class="web-offers" data-testid="web-offers">${body}</section>`
+    + (grid.querySelector('.product-card') ? '<p class="web-offers__title" data-hay-head style="grid-column:1/-1; margin:var(--space-2) 0 0;">Publicado en HAY</p>' : ''));
 }
 
 function applyProductFilters(phoneEl) {

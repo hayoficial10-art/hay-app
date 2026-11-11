@@ -14,7 +14,7 @@ const HAY_ORIGIN = (location.protocol.startsWith('http') && location.port !== '8
   : 'http://localhost:3000';
 const HAY_API_BASE = HAY_ORIGIN + '/api';
 // V1.35: versión visible en la app (Configuración y Mi perfil)
-const HAY_VERSION = '1.66';
+const HAY_VERSION = '1.67';
 // Modo app real (app.html) vs. galería de prototipo (index.html)
 const HAY_APP_MODE = Boolean(window.HAY_APP_MODE);
 // URL completa de una foto subida (/uploads/...)
@@ -648,6 +648,18 @@ async function apiFetchFeed({ category, sellerType, q, condition, sellerId, curs
   if (cursor) sp.set('cursor', cursor);
   try {
     const res = await fetch(`${HAY_API_BASE}/listings?${sp}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+/* V1.67: tiendas (Google Shopping, Mercado Libre) y comercios cercanos (Google Maps) del país de quien busca */
+async function apiFetchTiendas(q, loc) {
+  const sp = new URLSearchParams({ q, lat: String(loc.lat), lng: String(loc.lng) });
+  try {
+    const res = await fetch(`${HAY_API_BASE}/tiendas?${sp}`);
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {

@@ -39,13 +39,14 @@ const crypto = require('crypto');
 const zlib = require('zlib');
 const { createStore } = require('./store');
 const busqueda = require('./busqueda'); // V1.66: buscador inteligente
+const tiendas = require('./tiendas'); // V1.67: tiendas y comercios de la web
 const mailer = require('./mailer');
 const { createStorage } = require('./storage');
 
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.66';
+const APP_VERSION = '1.67';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -659,6 +660,25 @@ async function handle(req, res) {
 
   if (M === 'GET' && url.pathname === '/health') {
     return sendJSON(res, 200, { ok: true, service: 'hay-backend', version: APP_VERSION, mode: IS_PROD ? 'production' : 'development', db: store.kind, photos: photoStorage.kind, mail: mailer.mailerKind(), photoReview: GOOGLE_VISION_KEY ? 'vision' : 'phone' });
+  }
+
+  // V1.67: tiendas y comercios de la web del país de quien busca
+  //   GET /api/tiendas?q=&lat=&lng=  → { productos, comercios, country, configured }
+  if (M === 'GET' && api('tiendas')) {
+    const sp = url.searchParams;
+    const frase = busqueda.entender((sp.get('q') || '').slice(0, 80));
+    const q = frase.terms.map((alts) => alts[0]).join(' ').trim();
+    const lat = roundCoord(sp.get('lat'), -90, 90);
+    const lng = roundCoord(sp.get('lng'), -180, 180);
+    if (!q || q.length < 2) return sendJSON(res, 400, { error: 'Escribe qué buscas' });
+    if (lat === null || lng === null) return sendJSON(res, 400, { error: 'Falta tu ubicación para buscar tiendas de tu país' });
+    if (!tiendas.configured()) return sendJSON(res, 200, { productos: [], comercios: [], configured: false });
+    if (rateLimited(req, 'tiendas', 60)) return sendJSON(res, 429, { error: 'Demasiadas búsquedas seguidas. Espera unos minutos.' });
+    try {
+      return sendJSON(res, 200, await tiendas.buscarEnLaWeb({ q, lat, lng, appVersion: APP_VERSION }));
+    } catch (e) {
+      return sendJSON(res, 502, { error: 'No se pudo consultar las tiendas ahora.' });
+    }
   }
 
   // ------------------------------ Publicaciones -----------------------

@@ -46,6 +46,13 @@ services:
       # que no ve las caras muy de cerca. Ver PUBLICAR.md.
       - key: GOOGLE_VISION_KEY
         sync: false
+      # V1.67: buscador de tiendas y comercios de la web (Google Shopping y
+      # Google Maps a través de serpapi.com). Sin esta clave solo se busca en HAY.
+      - key: SERPAPI_KEY
+        sync: false
+      # V1.67 (opcional): Mercado Libre, artículos nuevos del país.
+      - key: MELI_ACCESS_TOKEN
+        sync: false
     disk:
       name: hay-data
       mountPath: /var/data

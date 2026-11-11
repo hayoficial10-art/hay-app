@@ -1,8 +1,21 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.66
+**VERSIÓN:** 1.67
 **FECHA:** 11 de noviembre de 2026
-**BASE:** v1.65.
+**BASE:** v1.66.
+
+## V1.67 — Buscar también en tiendas y comercios de la web
+
+- Al buscar (3 letras o más), arriba de lo publicado en HAY sale un bloque aparte:
+  - «Mejores precios en tiendas»: productos NUEVOS de tiendas en línea del país de quien busca (Google Shopping y, si se configura, Mercado Libre), del más barato al más caro.
+  - «Comercios cerca de ti»: negocios de cualquier tipo en Google Maps (comida, teléfonos, zapatos…), con dirección, teléfono, si están abiertos, sitio web y menú o pedidos cuando Google los tiene.
+- Lo de las personas nunca se mezcla: el bloque no aparece con «Personas» ni con «Usado», y lo de HAY queda debajo con el título «Publicado en HAY».
+- El país sale de la ubicación guardada. Sin ubicación, se pide tocar «Ubicación» en Inicio.
+- Configurar en Render: SERPAPI_KEY (serpapi.com). Opcional: MELI_ACCESS_TOKEN. Sin claves, Buscar sigue igual que en 1.66.
+- Versión 1.67 (app, servidor, service worker).
+
+
+---
 
 ## V1.66 — Buscador inteligente
 
