@@ -14,7 +14,7 @@ const HAY_ORIGIN = (location.protocol.startsWith('http') && location.port !== '8
   : 'http://localhost:3000';
 const HAY_API_BASE = HAY_ORIGIN + '/api';
 // V1.35: versión visible en la app (Configuración y Mi perfil)
-const HAY_VERSION = '1.65';
+const HAY_VERSION = '1.66';
 // Modo app real (app.html) vs. galería de prototipo (index.html)
 const HAY_APP_MODE = Boolean(window.HAY_APP_MODE);
 // URL completa de una foto subida (/uploads/...)
@@ -635,11 +635,15 @@ const FEED_PAGE_SIZE = 20;
 let APP_FEED = { items: [], nextCursor: null, loading: false, key: null, error: false };
 let SELLER_LISTINGS = new Map(); // sellerId -> publicaciones activas
 
-async function apiFetchFeed({ category, sellerType, q, sellerId, cursor, limit } = {}) {
+async function apiFetchFeed({ category, sellerType, q, condition, sellerId, cursor, limit } = {}) {
   const sp = new URLSearchParams({ limit: String(limit || FEED_PAGE_SIZE) });
   if (category) sp.set('category', category);
   if (sellerType) sp.set('sellerType', sellerType);
   if (q) sp.set('q', q);
+  if (condition) sp.set('condition', condition); // V1.66
+  // V1.66: al buscar, el servidor ordena por cercanía y precio con tu ubicación
+  const loc = (q || condition) && typeof getSavedLocation === 'function' ? getSavedLocation() : null;
+  if (loc) { sp.set('lat', String(loc.lat)); sp.set('lng', String(loc.lng)); }
   if (sellerId) sp.set('sellerId', sellerId);
   if (cursor) sp.set('cursor', cursor);
   try {

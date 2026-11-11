@@ -191,8 +191,13 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
         for (const l of data.listings) if (set.has(l.id)) out[l.id] = l.title;
         return out;
       },
-      async feed({ category, sellerType, q, sellerId, limit = 20, cursor } = {}) {
+      async feed({ category, sellerType, q, sellerId, limit = 20, cursor, terms, conditions } = {}) {
         let list = data.listings.filter(isActive);
+        // V1.66: buscador inteligente — cada término (con sus sinónimos) debe aparecer
+        if (Array.isArray(terms) && terms.length) {
+          list = list.filter((l) => { const t = norm(`${l.title} ${l.category} ${l.zone}`); return terms.every((alts) => alts.some((w) => t.includes(w))); });
+        }
+        if (Array.isArray(conditions) && conditions.length) list = list.filter((l) => conditions.includes(l.condition));
         if (category) list = list.filter((l) => l.category === category);
         if (sellerType) list = list.filter((l) => (l.sellerType || 'persona') === sellerType);
         if (sellerId) list = list.filter((l) => l.sellerId === sellerId);
@@ -533,10 +538,18 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
         const r = await q('SELECT id, title FROM listings WHERE id = ANY($1::text[])', [ids]);
         return Object.fromEntries(r.rows.map((x) => [x.id, x.title]));
       },
-      async feed({ category, sellerType, q: text, sellerId, limit = 20, cursor } = {}) {
+      async feed({ category, sellerType, q: text, sellerId, limit = 20, cursor, terms, conditions } = {}) {
         const where = ["status = 'active'"];
         const params = [];
         const add = (sql, v) => { params.push(v); where.push(sql.replace('?', '$' + params.length)); };
+        // V1.66: buscador inteligente — cada término (con sus sinónimos) debe aparecer
+        if (Array.isArray(terms)) {
+          for (const alts of terms.slice(0, 6)) {
+            const ors = alts.slice(0, 15).map((w) => { params.push('%' + norm(w).replace(/[%_\\]/g, '\\$&') + '%'); return `search LIKE $${params.length}`; });
+            if (ors.length) where.push('(' + ors.join(' OR ') + ')');
+          }
+        }
+        if (Array.isArray(conditions) && conditions.length) add("data->>'condition' = ANY(?::text[])", conditions);
         if (category) add('category = ?', category);
         if (sellerType) add('seller_type = ?', sellerType);
         if (sellerId) add('seller_id = ?', sellerId);

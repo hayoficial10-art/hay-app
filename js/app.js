@@ -330,9 +330,12 @@ function currentFeedFilters(phoneEl) {
   const activePill = sellerRow ? sellerRow.querySelector('.pill.is-selected') : null;
   const sellerType = activePill ? activePill.getAttribute('data-seller-type') : 'all';
   const searchInput = phoneEl.querySelector('[data-testid="input-search"]');
+  const condPill = phoneEl.querySelector('[data-testid="search-condition"] .pill.is-selected'); // V1.66
+  const condition = condPill ? condPill.getAttribute('data-condition') : 'all';
   return {
     category: catValue && catValue !== 'Todos' ? catValue : null,
     sellerType: sellerType && sellerType !== 'all' ? sellerType : null,
+    condition: condition && condition !== 'all' ? condition : null,
     q: searchInput ? searchInput.value.trim() : '',
   };
 }
@@ -376,10 +379,24 @@ async function loadFeed(phoneEl, { append = false } = {}) {
   APP_FEED.items = append ? APP_FEED.items.concat(mapped) : mapped;
   APP_FEED.nextCursor = page.nextCursor;
   PRODUCTS = APP_FEED.items;
-  if (append) grid.insertAdjacentHTML('beforeend', mapped.map((p) => productCard(p)).join(''));
+  // V1.66: con búsqueda por cercanía, un título por grupo (En tu zona / Cerca de ti / Resto del país)
+  const withHeads = (list, prevNearby) => {
+    let last = prevNearby;
+    return list.map((p, i) => {
+      const n = page.items[i] && page.items[i].nearby;
+      const head = n && n !== last ? `<p class="text-xs text-muted" data-nearby-head="${n}" style="grid-column:1/-1; margin:var(--space-2) 0 0; font-weight:800; text-transform:uppercase; letter-spacing:.04em;">${NEARBY_LABELS[n] || ''}</p>` : '';
+      if (n) last = n;
+      return head + productCard(p);
+    }).join('');
+  };
+  const prevNearby = append ? APP_FEED.lastNearby : null;
+  const lastItem = page.items[page.items.length - 1];
+  if (lastItem && lastItem.nearby) APP_FEED.lastNearby = lastItem.nearby;
+  else if (!append) APP_FEED.lastNearby = null;
+  if (append) grid.insertAdjacentHTML('beforeend', withHeads(mapped, prevNearby));
   else grid.innerHTML = mapped.length
-    ? mapped.map((p) => productCard(p)).join('')
-    : `<p class="empty-msg" style="grid-column:1/-1; padding:var(--space-4) 0;">${filters.q || filters.category || filters.sellerType ? 'No hay publicaciones con estos filtros todavía.' : 'Todavía no hay publicaciones. ¡Sé el primero en publicar con el botón +!'}</p>`;
+    ? withHeads(mapped, null)
+    : `<p class="empty-msg" style="grid-column:1/-1; padding:var(--space-4) 0;">${filters.q || filters.category || filters.sellerType || filters.condition ? 'No hay publicaciones con estos filtros todavía.' : 'Todavía no hay publicaciones. ¡Sé el primero en publicar con el botón +!'}</p>`;
   wireFavButtons(phoneEl); // V1.32: favoritos reales
   const countEl = phoneEl.querySelector('[data-testid="search-results-count"]');
   if (countEl) countEl.textContent = `${APP_FEED.items.length}${APP_FEED.nextCursor ? '+' : ''} resultado${APP_FEED.items.length === 1 ? '' : 's'}`;
@@ -425,11 +442,29 @@ function applyProductFilters(phoneEl) {
   if (countEl) countEl.textContent = `${filtered.length} resultado${filtered.length === 1 ? '' : 's'}`;
 }
 
+/* V1.66: si la persona escribe «nuevo» o «usado», se marca solo ese filtro
+   (y vuelve a «Todo» si borra la palabra y lo había marcado la frase). */
+function syncConditionFromText(phoneEl, text) {
+  const row = phoneEl.querySelector('[data-testid="search-condition"]');
+  if (!row) return;
+  const words = String(text || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z]+/);
+  const nuevo = words.some((w) => ['nuevo', 'nueva', 'nuevos', 'nuevas', 'sellado', 'sellada'].includes(w));
+  const usado = words.some((w) => ['usado', 'usada', 'usados', 'usadas', 'seminuevo', 'seminueva'].includes(w));
+  const want = nuevo ? 'nuevo' : usado ? 'usado' : null;
+  const current = row.querySelector('.pill.is-selected');
+  if (want) row.dataset.fromText = '1';
+  else if (row.dataset.fromText === '1') delete row.dataset.fromText;
+  else return; // la eligió a mano: no tocar
+  const target = want || 'all';
+  if (current && current.getAttribute('data-condition') === target) return;
+  row.querySelectorAll('.pill').forEach((p) => p.classList.toggle('is-selected', p.getAttribute('data-condition') === target));
+}
+
 function wireInteractiveBehaviors(phoneEl, screenId) {
   // V1.27: búsqueda por texto en vivo
   const searchBox = phoneEl.querySelector('[data-testid="input-search"]');
   if (searchBox) {
-    searchBox.addEventListener('input', () => applyProductFilters(phoneEl));
+    searchBox.addEventListener('input', () => { syncConditionFromText(phoneEl, searchBox.value); applyProductFilters(phoneEl); });
     if (searchBox.value && !HAY_APP_MODE) applyProductFilters(phoneEl);
   }
   // V1.29: feed paginado del servidor + más al llegar al final
@@ -562,7 +597,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
   });
 
   // Pills de condición (publicar paso 3) y de tipo de vendedor (Inicio/Buscar)
-  const FILTERABLE_PILL_ROWS = ['home-seller-type', 'search-seller-type'];
+  const FILTERABLE_PILL_ROWS = ['home-seller-type', 'search-seller-type', 'search-condition'];
   phoneEl.querySelectorAll('.pill-row').forEach((row) => {
     const testid = row.getAttribute('data-testid');
     row.querySelectorAll('.pill').forEach((pill) => {
@@ -570,6 +605,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         e.stopPropagation();
         row.querySelectorAll('.pill').forEach((p) => p.classList.remove('is-selected'));
         pill.classList.add('is-selected');
+        if (testid === 'search-condition') delete row.dataset.fromText; // V1.66: elegida a mano
         if (FILTERABLE_PILL_ROWS.includes(testid)) applyProductFilters(phoneEl);
         // V1.24: elegir "Negocio" al registrarse muestra los campos de
         // nombre comercial + categoría de negocio; "Persona" los oculta.

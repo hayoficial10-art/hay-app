@@ -38,13 +38,14 @@ const path = require('path');
 const crypto = require('crypto');
 const zlib = require('zlib');
 const { createStore } = require('./store');
+const busqueda = require('./busqueda'); // V1.66: buscador inteligente
 const mailer = require('./mailer');
 const { createStorage } = require('./storage');
 
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.65';
+const APP_VERSION = '1.66';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -71,6 +72,7 @@ const VISION_URL = process.env.VISION_URL || 'https://vision.googleapis.com/v1/i
 // V1.38: tasa oficial del dólar (BCV) para mostrar la equivalencia en bolívares
 const DOLAR_URL = process.env.DOLAR_URL || 'https://ve.dolarapi.com/v1/dolares/oficial'; // V1.35: miniatura de cada foto (para las tarjetas del feed)
 const FEED_MAX_LIMIT = 50;
+const SMART_MAX = 300; // V1.66: coincidencias que se ordenan por cercanía
 const LEGACY_FEED_LIMIT = 300; // pedido sin "limit" (galería de prototipo)
 
 function shouldBeAdmin(email, usersCountBefore) {
@@ -667,14 +669,33 @@ async function handle(req, res) {
     const sp = url.searchParams;
     const paged = sp.has('limit');
     const limit = paged ? Math.min(Math.max(parseInt(sp.get('limit'), 10) || 20, 1), FEED_MAX_LIMIT) : LEGACY_FEED_LIMIT;
-    const result = await store.listings.feed({
+    // V1.66: buscador inteligente. La frase se entiende («teléfono Samsung
+    // Talca nuevo»): nuevo/usado pasa a ser filtro y cada palabra acepta
+    // sinónimos. Con ?lat&lng ordena por cercanía y luego por precio.
+    const qText = (sp.get('q') || '').trim().slice(0, 80);
+    const frase = busqueda.entender(qText);
+    const condParam = ['nuevo', 'usado'].includes(sp.get('condition')) ? sp.get('condition') : null;
+    const conditions = busqueda.condiciones(condParam || frase.condition);
+    const lat = roundCoord(sp.get('lat'), -90, 90);
+    const lng = roundCoord(sp.get('lng'), -180, 180);
+    const base = {
       category: sp.get('category') || null,
       sellerType: sp.get('sellerType') || null,
-      q: (sp.get('q') || '').trim().slice(0, 60) || null,
       sellerId: sp.get('sellerId') || null,
-      limit,
-      cursor: sp.get('cursor') || null,
-    });
+      terms: frase.terms,
+      conditions,
+    };
+    const inteligente = paged && !base.sellerId && lat !== null && lng !== null && (qText || conditions);
+    if (inteligente) {
+      // Hasta SMART_MAX coincidencias, ordenadas por cercanía y precio, paginadas por posición.
+      const all = await store.listings.feed({ ...base, limit: SMART_MAX });
+      const ordered = busqueda.ordenarPorCercania(all.items, lat, lng);
+      const m = /^s(\d+)$/.exec(sp.get('cursor') || '');
+      const from = m ? Number(m[1]) : 0;
+      const page = ordered.slice(from, from + limit);
+      return sendJSON(res, 200, { items: page.map(publicListing), nextCursor: ordered.length > from + limit ? 's' + (from + limit) : null, entendido: { condition: condParam || frase.condition } });
+    }
+    const result = await store.listings.feed({ ...base, limit, cursor: sp.get('cursor') || null });
     const items = result.items.map(publicListing);
     return sendJSON(res, 200, paged ? { items, nextCursor: result.nextCursor } : items);
   }

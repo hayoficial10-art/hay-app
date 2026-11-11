@@ -1,8 +1,18 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.65
-**FECHA:** 9 de noviembre de 2026
-**BASE:** v1.64.
+**VERSIÓN:** 1.66
+**FECHA:** 11 de noviembre de 2026
+**BASE:** v1.65.
+
+## V1.66 — Buscador inteligente
+
+- Buscar entiende frases como «teléfono Samsung Talca nuevo» o «pizza Cumaná»: «nuevo»/«usado» pasan a ser filtro, se ignoran palabras de relleno y cada palabra acepta sinónimos («teléfono» encuentra «celular» o «iPhone»).
+- Nueva fila mínima Todo / Nuevo / Usado en Buscar; se marca sola al escribir «nuevo» o «usado». «Usado» incluye «Como nuevo».
+- Con la ubicación guardada, los resultados se ordenan por cercanía (En tu zona → Cerca de ti → Resto del país) y, dentro de cada grupo, del precio más bajo al más alto. Lo que está a más de 1.500 km queda fuera.
+- Versión 1.66 (app, servidor, service worker).
+
+
+---
 
 ## V1.65 — «Cerca de ti» con marco
 

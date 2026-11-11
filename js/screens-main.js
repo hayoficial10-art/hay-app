@@ -144,6 +144,16 @@ const SELLER_TYPE_FILTERS = [
   { value: 'negocio', label: 'Negocios' },
 ];
 
+/* V1.66: Nuevo / Usado en Buscar. «Usado» incluye «Como nuevo». */
+const CONDITION_FILTERS = [
+  { value: 'all', label: 'Todo' },
+  { value: 'nuevo', label: 'Nuevo' },
+  { value: 'usado', label: 'Usado' },
+];
+
+/* V1.66: título de cada grupo de cercanía en los resultados de búsqueda. */
+const NEARBY_LABELS = { zona: 'En tu zona', cerca: 'Cerca de ti', pais: 'Resto del país' };
+
 const SCREENS_MAIN = [
   {
     id: 'home',
@@ -203,11 +213,15 @@ const SCREENS_MAIN = [
             <button class="icon-btn" data-nav="home" aria-label="Volver" data-testid="btn-back-search">${icon('back')}</button>
             <div class="searchbar grow">
               ${icon('search')}
-              <input type="text" placeholder="¿Qué buscas?" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
+              <input type="search" enterkeyhint="search" placeholder="Ej.: teléfono Samsung nuevo" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
             </div>
           </div>
           <div class="pill-row pill-row--mini" data-testid="search-seller-type">
             ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
+          </div>
+          <!-- V1.66: nuevo / usado (se marca solo si escribes «nuevo» o «usado») -->
+          <div class="pill-row pill-row--mini" data-testid="search-condition">
+            ${CONDITION_FILTERS.map((c, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-condition="${c.value}">${c.label}</span>`).join('')}
           </div>
           <div class="chip-row chip-row--color" data-testid="search-categories" style="overflow-x:auto; flex-wrap:nowrap;">
             ${categoryChips()}
