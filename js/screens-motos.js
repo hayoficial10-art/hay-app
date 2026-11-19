@@ -115,7 +115,7 @@ function motosHeader(title) {
   return `<header class="alegre-header home-header">
     <div class="alegre-header__row">
       <button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home">${icon('pin')}<span>${(loc && loc.zone) || (loc ? 'Mi ubicación' : 'Ubicación')}</span></button>
-      <h1 class="motos-title">${title}</h1>
+      <h1 class="motos-title">${hayMotosBrand()}<span class="sr-only">${title}</span></h1>
       <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" style="flex-shrink:0;">${icon('bell')}${unreadBadgeHtml()}</button>
     </div>
   </header>`;

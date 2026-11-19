@@ -26,6 +26,11 @@ function hayLogo(size = 30, opts = {}) {
   return `<img class="hay-logo-img" src="assets/hay-logo-v2.png" alt="HAY — Lo tienes, publícalo, véndelo." style="height:${h}px" decoding="async"${opts.testid ? ` data-testid="${opts.testid}"` : ''} />`;
 }
 
+/* V2.0: marca sutil «HAY Motos» para la cabecera (logo pequeño + «Motos»). */
+function hayMotosBrand() {
+  return `<span class="hay-motos-brand" role="img" aria-label="HAY Motos"><img src="assets/hay-wordmark.png" alt="" decoding="async" /><span>Motos</span></span>`;
+}
+
 /* V1.33: avatar del usuario — su foto de perfil si la tiene, si no sus iniciales. */
 function userAvatar(size = 'lg', tone = 2, testid = '') {
   const u = typeof CURRENT_USER !== 'undefined' ? CURRENT_USER : null;

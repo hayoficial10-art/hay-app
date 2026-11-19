@@ -158,7 +158,7 @@ const SCREENS_MAIN = [
             ${HAY_APP_MODE
               ? `<button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home" data-testid="btn-home-gps">${icon('pin')}<span>${(getSavedLocation() && getSavedLocation().zone) || (getSavedLocation() ? 'Mi ubicación' : 'Ubicación')}</span></button>`
               : `<span class="home-location" title="Ubicación actual">${icon('pin')}<span>Miami, FL</span></span>`}
-            ${hayLogo(38)}
+            ${hayMotosBrand()}
             <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" data-testid="btn-notifications" style="flex-shrink:0;">${icon('bell')}${unreadBadgeHtml()}</button>
           </div>
           <div class="alegre-search">
