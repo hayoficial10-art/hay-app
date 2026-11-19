@@ -45,7 +45,7 @@ const SCREENS_ONBOARDING = [
             <div class="text-center stack-sm" id="onboardingText">
               <span class="screen-eyebrow">Paso 1 de 3</span>
               <h2 class="screen-title">Lo tienes</h2>
-              <p class="screen-subtitle">Esa bici, esa silla, ese celular que ya no usas — seguro alguien cerca de ti lo está buscando ahora mismo.</p>
+              <p class="screen-subtitle">Esa moto, ese casco, esos repuestos que ya no usas — seguro alguien cerca de ti los está buscando ahora mismo.</p>
             </div>
           </div>
           <div class="stack" style="gap:var(--space-5);">

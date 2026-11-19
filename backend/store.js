@@ -195,7 +195,7 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
         let list = data.listings.filter(isActive);
         // V1.66: buscador inteligente — cada término (con sus sinónimos) debe aparecer
         if (Array.isArray(terms) && terms.length) {
-          list = list.filter((l) => { const t = norm(`${l.title} ${l.category} ${l.zone}`); return terms.every((alts) => alts.some((w) => t.includes(w))); });
+          list = list.filter((l) => { const t = norm(`${l.title} ${l.category} ${l.zone} ${(l.moto && l.moto.marca) || ''} ${(l.moto && l.moto.modelo) || ''}`); /* V2.0: marca y modelo */ return terms.every((alts) => alts.some((w) => t.includes(w))); });
         }
         if (Array.isArray(conditions) && conditions.length) list = list.filter((l) => conditions.includes(l.condition));
         if (category) list = list.filter((l) => l.category === category);
@@ -346,7 +346,7 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
 const TABLES = {
   // "search": título + categoría + zona en minúsculas y sin tildes, con
   // índice trigram → búsquedas rápidas aunque haya millones de filas.
-  listings: { cols: { seller_id: 'sellerId', status: (o) => o.status || 'active', category: 'category', seller_type: (o) => o.sellerType || 'persona', created_at: 'createdAt', title: 'title', search: (o) => norm(`${o.title || ''} ${o.category || ''} ${o.zone || ''}`) } },
+  listings: { cols: { seller_id: 'sellerId', status: (o) => o.status || 'active', category: 'category', seller_type: (o) => o.sellerType || 'persona', created_at: 'createdAt', title: 'title', search: (o) => norm(`${o.title || ''} ${o.category || ''} ${o.zone || ''} ${(o.moto && o.moto.marca) || ''} ${(o.moto && o.moto.modelo) || ''}`) } },
   users: { cols: { email: 'email' } },
   messages: { cols: { thread_id: 'threadId', from_user_id: 'fromUserId', to_user_id: 'toUserId', created_at: 'createdAt' } },
   ratings: { cols: { listing_id: 'listingId', from_user_id: 'fromUserId', to_user_id: 'toUserId', created_at: 'createdAt' } },

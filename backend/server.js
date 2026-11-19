@@ -40,13 +40,14 @@ const zlib = require('zlib');
 const { createStore } = require('./store');
 const busqueda = require('./busqueda'); // V1.66: buscador inteligente
 const tiendas = require('./tiendas'); // V1.67: tiendas y comercios de la web
+const motos = require('./motos'); // V2.0: HAY Motos (nuevas y negocios de la web)
 const mailer = require('./mailer');
 const { createStorage } = require('./storage');
 
 // ---------------------------------------------------------------------
 // Configuración
 // ---------------------------------------------------------------------
-const APP_VERSION = '1.67';
+const APP_VERSION = '2.0';
 const PORT = process.env.PORT || 3000;
 const GOOGLE_CLIENT_ID = '808367638236-pobrnraejr0tofn8dho0orgrqhkiact6.apps.googleusercontent.com';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -84,16 +85,17 @@ function shouldBeAdmin(email, usersCountBefore) {
 
 // Productos de muestra (solo modo desarrollo, para la galería de prototipo)
 const SEED_LISTINGS = IS_PROD ? [] : [
-  { id: 'p1', title: 'Bicicleta montaña rodado 26', price: 180, category: 'Deportes y aire libre', sellerType: 'persona', condition: 'Usado', description: 'Bicicleta rodado 26 en buen estado, frenos y cambios recién ajustados. Ideal para uso diario o senderos ligeros. Se entrega con casco de regalo.', zone: 'Wynwood, Miami, FL', dist: '2.1 mi', art: 1, icon: 'bike', acceptsOffers: true, photos: 3, createdAt: '2026-09-01T10:00:00.000Z' },
-  { id: 'p2', title: 'Silla de oficina ergonómica', price: 95, category: 'Hogar y línea blanca', sellerType: 'persona', condition: 'Como nuevo', description: 'Silla ergonómica, poco uso.', zone: 'Miami, FL', dist: '0.8 mi', art: 2, icon: 'sofa', acceptsOffers: true, photos: 4, createdAt: '2026-09-02T10:00:00.000Z' },
-  { id: 'p3', title: 'iPhone 12 128GB', price: 340, category: 'Electrónica', sellerType: 'persona', condition: 'Usado', description: 'iPhone 12, batería al 87%.', zone: 'Miami, FL', dist: '1.4 mi', art: 3, icon: 'phone', acceptsOffers: false, photos: 5, createdAt: '2026-09-03T10:00:00.000Z' },
-  { id: 'p4', title: 'Mesa de centro madera', price: 60, category: 'Hogar y línea blanca', sellerType: 'persona', condition: 'Usado', description: 'Mesa de centro de madera maciza.', zone: 'Miami, FL', dist: '3.6 mi', art: 4, icon: 'sofa', acceptsOffers: true, photos: 2, createdAt: '2026-09-04T10:00:00.000Z' },
-  { id: 'p5', title: 'Chaqueta de cuero talla M', price: 45, category: 'Ropa y accesorios', sellerType: 'persona', condition: 'Como nuevo', description: 'Chaqueta de cuero genuino, talla M.', zone: 'Miami, FL', dist: '1.1 mi', art: 1, icon: 'shirt', acceptsOffers: true, photos: 3, createdAt: '2026-09-05T10:00:00.000Z' },
-  { id: 'p6', title: 'Set de libros de cocina (x6)', price: 25, category: 'Libros, música y hobbies', sellerType: 'persona', condition: 'Usado', description: 'Seis libros de cocina en buen estado.', zone: 'Miami, FL', dist: '2.9 mi', art: 2, icon: 'book', acceptsOffers: false, photos: 1, createdAt: '2026-09-06T10:00:00.000Z' },
-  { id: 'p7', title: 'Balón de básquetbol Spalding', price: 15, category: 'Deportes y aire libre', sellerType: 'persona', condition: 'Usado', description: 'Balón oficial Spalding, poco uso.', zone: 'Miami, FL', dist: '0.5 mi', art: 3, icon: 'ball', acceptsOffers: false, photos: 2, createdAt: '2026-09-07T10:00:00.000Z' },
-  { id: 'p8', title: 'Caja de herramientas completa', price: 70, category: 'Herramientas y construcción', sellerType: 'persona', condition: 'Usado', description: 'Caja de herramientas con set completo.', zone: 'Miami, FL', dist: '4.2 mi', art: 4, icon: 'tools', acceptsOffers: true, photos: 3, createdAt: '2026-09-08T10:00:00.000Z' },
-  { id: 'p9', title: 'Juguetes de bloques armables', price: 20, category: 'Niños y bebés', sellerType: 'persona', condition: 'Como nuevo', description: 'Set de bloques armables, casi sin uso.', zone: 'Miami, FL', dist: '1.9 mi', art: 1, icon: 'toy', acceptsOffers: false, photos: 2, createdAt: '2026-09-09T10:00:00.000Z' },
-  { id: 'p10', title: 'Sofá 2 plazas gris', price: 220, category: 'Hogar y línea blanca', sellerType: 'persona', condition: 'Usado', description: 'Sofá de 2 plazas, color gris.', zone: 'Miami, FL', dist: '2.4 mi', art: 2, icon: 'sofa', acceptsOffers: true, photos: 4, createdAt: '2026-09-10T10:00:00.000Z' },
+  // V2.0: datos de prueba de HAY Motos (solo en la computadora, nunca en el servidor real)
+  { id: 'p1', title: 'Bera SBR 150 2022', price: 950, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Bera SBR 150, papeles al día, cauchos nuevos. Lista para rodar.', zone: 'Petare, Caracas', dist: '', art: 1, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.48, lng: -66.81, moto: { marca: 'Bera', modelo: 'SBR', anio: 2022, cc: 150, km: 18500 }, createdAt: '2026-11-01T10:00:00.000Z' },
+  { id: 'p2', title: 'Empire Horse 150 2021', price: 800, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Empire Horse, motor original, poco uso.', zone: 'Chacao, Caracas', dist: '', art: 2, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.5, lng: -66.85, moto: { marca: 'Empire', modelo: 'Horse', anio: 2021, cc: 150, km: 24000 }, createdAt: '2026-11-02T10:00:00.000Z' },
+  { id: 'p3', title: 'Yamaha YBR 125 2019', price: 1300, category: 'Motos', sellerType: 'persona', condition: 'Como nuevo', description: 'Yamaha original, un solo dueño, mantenimiento en concesionario.', zone: 'Valencia, Carabobo', dist: '', art: 3, icon: 'moto', acceptsOffers: false, photos: 0, lat: 10.16, lng: -68.0, moto: { marca: 'Yamaha', modelo: 'YBR 125', anio: 2019, cc: 125, km: 31000 }, createdAt: '2026-11-03T10:00:00.000Z' },
+  { id: 'p4', title: 'Casco integral talla L', price: 45, category: 'Accesorios y cascos', sellerType: 'persona', condition: 'Usado', description: 'Casco integral certificado, visor claro.', zone: 'Los Teques', dist: '', art: 4, icon: 'shield', acceptsOffers: true, photos: 0, lat: 10.34, lng: -67.04, createdAt: '2026-11-04T10:00:00.000Z' },
+  { id: 'p5', title: 'Kit de arrastre Bera 150', price: 35, category: 'Repuestos', sellerType: 'negocio', sellerBusinessName: 'Repuestos La Moto', condition: 'Nuevo', description: 'Kit de arrastre completo (cadena, piñón y corona).', zone: 'Catia, Caracas', dist: '', art: 1, icon: 'tools', acceptsOffers: false, photos: 0, lat: 10.51, lng: -66.94, createdAt: '2026-11-05T10:00:00.000Z' },
+  { id: 'p6', title: 'Bera Cobra 200 0 km', price: 1890, category: 'Motos', sellerType: 'negocio', sellerBusinessName: 'MotoCentro Caracas', condition: 'Nuevo', description: 'Moto nueva, 0 km, con garantía de fábrica. Financiamiento disponible.', zone: 'Los Ruices, Caracas', dist: '', art: 2, icon: 'moto', acceptsOffers: false, photos: 0, lat: 10.49, lng: -66.83, moto: { marca: 'Bera', modelo: 'Cobra 200', anio: 2026, cc: 200, km: 0 }, createdAt: '2026-11-06T10:00:00.000Z' },
+  { id: 'p7', title: 'Suzuki GN 125 2018', price: 1100, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Suzuki GN 125 clásica, muy económica.', zone: 'Maracay, Aragua', dist: '', art: 3, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.25, lng: -67.6, moto: { marca: 'Suzuki', modelo: 'GN 125', anio: 2018, cc: 125, km: 42000 }, createdAt: '2026-11-07T10:00:00.000Z' },
+  { id: 'p8', title: 'Skygo Scooter 150 0 km', price: 1290, category: 'Motos', sellerType: 'negocio', sellerBusinessName: 'Skygo Valencia', condition: 'Nuevo', description: 'Scooter nueva, automática, ideal para la ciudad.', zone: 'Valencia, Carabobo', dist: '', art: 4, icon: 'moto', acceptsOffers: false, photos: 0, lat: 10.18, lng: -68.0, moto: { marca: 'Skygo', modelo: 'Wind 150', anio: 2026, cc: 150, km: 0 }, createdAt: '2026-11-08T10:00:00.000Z' },
+  { id: 'p9', title: 'Servicio de mantenimiento a domicilio', price: 20, category: 'Talleres y servicios', sellerType: 'negocio', sellerBusinessName: 'Taller El Pistón', condition: 'Nuevo', description: 'Cambio de aceite, ajuste de frenos y cadena en tu casa.', zone: 'El Paraíso, Caracas', dist: '', art: 1, icon: 'tools', acceptsOffers: false, photos: 0, lat: 10.49, lng: -66.93, createdAt: '2026-11-09T10:00:00.000Z' },
+  { id: 'p10', title: 'Haojue DK 150 2023', price: 1150, category: 'Motos', sellerType: 'persona', condition: 'Como nuevo', description: 'Haojue DK 150 casi nueva, con factura.', zone: 'Barquisimeto, Lara', dist: '', art: 2, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.07, lng: -69.32, moto: { marca: 'Haojue', modelo: 'DK 150', anio: 2023, cc: 150, km: 6000 }, createdAt: '2026-11-10T10:00:00.000Z' },
 ];
 
 // Números de emergencia iniciales (911 oficial + CICPC indicados por el usuario)
@@ -320,6 +322,15 @@ async function dolarBCV() {
 }
 
 // V1.35: ubicación aproximada de una publicación (redondeada a ~1 km, por privacidad)
+/* V2.0: ficha de la moto (marca, modelo, año, cilindrada, kilometraje). */
+function motoFicha(m) {
+  if (!m || typeof m !== 'object') return null;
+  const txt = (v, n) => (v === undefined || v === null ? '' : String(v).replace(/[<>]/g, '').trim().slice(0, n));
+  const int = (v, min, max) => { const n = parseInt(String(v || '').replace(/[^0-9]/g, ''), 10); return Number.isFinite(n) && n >= min && n <= max ? n : null; };
+  const f = { marca: txt(m.marca, 30), modelo: txt(m.modelo, 40), anio: int(m.anio, 1950, 2100), cc: int(m.cc, 25, 3000), km: int(m.km, 0, 2000000) };
+  return f.marca || f.modelo || f.anio || f.cc || f.km !== null ? f : null;
+}
+
 function roundCoord(v, min, max) {
   const n = Number(v);
   if (v === null || v === undefined || v === '' || Number.isNaN(n) || n < min || n > max) return null;
@@ -681,6 +692,30 @@ async function handle(req, res) {
     }
   }
 
+  // V2.0: HAY Motos — búsqueda automática en la web
+  //   GET /api/motos/nuevas?q=&tipo=&lat=&lng=        → { motos, configured }
+  //   GET /api/motos/negocios?tipo=&ciudad=&lat=&lng= → { negocios, configured }
+  //   GET /api/motos/donde?marca=&lat=&lng=           → { negocios, configured }
+  if (M === 'GET' && (api('motos', 'nuevas') || api('motos', 'negocios') || api('motos', 'donde'))) {
+    const sp = url.searchParams;
+    const which = parts[2];
+    const lat = roundCoord(sp.get('lat'), -90, 90);
+    const lng = roundCoord(sp.get('lng'), -180, 180);
+    const ciudad = (sp.get('ciudad') || '').trim().slice(0, 60);
+    const hasLoc = lat !== null && lng !== null;
+    if (!hasLoc && !(which === 'negocios' && ciudad)) return sendJSON(res, 400, { error: 'Falta tu ubicación', code: 'NEED_LOCATION' });
+    if (!motos.configured()) return sendJSON(res, 200, { configured: false, motos: [], negocios: [] });
+    if (rateLimited(req, 'motos', 90)) return sendJSON(res, 429, { error: 'Demasiadas búsquedas seguidas. Espera unos minutos.' });
+    const clean = (v, n) => String(v || '').replace(/[^\p{L}\p{N} .\-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
+    try {
+      if (which === 'nuevas') return sendJSON(res, 200, await motos.nuevas({ q: clean(sp.get('q'), 60), tipo: sp.get('tipo') || '', lat, lng, appVersion: APP_VERSION }));
+      if (which === 'negocios') return sendJSON(res, 200, await motos.negocios({ tipo: sp.get('tipo') || 'venta', ciudad: clean(ciudad, 60), lat, lng, appVersion: APP_VERSION }));
+      return sendJSON(res, 200, await motos.donde({ marca: clean(sp.get('marca'), 40), lat, lng, appVersion: APP_VERSION }));
+    } catch (e) {
+      return sendJSON(res, 502, { error: 'No se pudo consultar la web ahora.' });
+    }
+  }
+
   // ------------------------------ Publicaciones -----------------------
   if (M === 'GET' && api('listings')) {
     // V1.29: paginado y filtrado en el servidor.
@@ -761,6 +796,7 @@ async function handle(req, res) {
       art: (crypto.randomInt(4)) + 1,
       icon: body.icon ? String(body.icon).slice(0, 20) : 'tag',
       acceptsOffers: Boolean(body.acceptsOffers),
+      moto: motoFicha(body.moto), // V2.0
       photoUrls: saved.urls,
       ...(Object.keys(thumbs).length ? { photoThumbs: thumbs } : {}),
       lat: roundCoord(body.lat, -90, 90),
@@ -819,6 +855,7 @@ async function handle(req, res) {
       zone: body.zone ? String(body.zone).slice(0, 80) : existing.zone,
       icon: body.icon ? String(body.icon).slice(0, 20) : existing.icon,
       acceptsOffers: body.acceptsOffers !== undefined ? Boolean(body.acceptsOffers) : existing.acceptsOffers,
+      moto: body.moto !== undefined ? motoFicha(body.moto) : existing.moto || null, // V2.0
       updatedAt: new Date().toISOString(),
     });
     return sendJSON(res, 200, updated);

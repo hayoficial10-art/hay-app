@@ -9,13 +9,14 @@
    Los valores iniciales son los mismos que ya estaban hardcodeados, para
    que el prototipo se vea igual si nadie interactúa con los campos. */
 let PUBLISH_DRAFT = {
-  title: 'Bicicleta montaña rodado 26',
-  description: 'Bicicleta rodado 26 en buen estado, frenos y cambios recién ajustados. Ideal para uso diario o senderos ligeros. Se entrega con casco de regalo.',
-  category: 'Deportes y aire libre',
-  categoryIcon: 'ball',
+  title: 'Bera SBR 150 2022',
+  description: 'Papeles al día, cauchos nuevos. Lista para rodar.',
+  category: 'Motos',
+  categoryIcon: 'moto',
   condition: 'Usado',
-  price: 180,
-  zone: 'Wynwood, Miami, FL',
+  price: 950,
+  zone: 'Petare, Caracas',
+  moto: { marca: 'Bera', modelo: 'SBR', anio: '2022', cc: '150', km: '18500' },
   acceptsOffers: true,
   photos: 3,
   photoData: [], // V1.27: fotos nuevas (data URL ya comprimidas en el teléfono)
@@ -36,8 +37,9 @@ function resetPublishDraft() {
   PUBLISH_DRAFT = {
     title: '',
     description: '',
-    category: 'Otros',
-    categoryIcon: 'tag',
+    category: 'Motos', // V2.0
+    categoryIcon: 'moto',
+    moto: { marca: '', modelo: '', anio: '', cc: '', km: '' }, // V2.0: ficha de la moto
     condition: 'Usado',
     price: '',
     zone: '',
@@ -120,7 +122,7 @@ function publishSinglePage() {
             <div class="pub-card__head"><h2><span class="pub-dot pub-dot--yellow"></span>¿Qué vendes?</h2></div>
             <div class="field">
               <label for="pub-title">Título</label>
-              <input id="pub-title" type="text" value="${String(PUBLISH_DRAFT.title || '').replace(/"/g, '&quot;')}" maxlength="60" placeholder="Ej. Bicicleta rin 26" data-testid="input-publish-title" data-draft-field="title" />
+              <input id="pub-title" type="text" value="${String(PUBLISH_DRAFT.title || '').replace(/"/g, '&quot;')}" maxlength="60" placeholder="Ej. Bera SBR 150 2022" data-testid="input-publish-title" data-draft-field="title" />
             </div>
             <div class="field">
               <label>Categoría</label>
@@ -135,6 +137,14 @@ function publishSinglePage() {
               <label>Estado</label>
               <div class="pill-row pub-cond" data-testid="condition-pills" data-draft-field="condition">
                 ${condOpts.map((o) => `<span class="pill ${PUBLISH_DRAFT.condition === o.v ? 'is-selected' : ''}">${o.v}</span>`).join('')}
+              </div>
+            </div>
+            <!-- V2.0: ficha de la moto (solo si la categoría es «Motos») -->
+            <div class="field" id="pubMoto" data-testid="publish-moto" style="${PUBLISH_DRAFT.category === 'Motos' ? '' : 'display:none;'}">
+              <label>Datos de la moto</label>
+              <div class="pub-moto">
+                ${[['marca', 'Marca', 'Ej. Bera', 'text', 30], ['modelo', 'Modelo', 'Ej. SBR', 'text', 40], ['anio', 'Año', 'Ej. 2022', 'numeric', 4], ['cc', 'Cilindrada (cc)', 'Ej. 150', 'numeric', 4], ['km', 'Kilometraje', 'Ej. 18000', 'numeric', 7]].map(([k, l, ph, mode, max]) => `
+                <div class="field"><label for="pub-moto-${k}" class="text-xs">${l}</label><input id="pub-moto-${k}" type="text" inputmode="${mode}" maxlength="${max}" placeholder="${ph}" value="${String(((PUBLISH_DRAFT.moto || {})[k]) ?? '').replace(/"/g, '&quot;')}" data-moto-field="${k}" data-testid="input-moto-${k}" /></div>`).join('')}
               </div>
             </div>
           </section>

@@ -145,6 +145,8 @@ async function googleMaps(q, lat, lng) {
       menu,
       mapsLink: r.place_id ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(r.place_id)}` : '',
       thumb: httpUrl(r.thumbnail),
+      lat: num(g.latitude), // V2.0: para el mapa del negocio
+      lng: num(g.longitude),
       distKm: d !== null ? Math.round(d * 10) / 10 : null,
     };
   }).filter((r) => r.name).sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9)).slice(0, 15);
@@ -175,4 +177,5 @@ async function buscarEnLaWeb({ q, lat, lng, appVersion }) {
   return data;
 }
 
-module.exports = { buscarEnLaWeb, configured: () => Boolean(SERPAPI_KEY) };
+// V2.0: las piezas se reusan en backend/motos.js (Nuevas y Negocios)
+module.exports = { buscarEnLaWeb, configured: () => Boolean(SERPAPI_KEY), getJSON, paisDe, PAISES, km, num, str, httpUrl };

@@ -1,6 +1,7 @@
 /* app.js — motor de navegación del prototipo (sin backend) */
 
 const ALL_SCREENS = [
+  ...SCREENS_MOTOS, // V2.0: Nuevas, Negocios y ficha de moto nueva
   ...SCREENS_ONBOARDING,
   ...SCREENS_MAIN,
   ...SCREENS_PUBLISH,
@@ -108,6 +109,10 @@ function mountNavigation() {
     }
     // V1.7: recordar qué publicación real se está mirando, para que
     // "product-detail" deje de mostrar siempre el mismo producto fijo.
+    // V2.0: moto de la web que se abre en su ficha
+    if (targetId === 'moto-nueva' && trigger.hasAttribute('data-moto-idx') && typeof MOTOS_STATE !== 'undefined') {
+      MOTOS_STATE.current = MOTOS_STATE.list[Number(trigger.getAttribute('data-moto-idx'))] || MOTOS_STATE.current;
+    }
     if (targetId === 'product-detail' && trigger.hasAttribute('data-listing-id')) {
       CURRENT_PRODUCT_ID = trigger.getAttribute('data-listing-id');
     }
@@ -331,7 +336,9 @@ function currentFeedFilters(phoneEl) {
   const sellerType = activePill ? activePill.getAttribute('data-seller-type') : 'all';
   const searchInput = phoneEl.querySelector('[data-testid="input-search"]');
   const condPill = phoneEl.querySelector('[data-testid="search-condition"] .pill.is-selected'); // V1.66
-  const condition = condPill ? condPill.getAttribute('data-condition') : 'all';
+  let condition = condPill ? condPill.getAttribute('data-condition') : 'all';
+  // V2.0: Inicio de HAY Motos muestra solo lo usado (lo nuevo está en «Nuevas»)
+  if (phoneEl.querySelector('[data-testid="home-product-grid"]')) condition = 'usado';
   return {
     category: catValue && catValue !== 'Todos' ? catValue : null,
     sellerType: sellerType && sellerType !== 'all' ? sellerType : null,
@@ -524,6 +531,7 @@ function syncConditionFromText(phoneEl, text) {
 }
 
 function wireInteractiveBehaviors(phoneEl, screenId) {
+  if (typeof wireMotos === 'function') wireMotos(phoneEl, screenId); // V2.0
   // V1.27: búsqueda por texto en vivo
   const searchBox = phoneEl.querySelector('[data-testid="input-search"]');
   if (searchBox) {
@@ -893,9 +901,9 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
   // Onboarding slides (swipe simulado con botón Continuar + dots)
   if (screenId === 'onboarding-slides') {
     const slidesData = [
-      { icon: 'boxOpen', tone: 2, hero: 'cyan', badge: 'camera', eyebrow: 'Paso 1 de 3', title: 'Lo tienes', body: 'Esa bici, esa silla, ese celular que ya no usas — seguro alguien cerca de ti lo está buscando ahora mismo.' },
-      { icon: 'camera', tone: 3, hero: 'yellow', badge: 'sparkle', eyebrow: 'Paso 2 de 3', title: 'Publícalo', body: 'Toma unas fotos, escribe un título y ponle precio. Publicar en HAY toma menos de un minuto.' },
-      { icon: 'tag', tone: 1, hero: 'green', badge: 'chat', eyebrow: 'Paso 3 de 3', title: 'Véndelo', body: 'Chatea con compradores cerca de ti, acuerda un punto de encuentro seguro y cierra la venta.' },
+      { icon: 'moto', tone: 2, hero: 'cyan', badge: 'camera', eyebrow: 'Paso 1 de 3', title: 'Lo tienes', body: 'Esa moto, ese casco, esos repuestos que ya no usas — seguro alguien cerca de ti los está buscando ahora mismo.' },
+      { icon: 'camera', tone: 3, hero: 'yellow', badge: 'sparkle', eyebrow: 'Paso 2 de 3', title: 'Publícalo', body: 'Toma unas fotos de tu moto, escribe marca, modelo y año, y ponle precio. Publicar en HAY Motos toma menos de un minuto.' },
+      { icon: 'tag', tone: 1, hero: 'green', badge: 'chat', eyebrow: 'Paso 3 de 3', title: 'Véndelo', body: 'Chatea con compradores cerca de ti, acuerda un punto de encuentro seguro y cierra la venta. ¿Buscas una nueva? Mira «Nuevas» y «Negocios».' },
     ];
     let current = 0;
     const artWrap = phoneEl.querySelector('#onboardingSlideWrap');
@@ -968,6 +976,15 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
     tile.addEventListener('click', () => {
       PUBLISH_DRAFT.category = tile.dataset.catLabel;
       PUBLISH_DRAFT.categoryIcon = tile.dataset.catIcon;
+      const motoBox = phoneEl.querySelector('#pubMoto'); // V2.0
+      if (motoBox) motoBox.style.display = PUBLISH_DRAFT.category === 'Motos' ? '' : 'none';
+    });
+  });
+  // V2.0: ficha de la moto al publicar
+  phoneEl.querySelectorAll('[data-moto-field]').forEach((el) => {
+    el.addEventListener('input', () => {
+      if (!PUBLISH_DRAFT.moto) PUBLISH_DRAFT.moto = {};
+      PUBLISH_DRAFT.moto[el.dataset.motoField] = el.dataset.motoField === 'marca' || el.dataset.motoField === 'modelo' ? el.value : el.value.replace(/[^0-9]/g, '');
     });
   });
 
@@ -1212,6 +1229,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
           photoUrls: listing.photoUrls || [],
           lat: listing.lat ?? null,
           lng: listing.lng ?? null,
+          moto: listing.moto ? { ...listing.moto } : { marca: '', modelo: '', anio: '', cc: '', km: '' }, // V2.0
         };
         navigateTo(phoneEl, 'publish-step2');
       });
@@ -1795,6 +1813,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
         keepPhotoUrls: PUBLISH_DRAFT.photoUrls || [],
         lat: PUBLISH_DRAFT.lat ?? null, // V1.35: ubicación aproximada (GPS)
         lng: PUBLISH_DRAFT.lng ?? null,
+        moto: PUBLISH_DRAFT.category === 'Motos' ? PUBLISH_DRAFT.moto || null : null, // V2.0
       };
 
       const result = isEditing

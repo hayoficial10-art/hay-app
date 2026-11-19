@@ -116,21 +116,12 @@ function categoryChips() {
    negocios — lo que distingue a un negocio de una persona es el tipo de
    cuenta del vendedor, no la categoría del producto). */
 const CATEGORY_ICONS = [
-  { label: 'Hogar y línea blanca', icon: 'sofa' },
-  { label: 'Electrónica', icon: 'phone' },
-  { label: 'Ropa y accesorios', icon: 'shirt' },
-  { label: 'Belleza', icon: 'sparkle' },
-  { label: 'Niños y bebés', icon: 'toy' },
-  { label: 'Animales y mascotas', icon: 'paw' },
-  { label: 'Vehículos', icon: 'car' },
-  { label: 'Deportes y aire libre', icon: 'ball' },
-  { label: 'Herramientas y construcción', icon: 'tools' },
-  { label: 'Libros, música y hobbies', icon: 'book' },
-  { label: 'Alimentos', icon: 'utensils' },
-  { label: 'Salud', icon: 'cross' },
-  { label: 'Agro y vivero', icon: 'leaf' },
-  { label: 'Servicios', icon: 'briefcase' },
-  { label: 'Servicios públicos', icon: 'bolt' },
+  // V2.0: HAY Motos — solo categorías de motos
+  { label: 'Motos', icon: 'moto' },
+  { label: 'Repuestos', icon: 'tools' },
+  { label: 'Accesorios y cascos', icon: 'shield' },
+  { label: 'Cauchos y baterías', icon: 'bolt' },
+  { label: 'Talleres y servicios', icon: 'briefcase' },
   { label: 'Otros', icon: 'tag' },
 ];
 
@@ -175,24 +166,25 @@ const SCREENS_MAIN = [
           <div class="alegre-search">
             <button class="searchbar searchbar--white" style="text-align:left" data-nav="search" data-testid="btn-open-search">
               ${icon('search')}
-              <span class="text-faint">Buscar</span>
+              <span class="text-faint">Buscar motos, marcas, repuestos</span>
             </button>
           </div>
         </header>
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-home">
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <div class="chip-row chip-row--tiles" data-testid="home-categories">
+          <!-- V2.0: HAY Motos — Usadas / Nuevas / Negocios -->
+          ${motoSections('usadas')}
+          <div class="chip-row chip-row--color" data-testid="home-categories" style="overflow-x:auto; flex-wrap:nowrap;">
             ${categoryChips()}
           </div>
-          <!-- V1.43: Todos / Personas / Negocios, pequeños, al lado de «Cerca de ti» -->
           <div class="feed-head">
             <span class="section-label">${icon('pin')}Cerca de ti</span>
-            <div class="pill-row pill-row--tiles" data-testid="home-seller-type">
-              ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill pill--tile pill--tile-${s.value} ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}"><span class="pill__icon">${icon(({ all: 'boxOpen', persona: 'user', negocio: 'briefcase' })[s.value])}</span>${s.label}</span>`).join('')}
+            <div class="pill-row pill-row--mini" data-testid="home-seller-type">
+              ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
             </div>
           </div>
           <div class="product-grid" data-testid="home-product-grid">
-            ${HAY_APP_MODE && !PRODUCTS.length ? `<p class="empty-msg" style="grid-column:1/-1;">Cargando publicaciones…</p>` : PRODUCTS.length ? PRODUCTS.slice(0, HAY_APP_MODE ? 60 : 8).map((p) => productCard(p)).join('') : `<div class="empty-state" style="grid-column:1/-1; padding:var(--space-6) 0;">${heroIcon('boxOpen', 'cyan', { size: 120 })}<p class="empty-msg" style="margin-top:0;">Todavía no hay publicaciones.<br/>¡Sé el primero en publicar con el botón +!</p></div>`}
+            ${HAY_APP_MODE && !PRODUCTS.length ? `<p class="empty-msg" style="grid-column:1/-1;">Cargando publicaciones…</p>` : PRODUCTS.length ? PRODUCTS.slice(0, HAY_APP_MODE ? 60 : 8).map((p) => productCard(p)).join('') : `<div class="empty-state" style="grid-column:1/-1; padding:var(--space-6) 0;">${heroIcon('boxOpen', 'cyan', { size: 120 })}<p class="empty-msg" style="margin-top:0;">Todavía no hay motos usadas publicadas.<br/>¡Publica la tuya con el botón +!</p></div>`}
           </div>
         </div>
       </div>
@@ -213,7 +205,7 @@ const SCREENS_MAIN = [
             <button class="icon-btn" data-nav="home" aria-label="Volver" data-testid="btn-back-search">${icon('back')}</button>
             <div class="searchbar grow">
               ${icon('search')}
-              <input type="search" enterkeyhint="search" placeholder="Ej.: teléfono Samsung nuevo" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
+              <input type="search" enterkeyhint="search" placeholder="Ej.: Bera 150 usada Valencia" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
             </div>
           </div>
           <div class="pill-row pill-row--mini" data-testid="search-seller-type">

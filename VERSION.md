@@ -1,8 +1,27 @@
 # HAY — VERSION.md
 
-**VERSIÓN:** 1.67
-**FECHA:** 11 de noviembre de 2026
-**BASE:** v1.66.
+**VERSIÓN:** 2.0 (HAY Motos — en construcción, todavía NO publicada en Render)
+**FECHA:** 19 de noviembre de 2026
+**BASE:** v1.67.
+
+## V2.0 — HAY Motos: Usadas, Nuevas y Negocios
+
+- HAY pasa a ser una app solo de motos. Tres secciones principales arriba en Inicio:
+  - «Usadas»: lo que publican personas y negocios (solo usado y como nuevo), por cercanía.
+  - «Nuevas»: buscador por marca o modelo y tipo (scooter, paseo, deportiva, doble propósito, trabajo, eléctrica).
+    Arriba, lo que publican los negocios en HAY (más cerca primero). Abajo, AUTOMÁTICO, motos nuevas de tiendas del país (Google Shopping).
+    Al tocar una moto de la web se abre su ficha: fotos, precio, tienda, botón «Ver en la tienda» y «Dónde comprarla cerca de ti»
+    (concesionarios de esa marca con mapa, dirección, Llamar, WhatsApp, Mapa y Web).
+  - «Negocios»: venta de motos, repuestos, talleres y accesorios, AUTOMÁTICO desde Google Maps, cerca de ti o en la ciudad que escribas (todo el país).
+    Aviso «¿Tienes un negocio de motos?» para la futura suscripción de negocios.
+- Categorías nuevas: Motos, Repuestos, Accesorios y cascos, Cauchos y baterías, Talleres y servicios, Otros.
+- Publicar: si la categoría es «Motos», se piden marca, modelo, año, cilindrada y kilometraje. Se ven como ficha en el detalle y entran en la búsqueda.
+- Servidor: nuevas rutas /api/motos/nuevas, /api/motos/negocios y /api/motos/donde (backend/motos.js). Usan la misma SERPAPI_KEY de la 1.67.
+  Para probar en una computadora sin clave: MOTOS_DEMO=1 (datos de ejemplo; nunca en el servidor real).
+- Textos, ícono de moto, nombre de la app y versión 2.0 (app, servidor, service worker).
+
+
+---
 
 ## V1.67 — Buscar también en tiendas y comercios de la web
 

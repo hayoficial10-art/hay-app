@@ -1,8 +1,8 @@
 {
   "name": "hay-app",
-  "version": "1.57.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "HAY — Lo tienes, publícalo, véndelo. Marketplace C2C.",
+  "description": "HAY — Lo tienes, publícalo, véndelo. Marketplace de motos: usadas, nuevas y negocios.",
   "scripts": {
     "start": "node backend/server.js"
   },

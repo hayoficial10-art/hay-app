@@ -69,6 +69,12 @@ const SCREENS_TRANSACTION = [
           ${isOwnListing ? `<p class="badge badge--cyan" style="align-self:flex-start;" data-testid="own-listing-notice">Esta es tu propia publicación</p>` : ''}
           ${hasRealSeller && !isOwnListing && CURRENT_USER && CURRENT_USER.isAdmin ? `<button class="btn profile-logout" data-testid="btn-admin-delete-listing">${icon('trash')} Eliminar publicación (moderador)</button>` : ''}
 
+          ${listing && listing.moto ? (() => {
+            // V2.0: ficha de la moto
+            const m = listing.moto;
+            const items = [['Marca', m.marca], ['Modelo', m.modelo], ['Año', m.anio], ['Cilindrada', m.cc ? m.cc + ' cc' : ''], ['Kilometraje', m.km !== null && m.km !== undefined && m.km !== '' ? Number(m.km).toLocaleString('es-VE') + ' km' : '']].filter(([, v]) => v !== '' && v !== null && v !== undefined);
+            return items.length ? `<div class="moto-ficha" data-testid="moto-ficha">${items.map(([k, v]) => `<div class="moto-ficha__item"><small>${k}</small><strong>${escapeText(String(v))}</strong></div>`).join('')}</div>` : '';
+          })() : ''}
           <p style="font-size:16px; line-height:1.55; color:var(--hay-navy);">${description}</p>
 
           <div class="stack-sm">

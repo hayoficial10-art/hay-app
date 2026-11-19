@@ -1,7 +1,7 @@
 {
-  "name": "HAY — Lo tienes, publícalo, véndelo",
+  "name": "HAY Motos — Usadas, nuevas y negocios",
   "short_name": "HAY",
-  "description": "Compra y vende lo que ya no usas, cerca de ti.",
+  "description": "Compra y vende motos usadas, encuentra motos nuevas y negocios de motos cerca de ti.",
   "lang": "es",
   "start_url": "./app.html",
   "scope": "./",
