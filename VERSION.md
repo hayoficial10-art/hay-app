@@ -17,6 +17,7 @@
   - «Negocios»: venta de motos, repuestos, talleres y accesorios de Google Maps, con ficha y fotos de cada negocio.
 - Selector de zona (los 24 estados de Venezuela o «Cerca de mí») en todas las secciones; se recuerda en el teléfono.
 - Solo se muestra lo que tiene foto real.
+- Venezuela: Google Shopping no tiene resultados, así que Nuevas y Repuestos usan fotos reales de los 3 negocios más cercanos (Google Maps) y Google Imágenes del país. Las fotos de negocios se guardan 24 h.
 - Publicar: categorías Motos, Repuestos y accesorios, Talleres y servicios, Otros. Para «Motos» se piden marca, modelo, año, cilindrada y km.
   Las personas no pueden elegir «Nuevo» (lo nuevo es solo de negocios); el servidor también lo valida.
 - Servidor: /api/motos/nuevas, /api/motos/repuestos, /api/motos/negocios, /api/motos/donde y /api/motos/fotos (backend/motos.js).

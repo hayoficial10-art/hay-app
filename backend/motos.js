@@ -65,9 +65,9 @@ function cc(title) {
 }
 
 const CACHE = new Map();
-function cached(key, fn) {
+function cached(key, fn, ttl = CACHE_MS) {
   const hit = CACHE.get(key);
-  if (hit && Date.now() - hit.at < CACHE_MS) return Promise.resolve(hit.data);
+  if (hit && Date.now() - hit.at < ttl) return Promise.resolve(hit.data);
   return fn().then((data) => {
     if (CACHE.size > 800) CACHE.clear();
     CACHE.set(key, { at: Date.now(), data });
@@ -82,6 +82,30 @@ async function shopping(q, cc2) {
   if (p.google) sp.set('google_domain', p.google);
   const j = await t.getJSON('https://serpapi.com/search.json?' + sp);
   return (j.shopping_results || []).filter((r) => !r.second_hand_condition);
+}
+
+/* Google Imágenes: sirve en Venezuela (Google Shopping no). Sin precio ni
+   ubicación; se intenta unir con un negocio cercano por el nombre del sitio. */
+async function imagenes(q, cc2) {
+  const p = t.PAISES[cc2] || {};
+  const sp = new URLSearchParams({ engine: 'google_images', q, hl: 'es', api_key: SERPAPI_KEY });
+  if (cc2) sp.set('gl', cc2);
+  if (p.google) sp.set('google_domain', p.google);
+  const j = await t.getJSON('https://serpapi.com/search.json?' + sp);
+  return j.images_results || [];
+}
+
+/* Fotos de Google Maps de un negocio (24 h en caché: cambian poco). */
+function fotosDe(dataId) {
+  if (!/^0x[0-9a-f]+:0x[0-9a-f]+$/i.test(String(dataId || ''))) return Promise.resolve([]);
+  return cached('f|' + dataId, async () => {
+    const sp = new URLSearchParams({ engine: 'google_maps_photos', data_id: dataId, hl: 'es', api_key: SERPAPI_KEY });
+    const j = await t.getJSON('https://serpapi.com/search.json?' + sp);
+    return (j.photos || [])
+      .map((ph) => ({ thumb: t.httpUrl(ph.thumbnail), image: t.httpUrl(ph.image) || t.httpUrl(ph.thumbnail) }))
+      .filter((ph) => ph.image)
+      .slice(0, 24);
+  }, 24 * 60 * 60 * 1000);
 }
 
 async function maps(q, { lat, lng, zoom = 12 } = {}) {
@@ -145,7 +169,8 @@ async function catalogo({ rubro = 'motos', q = '', tipo = '', lat, lng, appVersi
   const key = ['c', rubro, norm(query), pais, lat.toFixed(1), lng.toFixed(1)].join('|');
   return cached(key, async () => {
     const settle = (p) => p.then((v) => v, () => []);
-    const [raw, negocios] = await Promise.all([settle(shopping(query, pais)), settle(maps(R.maps(rubro === 'motos' ? (marcaDe(q) || '') : ''), { lat, lng, zoom: 9 }))]);
+    // Google Shopping no funciona en Venezuela: ahí no se gasta esa búsqueda
+    const [raw, negocios] = await Promise.all([pais === 've' ? Promise.resolve([]) : settle(shopping(query, pais)), settle(maps(R.maps(rubro === 'motos' ? (marcaDe(q) || '') : ''), { lat, lng, zoom: 9 }))]);
     const items = raw
       .filter((r) => r.title && t.httpUrl(r.thumbnail) && !R.excluir.test(norm(r.title))) // solo con foto real
       .map((r) => {
@@ -171,9 +196,52 @@ async function catalogo({ rubro = 'motos', q = '', tipo = '', lat, lng, appVersi
         return it;
       })
       .filter((m) => m.link);
+    const fuentes = { shopping: items.length, imagenes: 0, negocios: 0 };
+
+    // En Venezuela Google Shopping casi no tiene resultados: se completa con
+    // (1) fotos reales de los negocios más cercanos (Google Maps) y
+    // (2) Google Imágenes de motos nuevas del país.
+    if (items.length < 8) {
+      const cercanos = negocios.filter((n) => n.dataId).sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9)).slice(0, 3);
+      const imgQ = (rubro === 'motos' ? ['moto', TIPOS[tipo] || '', q || '', 'nueva precio'] : ['repuestos moto', q || '']).concat((t.PAISES[pais] || {}).nombre || 'Venezuela').filter(Boolean).join(' ');
+      const [imgs, fotosNeg] = await Promise.all([
+        settle(imagenes(imgQ, pais)),
+        Promise.all(cercanos.map((n) => fotosDe(n.dataId).then((f) => ({ n, f }), () => ({ n, f: [] })))),
+      ]);
+      for (const { n, f } of fotosNeg) {
+        f.slice(0, 4).forEach((ph, i) => {
+          items.push({
+            id: 'g' + Buffer.from(n.dataId + i).toString('base64url').slice(0, 24), kind: 'foto-negocio',
+            title: n.name, marca: titulo(marcaDe(q) || null), cc: null, price: null, priceText: '',
+            store: n.type || 'Negocio', link: n.mapsLink, thumb: ph.thumb || ph.image, photos: f.slice(0, 8).map((x) => x.image),
+            delivery: '', source: 'web', negocio: n, distKm: n.distKm,
+          });
+          fuentes.negocios++;
+        });
+      }
+      const vistos = new Set();
+      for (const r of imgs) {
+        const title = t.str(r.title, 140);
+        const thumb = t.httpUrl(r.thumbnail);
+        const link = t.httpUrl(r.link);
+        if (!title || !thumb || !link || R.excluir.test(norm(title)) || vistos.has(link)) continue;
+        if (rubro === 'motos' && !/\b(moto|motos|motocicleta|scooter)\b/.test(norm(title)) && !marcaDe(title)) continue;
+        vistos.add(link);
+        const it = {
+          id: 'i' + Buffer.from(link).toString('base64url').slice(-24), kind: 'imagen',
+          title, marca: titulo(marcaDe(title)), cc: rubro === 'motos' ? cc(title) : null, price: null, priceText: '',
+          store: t.str(r.source, 60), link, thumb, photos: [t.httpUrl(r.original) || thumb], delivery: '', source: 'web', negocio: null, distKm: null,
+        };
+        const n = unirConNegocio(it, negocios);
+        if (n) { it.negocio = n; it.distKm = n.distKm; }
+        items.push(it);
+        fuentes.imagenes++;
+        if (fuentes.imagenes >= 24) break;
+      }
+    }
     // más cerca primero; sin ubicación al final (y entre ellos, el más barato primero)
     items.sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9) || (a.price ?? Infinity) - (b.price ?? Infinity));
-    return { configured: true, country: pais, countryName: (t.PAISES[pais] || {}).nombre || null, items: items.slice(0, 40) };
+    return { configured: true, country: pais, countryName: (t.PAISES[pais] || {}).nombre || null, fuentes, items: items.slice(0, 48) };
   });
 }
 
@@ -213,16 +281,7 @@ async function donde({ marca = '', lat, lng, appVersion }) {
 async function fotos({ dataId }) {
   if (DEMO) return { configured: true, demo: true, fotos: [] };
   if (!SERPAPI_KEY) return { configured: false, fotos: [] };
-  if (!/^0x[0-9a-f]+:0x[0-9a-f]+$/i.test(String(dataId || ''))) return { configured: true, fotos: [] };
-  return cached('f|' + dataId, async () => {
-    const sp = new URLSearchParams({ engine: 'google_maps_photos', data_id: dataId, hl: 'es', api_key: SERPAPI_KEY });
-    const j = await t.getJSON('https://serpapi.com/search.json?' + sp);
-    const list = (j.photos || [])
-      .map((p) => ({ thumb: t.httpUrl(p.thumbnail), image: t.httpUrl(p.image) || t.httpUrl(p.thumbnail) }))
-      .filter((p) => p.image)
-      .slice(0, 24);
-    return { configured: true, fotos: list };
-  });
+  return { configured: true, fotos: await fotosDe(dataId) };
 }
 
 /* ------------- Datos de ejemplo (solo para probar, MOTOS_DEMO=1) ------------- */
