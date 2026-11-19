@@ -281,7 +281,7 @@ function distanceKm(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 function distanceLabel(p) {
-  const me = getSavedLocation();
+  const me = typeof motoCenter === 'function' ? motoCenter() : getSavedLocation(); // V2.0: zona elegida
   if (!me || p.lat === null || p.lat === undefined) return '';
   const km = distanceKm(me, { lat: p.lat, lng: p.lng });
   if (km === null) return '';

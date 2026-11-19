@@ -642,7 +642,7 @@ async function apiFetchFeed({ category, sellerType, q, condition, sellerId, curs
   if (q) sp.set('q', q);
   if (condition) sp.set('condition', condition); // V1.66
   // V1.66: al buscar, el servidor ordena por cercanía y precio con tu ubicación
-  const loc = (q || condition) && typeof getSavedLocation === 'function' ? getSavedLocation() : null;
+  const loc = (q || condition) ? (typeof motoCenter === 'function' ? motoCenter() : typeof getSavedLocation === 'function' ? getSavedLocation() : null) : null; // V2.0: zona elegida o GPS
   if (loc) { sp.set('lat', String(loc.lat)); sp.set('lng', String(loc.lng)); }
   if (sellerId) sp.set('sellerId', sellerId);
   if (cursor) sp.set('cursor', cursor);

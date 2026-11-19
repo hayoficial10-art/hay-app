@@ -110,8 +110,8 @@ function mountNavigation() {
     // V1.7: recordar qué publicación real se está mirando, para que
     // "product-detail" deje de mostrar siempre el mismo producto fijo.
     // V2.0: moto de la web que se abre en su ficha
-    if (targetId === 'moto-nueva' && trigger.hasAttribute('data-moto-idx') && typeof MOTOS_STATE !== 'undefined') {
-      MOTOS_STATE.current = MOTOS_STATE.list[Number(trigger.getAttribute('data-moto-idx'))] || MOTOS_STATE.current;
+    if (targetId === 'moto-nueva' && trigger.hasAttribute('data-web-idx') && typeof MOTOS_STATE !== 'undefined') {
+      MOTOS_STATE.current = MOTOS_STATE.items[Number(trigger.getAttribute('data-web-idx'))] || MOTOS_STATE.current;
     }
     if (targetId === 'negocio' && trigger.hasAttribute('data-biz-idx') && typeof MOTOS_STATE !== 'undefined') {
       MOTOS_STATE.biz = MOTOS_STATE.bizShown[Number(trigger.getAttribute('data-biz-idx'))] || MOTOS_STATE.biz;
@@ -343,9 +343,10 @@ function currentFeedFilters(phoneEl) {
   const condPill = phoneEl.querySelector('[data-testid="search-condition"] .pill.is-selected'); // V1.66
   let condition = condPill ? condPill.getAttribute('data-condition') : 'all';
   // V2.0: Inicio de HAY Motos muestra solo lo usado (lo nuevo está en «Nuevas»)
-  if (phoneEl.querySelector('[data-testid="home-product-grid"]')) condition = 'usado';
+  const isHome = Boolean(phoneEl.querySelector('[data-testid="home-product-grid"]'));
+  if (isHome) condition = 'usado';
   return {
-    category: catValue && catValue !== 'Todos' ? catValue : null,
+    category: isHome ? 'Motos' : catValue && catValue !== 'Todos' ? catValue : null, // V2.0: Usadas = motos usadas
     sellerType: sellerType && sellerType !== 'all' ? sellerType : null,
     condition: condition && condition !== 'all' ? condition : null,
     q: searchInput ? searchInput.value.trim() : '',

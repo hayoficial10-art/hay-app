@@ -115,23 +115,46 @@ async function maps(q, { lat, lng, zoom = 12 } = {}) {
 
 const sortByDist = (list) => list.sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9));
 
-/* ---------------------------- Motos nuevas ---------------------------- */
-async function nuevas({ q = '', tipo = '', lat, lng, appVersion }) {
-  if (DEMO) return demoNuevas(q, tipo);
-  if (!SERPAPI_KEY) return { configured: false, motos: [] };
+/* ------------------- Catálogo automático (Nuevas / Repuestos) -------------------
+   1. Google Shopping: artículos NUEVOS de tiendas del país, solo con foto real.
+   2. Google Maps: negocios de ese rubro cerca del punto elegido (tu GPS o la
+      zona/estado que eligió la persona).
+   3. Cada artículo se une a su negocio por el nombre de la tienda: así se sabe
+      dónde está y a cuántos km. Se ordena por cercanía; los que no se pudo
+      ubicar quedan al final como «ubicación sin confirmar».
+   Sin preferencia por ningún negocio: solo cuenta la cercanía. */
+const RUBROS = {
+  motos: { shop: (q, tipo) => ['moto', TIPOS[tipo] || '', q, 'nueva'], maps: (q) => `concesionario de motos ${q}`.trim(), excluir: NO_MOTO },
+  repuestos: { shop: (q) => ['repuestos accesorios moto', q], maps: () => 'repuestos y accesorios para motos', excluir: /\b(juguete|juguetes|montable|escala)\b/ },
+};
+
+const nombreClave = (s) => norm(s).replace(/\b(c\.?a\.?|s\.?a\.?|motos?|tienda|store|oficial|venezuela|de|la|el|los|las)\b/g, ' ').replace(/[^a-z0-9]/g, '');
+
+function unirConNegocio(item, negocios) {
+  const k = nombreClave(item.store);
+  if (k.length < 3) return null;
+  return negocios.find((n) => { const nk = nombreClave(n.name); return nk.length >= 3 && (nk.includes(k) || k.includes(nk)); }) || null;
+}
+
+async function catalogo({ rubro = 'motos', q = '', tipo = '', lat, lng, appVersion }) {
+  if (DEMO) return demoCatalogo(rubro, q, lat, lng);
+  if (!SERPAPI_KEY) return { configured: false, items: [] };
+  const R = RUBROS[rubro] || RUBROS.motos;
   const pais = await t.paisDe(lat, lng, appVersion);
-  const query = ['moto', TIPOS[tipo] || '', q, 'nueva'].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
-  return cached(['n', norm(query), pais].join('|'), async () => {
-    const raw = await shopping(query, pais);
-    const motos = raw
-      .filter((r) => r.title && !NO_MOTO.test(norm(r.title)))
+  const query = R.shop(q, tipo).filter(Boolean).join(' ').replace(/\s+/g, ' ').trim();
+  const key = ['c', rubro, norm(query), pais, lat.toFixed(1), lng.toFixed(1)].join('|');
+  return cached(key, async () => {
+    const settle = (p) => p.then((v) => v, () => []);
+    const [raw, negocios] = await Promise.all([settle(shopping(query, pais)), settle(maps(R.maps(rubro === 'motos' ? (marcaDe(q) || '') : ''), { lat, lng, zoom: 9 }))]);
+    const items = raw
+      .filter((r) => r.title && t.httpUrl(r.thumbnail) && !R.excluir.test(norm(r.title))) // solo con foto real
       .map((r) => {
         const marca = marcaDe(r.title);
-        return {
+        const it = {
           id: 'w' + Buffer.from(String(r.product_id || r.title)).toString('base64url').slice(0, 24),
           title: t.str(r.title, 140),
           marca: titulo(marca),
-          cc: cc(r.title),
+          cc: rubro === 'motos' ? cc(r.title) : null,
           price: t.num(r.extracted_price),
           priceText: t.str(r.price, 40),
           store: t.str(r.source, 60),
@@ -139,14 +162,18 @@ async function nuevas({ q = '', tipo = '', lat, lng, appVersion }) {
           thumb: t.httpUrl(r.thumbnail),
           photos: [t.httpUrl(r.thumbnail)].concat((r.thumbnails || []).map(t.httpUrl)).filter(Boolean).slice(0, 6),
           delivery: t.str(r.delivery, 60),
-          rating: t.num(r.rating),
           source: 'web',
+          negocio: null,
+          distKm: null,
         };
+        const n = unirConNegocio(it, negocios);
+        if (n) { it.negocio = n; it.distKm = n.distKm; }
+        return it;
       })
-      .filter((m) => m.link)
-      .sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity))
-      .slice(0, 30);
-    return { configured: true, country: pais, countryName: (t.PAISES[pais] || {}).nombre || null, motos };
+      .filter((m) => m.link);
+    // más cerca primero; sin ubicación al final (y entre ellos, el más barato primero)
+    items.sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9) || (a.price ?? Infinity) - (b.price ?? Infinity));
+    return { configured: true, country: pais, countryName: (t.PAISES[pais] || {}).nombre || null, items: items.slice(0, 40) };
   });
 }
 
@@ -199,26 +226,21 @@ async function fotos({ dataId }) {
 }
 
 /* ------------- Datos de ejemplo (solo para probar, MOTOS_DEMO=1) ------------- */
-function demoNuevas(q, tipo) {
-  const all = [
-    ['Bera SBR 150cc 2026', 'Bera', 150, 1450, 'Bera Motos Oficial'],
-    ['Empire Keeway Horse II 150', 'Empire', 150, 1390, 'Empire Keeway'],
-    ['Yamaha YBR 125 Z 2026', 'Yamaha', 125, 2350, 'Yamaha Venezuela'],
-    ['Suzuki GN 125 F', 'Suzuki', 125, 2100, 'Suzuki Motos'],
-    ['Bera Cobra 200 Doble propósito', 'Bera', 200, 1890, 'MotoCentro'],
-    ['Haojue DK 150', 'Haojue', 150, 1650, 'Haojue Venezuela'],
-    ['Skygo Scooter Wind 150', 'Skygo', 150, 1290, 'Skygo'],
-    ['Honda CB 190R', 'Honda', 190, 2990, 'Honda Motos'],
-  ];
-  const n = norm(q);
-  const motos = all
-    .filter(([title]) => !n || norm(title).includes(n.split(' ')[0]))
-    .filter(([title]) => !tipo || tipo !== 'scooter' || /scooter/i.test(title))
-    .map(([title, marca, c, price, store], i) => ({
-      id: 'demo' + i, title, marca, cc: c, price, priceText: '$' + price.toLocaleString('en-US'), store,
-      link: 'https://example.com/moto-' + i, thumb: '', photos: [], delivery: i % 2 ? 'Entrega en tienda' : '', rating: null, source: 'web',
-    }));
-  return Promise.resolve({ configured: true, demo: true, country: 've', countryName: 'Venezuela', motos });
+function demoCatalogo(rubro, q, lat, lng) {
+  const base = rubro === 'repuestos'
+    ? [['Casco integral LS2 certificado', 85, 'Cascos y Más', 2.1], ['Kit de arrastre Bera 150', 32, 'Repuestos La Moto', 4.5], ['Batería 12V 7Ah para moto', 28, 'Todo Moto Repuestos', null], ['Caucho 90/90-18 trasero', 45, 'MotoPartes Petare', 9.8]]
+    : [['Bera SBR 150cc 2026', 1450, 'Bera Motos Oficial', 1.2], ['Empire Keeway Horse II 150', 1390, 'Empire Keeway Los Ruices', 5.8], ['Yamaha YBR 125 Z 2026', 2350, 'Yamaha Venezuela', null], ['Bera León 200 2026', 1890, 'MotoCentro Caracas', 3.5], ['Haojue DK 150', 1650, 'Motos El Llanito', 8.1], ['Skygo Wind 150 scooter', 1290, 'Skygo Puerto La Cruz', 245], ['Suzuki GN 125 F', 2100, 'Suzuki Motos Cumaná', 330]];
+  const n = norm(q).split(' ').filter(Boolean);
+  const pic = (i) => `/assets/demo/moto-${(i % 4) + 1}.svg`;
+  const items = base
+    .filter(([title]) => n.every((w) => norm(title).includes(w)))
+    .map(([title, price, store, d], i) => ({
+      id: 'demo' + rubro + i, title, marca: titulo(marcaDe(title)), cc: cc(title), price, priceText: '$' + price.toLocaleString('en-US'), store,
+      link: 'https://example.com/item-' + i, thumb: pic(i), photos: [pic(i)], delivery: '', source: 'web', distKm: d,
+      negocio: d === null ? null : { name: store, type: rubro === 'repuestos' ? 'Tienda de repuestos' : 'Concesionario de motos', address: 'Av. Principal ' + (i + 1) + ', ' + (['Caracas', 'Petare', 'Los Teques', 'Puerto La Cruz', 'Cumaná'][i % 5]) + ', Venezuela', phone: '0412-555' + (1000 + i), rating: 4.3, reviews: 25, openState: 'Abierto', website: '', mapsLink: 'https://www.google.com/maps', thumb: '', dataId: null, lat: (lat ?? 10.49) + 0.01 * i, lng: (lng ?? -66.88) + 0.01 * i, distKm: d },
+    }))
+    .sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9));
+  return Promise.resolve({ configured: true, demo: true, country: 've', countryName: 'Venezuela', items });
 }
 
 function demoNegocios(tipo, ciudad, lat, lng, marca) {
@@ -242,4 +264,4 @@ function demoNegocios(tipo, ciudad, lat, lng, marca) {
   return Promise.resolve({ configured: true, demo: true, ciudad: ciudad || null, marca: marca || null, negocios });
 }
 
-module.exports = { nuevas, negocios, donde, fotos, marcaDe, configured: () => DEMO || Boolean(SERPAPI_KEY), TIPOS, NEGOCIOS };
+module.exports = { catalogo, negocios, donde, fotos, marcaDe, configured: () => DEMO || Boolean(SERPAPI_KEY), TIPOS, NEGOCIOS };

@@ -118,9 +118,7 @@ function categoryChips() {
 const CATEGORY_ICONS = [
   // V2.0: HAY Motos — solo categorías de motos
   { label: 'Motos', icon: 'moto' },
-  { label: 'Repuestos', icon: 'tools' },
-  { label: 'Accesorios y cascos', icon: 'shield' },
-  { label: 'Cauchos y baterías', icon: 'bolt' },
+  { label: 'Repuestos y accesorios', icon: 'tools' },
   { label: 'Talleres y servicios', icon: 'briefcase' },
   { label: 'Otros', icon: 'tag' },
 ];
@@ -172,13 +170,11 @@ const SCREENS_MAIN = [
         </header>
         <div class="screen-content" style="gap:var(--space-5)" data-testid="screen-home">
           ${HAY_APP_MODE && needsIdentity() ? identityBanner() : ''}
-          <!-- V2.0: HAY Motos — Usadas / Nuevas / Negocios -->
+          <!-- V2.0: HAY Motos — Usadas / Nuevas / Repuestos / Negocios -->
           ${motoSections('usadas')}
-          <div class="chip-row chip-row--color" data-testid="home-categories" style="overflow-x:auto; flex-wrap:nowrap;">
-            ${categoryChips()}
-          </div>
+          ${zonaSelect()}
           <div class="feed-head">
-            <span class="section-label">${icon('pin')}Cerca de ti</span>
+            <span class="section-label">${icon('moto')}Motos usadas</span>
             <div class="pill-row pill-row--mini" data-testid="home-seller-type">
               ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
             </div>

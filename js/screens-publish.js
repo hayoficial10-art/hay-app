@@ -75,11 +75,14 @@ function publishStepHeader(step, title, backTarget) {
 function publishSinglePage() {
   const photos = draftPhotoList();
   const editing = Boolean(EDITING_LISTING_ID);
+  // V2.0: lo nuevo solo lo publican negocios; las personas publican usado
+  const esNegocio = !HAY_APP_MODE || (CURRENT_USER && CURRENT_USER.accountType === 'negocio');
   const condOpts = [
-    { v: 'Nuevo', ic: 'sparkle' },
+    ...(esNegocio ? [{ v: 'Nuevo', ic: 'sparkle' }] : []),
     { v: 'Como nuevo', ic: 'star' },
     { v: 'Usado', ic: 'reorder' },
   ];
+  if (!esNegocio && PUBLISH_DRAFT.condition === 'Nuevo') PUBLISH_DRAFT.condition = 'Usado';
   return `
     <div class="phone__screen screen--alegre">
       ${statusBar()}
@@ -138,6 +141,7 @@ function publishSinglePage() {
               <div class="pill-row pub-cond" data-testid="condition-pills" data-draft-field="condition">
                 ${condOpts.map((o) => `<span class="pill ${PUBLISH_DRAFT.condition === o.v ? 'is-selected' : ''}">${o.v}</span>`).join('')}
               </div>
+              ${!esNegocio ? '<p class="text-xs text-muted" style="margin:6px 0 0;">Las motos y repuestos nuevos los publican los negocios.</p>' : ''}
             </div>
             <!-- V2.0: ficha de la moto (solo si la categoría es «Motos») -->
             <div class="field" id="pubMoto" data-testid="publish-moto" style="${PUBLISH_DRAFT.category === 'Motos' ? '' : 'display:none;'}">

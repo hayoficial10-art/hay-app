@@ -86,16 +86,16 @@ function shouldBeAdmin(email, usersCountBefore) {
 // Productos de muestra (solo modo desarrollo, para la galería de prototipo)
 const SEED_LISTINGS = IS_PROD ? [] : [
   // V2.0: datos de prueba de HAY Motos (solo en la computadora, nunca en el servidor real)
-  { id: 'p1', title: 'Bera SBR 150 2022', price: 950, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Bera SBR 150, papeles al día, cauchos nuevos. Lista para rodar.', zone: 'Petare, Caracas', dist: '', art: 1, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.48, lng: -66.81, moto: { marca: 'Bera', modelo: 'SBR', anio: 2022, cc: 150, km: 18500 }, createdAt: '2026-11-01T10:00:00.000Z' },
-  { id: 'p2', title: 'Empire Horse 150 2021', price: 800, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Empire Horse, motor original, poco uso.', zone: 'Chacao, Caracas', dist: '', art: 2, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.5, lng: -66.85, moto: { marca: 'Empire', modelo: 'Horse', anio: 2021, cc: 150, km: 24000 }, createdAt: '2026-11-02T10:00:00.000Z' },
-  { id: 'p3', title: 'Yamaha YBR 125 2019', price: 1300, category: 'Motos', sellerType: 'persona', condition: 'Como nuevo', description: 'Yamaha original, un solo dueño, mantenimiento en concesionario.', zone: 'Valencia, Carabobo', dist: '', art: 3, icon: 'moto', acceptsOffers: false, photos: 0, lat: 10.16, lng: -68.0, moto: { marca: 'Yamaha', modelo: 'YBR 125', anio: 2019, cc: 125, km: 31000 }, createdAt: '2026-11-03T10:00:00.000Z' },
-  { id: 'p4', title: 'Casco integral talla L', price: 45, category: 'Accesorios y cascos', sellerType: 'persona', condition: 'Usado', description: 'Casco integral certificado, visor claro.', zone: 'Los Teques', dist: '', art: 4, icon: 'shield', acceptsOffers: true, photos: 0, lat: 10.34, lng: -67.04, createdAt: '2026-11-04T10:00:00.000Z' },
-  { id: 'p5', title: 'Kit de arrastre Bera 150', price: 35, category: 'Repuestos', sellerType: 'negocio', sellerBusinessName: 'Repuestos La Moto', condition: 'Nuevo', description: 'Kit de arrastre completo (cadena, piñón y corona).', zone: 'Catia, Caracas', dist: '', art: 1, icon: 'tools', acceptsOffers: false, photos: 0, lat: 10.51, lng: -66.94, createdAt: '2026-11-05T10:00:00.000Z' },
-  { id: 'p6', title: 'Bera Cobra 200 0 km', price: 1890, category: 'Motos', sellerType: 'negocio', sellerBusinessName: 'MotoCentro Caracas', condition: 'Nuevo', description: 'Moto nueva, 0 km, con garantía de fábrica. Financiamiento disponible.', zone: 'Los Ruices, Caracas', dist: '', art: 2, icon: 'moto', acceptsOffers: false, photos: 0, lat: 10.49, lng: -66.83, moto: { marca: 'Bera', modelo: 'Cobra 200', anio: 2026, cc: 200, km: 0 }, createdAt: '2026-11-06T10:00:00.000Z' },
-  { id: 'p7', title: 'Suzuki GN 125 2018', price: 1100, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Suzuki GN 125 clásica, muy económica.', zone: 'Maracay, Aragua', dist: '', art: 3, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.25, lng: -67.6, moto: { marca: 'Suzuki', modelo: 'GN 125', anio: 2018, cc: 125, km: 42000 }, createdAt: '2026-11-07T10:00:00.000Z' },
-  { id: 'p8', title: 'Skygo Scooter 150 0 km', price: 1290, category: 'Motos', sellerType: 'negocio', sellerBusinessName: 'Skygo Valencia', condition: 'Nuevo', description: 'Scooter nueva, automática, ideal para la ciudad.', zone: 'Valencia, Carabobo', dist: '', art: 4, icon: 'moto', acceptsOffers: false, photos: 0, lat: 10.18, lng: -68.0, moto: { marca: 'Skygo', modelo: 'Wind 150', anio: 2026, cc: 150, km: 0 }, createdAt: '2026-11-08T10:00:00.000Z' },
-  { id: 'p9', title: 'Servicio de mantenimiento a domicilio', price: 20, category: 'Talleres y servicios', sellerType: 'negocio', sellerBusinessName: 'Taller El Pistón', condition: 'Nuevo', description: 'Cambio de aceite, ajuste de frenos y cadena en tu casa.', zone: 'El Paraíso, Caracas', dist: '', art: 1, icon: 'tools', acceptsOffers: false, photos: 0, lat: 10.49, lng: -66.93, createdAt: '2026-11-09T10:00:00.000Z' },
-  { id: 'p10', title: 'Haojue DK 150 2023', price: 1150, category: 'Motos', sellerType: 'persona', condition: 'Como nuevo', description: 'Haojue DK 150 casi nueva, con factura.', zone: 'Barquisimeto, Lara', dist: '', art: 2, icon: 'moto', acceptsOffers: true, photos: 0, lat: 10.07, lng: -69.32, moto: { marca: 'Haojue', modelo: 'DK 150', anio: 2023, cc: 150, km: 6000 }, createdAt: '2026-11-10T10:00:00.000Z' },
+  { id: 'p1', title: 'Bera SBR 150 2022', price: 950, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Bera SBR 150, papeles al día, cauchos nuevos. Lista para rodar.', zone: 'Petare, Caracas', dist: '', art: 1, icon: 'moto', acceptsOffers: true, photos: 0, photoUrls: ['/assets/demo/moto-1.svg'], lat: 10.48, lng: -66.81, moto: { marca: 'Bera', modelo: 'SBR', anio: 2022, cc: 150, km: 18500 }, createdAt: '2026-11-01T10:00:00.000Z' },
+  { id: 'p2', title: 'Empire Horse 150 2021', price: 800, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Empire Horse, motor original, poco uso.', zone: 'Chacao, Caracas', dist: '', art: 2, icon: 'moto', acceptsOffers: true, photos: 0, photoUrls: ['/assets/demo/moto-2.svg'], lat: 10.5, lng: -66.85, moto: { marca: 'Empire', modelo: 'Horse', anio: 2021, cc: 150, km: 24000 }, createdAt: '2026-11-02T10:00:00.000Z' },
+  { id: 'p3', title: 'Yamaha YBR 125 2019', price: 1300, category: 'Motos', sellerType: 'persona', condition: 'Como nuevo', description: 'Yamaha original, un solo dueño, mantenimiento en concesionario.', zone: 'Valencia, Carabobo', dist: '', art: 3, icon: 'moto', acceptsOffers: false, photos: 0, photoUrls: ['/assets/demo/moto-3.svg'], lat: 10.16, lng: -68.0, moto: { marca: 'Yamaha', modelo: 'YBR 125', anio: 2019, cc: 125, km: 31000 }, createdAt: '2026-11-03T10:00:00.000Z' },
+  { id: 'p4', title: 'Casco integral talla L', price: 45, category: 'Repuestos y accesorios', sellerType: 'persona', condition: 'Usado', description: 'Casco integral certificado, visor claro.', zone: 'Los Teques', dist: '', art: 4, icon: 'shield', acceptsOffers: true, photos: 0, photoUrls: ['/assets/demo/moto-4.svg'], lat: 10.34, lng: -67.04, createdAt: '2026-11-04T10:00:00.000Z' },
+  { id: 'p5', title: 'Kit de arrastre Bera 150', price: 35, category: 'Repuestos y accesorios', sellerType: 'negocio', sellerBusinessName: 'Repuestos La Moto', condition: 'Nuevo', description: 'Kit de arrastre completo (cadena, piñón y corona).', zone: 'Catia, Caracas', dist: '', art: 1, icon: 'tools', acceptsOffers: false, photos: 0, photoUrls: ['/assets/demo/moto-1.svg'], lat: 10.51, lng: -66.94, createdAt: '2026-11-05T10:00:00.000Z' },
+  { id: 'p6', title: 'Bera Cobra 200 0 km', price: 1890, category: 'Motos', sellerType: 'negocio', sellerBusinessName: 'MotoCentro Caracas', condition: 'Nuevo', description: 'Moto nueva, 0 km, con garantía de fábrica. Financiamiento disponible.', zone: 'Los Ruices, Caracas', dist: '', art: 2, icon: 'moto', acceptsOffers: false, photos: 0, photoUrls: ['/assets/demo/moto-2.svg'], lat: 10.49, lng: -66.83, moto: { marca: 'Bera', modelo: 'Cobra 200', anio: 2026, cc: 200, km: 0 }, createdAt: '2026-11-06T10:00:00.000Z' },
+  { id: 'p7', title: 'Suzuki GN 125 2018', price: 1100, category: 'Motos', sellerType: 'persona', condition: 'Usado', description: 'Suzuki GN 125 clásica, muy económica.', zone: 'Maracay, Aragua', dist: '', art: 3, icon: 'moto', acceptsOffers: true, photos: 0, photoUrls: ['/assets/demo/moto-3.svg'], lat: 10.25, lng: -67.6, moto: { marca: 'Suzuki', modelo: 'GN 125', anio: 2018, cc: 125, km: 42000 }, createdAt: '2026-11-07T10:00:00.000Z' },
+  { id: 'p8', title: 'Skygo Scooter 150 0 km', price: 1290, category: 'Motos', sellerType: 'negocio', sellerBusinessName: 'Skygo Valencia', condition: 'Nuevo', description: 'Scooter nueva, automática, ideal para la ciudad.', zone: 'Valencia, Carabobo', dist: '', art: 4, icon: 'moto', acceptsOffers: false, photos: 0, photoUrls: ['/assets/demo/moto-4.svg'], lat: 10.18, lng: -68.0, moto: { marca: 'Skygo', modelo: 'Wind 150', anio: 2026, cc: 150, km: 0 }, createdAt: '2026-11-08T10:00:00.000Z' },
+  { id: 'p9', title: 'Servicio de mantenimiento a domicilio', price: 20, category: 'Talleres y servicios', sellerType: 'negocio', sellerBusinessName: 'Taller El Pistón', condition: 'Nuevo', description: 'Cambio de aceite, ajuste de frenos y cadena en tu casa.', zone: 'El Paraíso, Caracas', dist: '', art: 1, icon: 'tools', acceptsOffers: false, photos: 0, photoUrls: ['/assets/demo/moto-1.svg'], lat: 10.49, lng: -66.93, createdAt: '2026-11-09T10:00:00.000Z' },
+  { id: 'p10', title: 'Haojue DK 150 2023', price: 1150, category: 'Motos', sellerType: 'persona', condition: 'Como nuevo', description: 'Haojue DK 150 casi nueva, con factura.', zone: 'Barquisimeto, Lara', dist: '', art: 2, icon: 'moto', acceptsOffers: true, photos: 0, photoUrls: ['/assets/demo/moto-2.svg'], lat: 10.07, lng: -69.32, moto: { marca: 'Haojue', modelo: 'DK 150', anio: 2023, cc: 150, km: 6000 }, createdAt: '2026-11-10T10:00:00.000Z' },
 ];
 
 // Números de emergencia iniciales (911 oficial + CICPC indicados por el usuario)
@@ -693,7 +693,8 @@ async function handle(req, res) {
   }
 
   // V2.0: HAY Motos — búsqueda automática en la web
-  //   GET /api/motos/nuevas?q=&tipo=&lat=&lng=        → { motos, configured }
+  //   GET /api/motos/nuevas?q=&tipo=&lat=&lng=        → { items, configured } (motos nuevas, por cercanía)
+  //   GET /api/motos/repuestos?q=&lat=&lng=           → { items, configured } (repuestos y accesorios nuevos)
   //   GET /api/motos/negocios?tipo=&ciudad=&lat=&lng= → { negocios, configured }
   //   GET /api/motos/donde?marca=&lat=&lng=           → { negocios, configured }
   //   GET /api/motos/fotos?data_id=                   → { fotos: [{ thumb, image }] }
@@ -706,7 +707,7 @@ async function handle(req, res) {
       return sendJSON(res, 502, { error: 'No se pudieron traer las fotos ahora.' });
     }
   }
-  if (M === 'GET' && (api('motos', 'nuevas') || api('motos', 'negocios') || api('motos', 'donde'))) {
+  if (M === 'GET' && (api('motos', 'nuevas') || api('motos', 'repuestos') || api('motos', 'negocios') || api('motos', 'donde'))) {
     const sp = url.searchParams;
     const which = parts[2];
     const lat = roundCoord(sp.get('lat'), -90, 90);
@@ -714,11 +715,11 @@ async function handle(req, res) {
     const ciudad = (sp.get('ciudad') || '').trim().slice(0, 60);
     const hasLoc = lat !== null && lng !== null;
     if (!hasLoc && !(which === 'negocios' && ciudad)) return sendJSON(res, 400, { error: 'Falta tu ubicación', code: 'NEED_LOCATION' });
-    if (!motos.configured()) return sendJSON(res, 200, { configured: false, motos: [], negocios: [] });
+    if (!motos.configured()) return sendJSON(res, 200, { configured: false, items: [], negocios: [] });
     if (rateLimited(req, 'motos', 90)) return sendJSON(res, 429, { error: 'Demasiadas búsquedas seguidas. Espera unos minutos.' });
     const clean = (v, n) => String(v || '').replace(/[^\p{L}\p{N} .\-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
     try {
-      if (which === 'nuevas') return sendJSON(res, 200, await motos.nuevas({ q: clean(sp.get('q'), 60), tipo: sp.get('tipo') || '', lat, lng, appVersion: APP_VERSION }));
+      if (which === 'nuevas' || which === 'repuestos') return sendJSON(res, 200, await motos.catalogo({ rubro: which === 'nuevas' ? 'motos' : 'repuestos', q: clean(sp.get('q'), 60), tipo: sp.get('tipo') || '', lat, lng, appVersion: APP_VERSION }));
       if (which === 'negocios') return sendJSON(res, 200, await motos.negocios({ tipo: sp.get('tipo') || 'venta', ciudad: clean(ciudad, 60), lat, lng, appVersion: APP_VERSION }));
       return sendJSON(res, 200, await motos.donde({ marca: clean(sp.get('marca'), 40), lat, lng, appVersion: APP_VERSION }));
     } catch (e) {
@@ -786,6 +787,10 @@ async function handle(req, res) {
     if (missing.length) return sendJSON(res, 400, { error: 'Faltan campos obligatorios: ' + missing.join(', ') });
     const price = Number(body.price);
     if (Number.isNaN(price) || price < 0) return sendJSON(res, 400, { error: 'El precio debe ser un número válido y no negativo' });
+    // V2.0: lo NUEVO solo lo publican negocios (las personas publican usado)
+    if ((user.accountType || 'persona') !== 'negocio' && /^nuevo$/i.test(String(body.condition).trim())) {
+      return sendJSON(res, 400, { error: 'Solo los negocios pueden publicar artículos nuevos. Elige «Usado» o «Como nuevo».', code: 'NEW_ONLY_BUSINESS' });
+    }
     if (REQUIRE_IDENTITY && !(user.identity && user.identity.status && user.identity.status !== 'rejected')) {
       return sendJSON(res, 403, { error: 'Antes de publicar tienes que verificar tu identidad (foto de cédula + selfie).', code: 'IDENTITY_REQUIRED' });
     }
@@ -834,6 +839,10 @@ async function handle(req, res) {
     if (missing.length) return sendJSON(res, 400, { error: 'Faltan campos obligatorios: ' + missing.join(', ') });
     const price = Number(body.price);
     if (Number.isNaN(price) || price < 0) return sendJSON(res, 400, { error: 'El precio debe ser un número válido y no negativo' });
+    // V2.0: lo NUEVO solo lo publican negocios (las personas publican usado)
+    if ((user.accountType || 'persona') !== 'negocio' && /^nuevo$/i.test(String(body.condition).trim())) {
+      return sendJSON(res, 400, { error: 'Solo los negocios pueden publicar artículos nuevos. Elige «Usado» o «Como nuevo».', code: 'NEW_ONLY_BUSINESS' });
+    }
     const keep = Array.isArray(body.keepPhotoUrls)
       ? body.keepPhotoUrls.filter((u) => (existing.photoUrls || []).includes(u))
       : existing.photoUrls || [];
