@@ -103,8 +103,8 @@ function motoSections(active) {
       <span class="moto-sec__label">${label}</span>
     </button>`;
   return `<nav class="moto-secs" aria-label="Secciones de HAY Motos" data-testid="moto-sections">
-    ${tile('usadas', 'home', 'moto', 'Usadas')}
     ${tile('nuevas', 'nuevas', 'sparkle', 'Nuevas')}
+    ${tile('usadas', 'home', 'moto', 'Usadas')}
     ${tile('repuestos', 'repuestos', 'tools', 'Repuestos y accesorios')}
     ${tile('negocios', 'negocios', 'store', 'Negocios')}
   </nav>`;

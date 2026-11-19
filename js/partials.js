@@ -59,7 +59,7 @@ function tabBar(activeTab, opts = {}) {
 }
 
 const TAB_TARGETS = {
-  home: 'home',
+  home: 'nuevas', // V2.0: «Inicio» abre Motos nuevas
   search: 'search',
   favorites: 'favorites',
   chat: 'messages',

@@ -1,5 +1,8 @@
 /* app.js — motor de navegación del prototipo (sin backend) */
 
+// V2.0: la app abre en «Motos nuevas» (todavía hay pocas usadas publicadas)
+const START_SCREEN = 'nuevas';
+
 const ALL_SCREENS = [
   ...SCREENS_MOTOS, // V2.0: Nuevas, Negocios y ficha de moto nueva
   ...SCREENS_ONBOARDING,
@@ -1075,7 +1078,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
   if (idDoneBtn) {
     idDoneBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const next = (IDENTITY_DONE && IDENTITY_DONE.next) || 'home';
+      const next = (IDENTITY_DONE && IDENTITY_DONE.next) || START_SCREEN;
       IDENTITY_DONE = null;
       if (next === 'publish-step1') resetPublishDraft();
       navigateTo(phoneEl, next);
@@ -1732,7 +1735,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       const next = PENDING_AFTER_IDENTITY;
       PENDING_AFTER_IDENTITY = null;
       // V1.35: aviso de verificación completada (+ correo)
-      IDENTITY_DONE = { email: result.email, next: next || 'home' };
+      IDENTITY_DONE = { email: result.email, next: next || START_SCREEN };
       navigateTo(phoneEl, 'identity-success');
     });
   }
@@ -1875,7 +1878,7 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
           }
           return;
         }
-        navigateTo(phoneEl, HAY_APP_MODE && (CURRENT_USER || seen) ? 'home' : 'onboarding-slides', { replaceHistory: true });
+        navigateTo(phoneEl, HAY_APP_MODE && (CURRENT_USER || seen) ? START_SCREEN : 'onboarding-slides', { replaceHistory: true });
       }
     }, HAY_APP_MODE ? 0 : 1600); // V1.55: en la app no se repite la bienvenida (el teléfono ya muestra la suya)
   }
@@ -1958,7 +1961,7 @@ async function init() {
     phoneEl.dataset.currentScreen = 'splash';
     try { history.replaceState({ screen: 'splash' }, ''); } catch (e) {}
     window.addEventListener('popstate', (ev) => {
-      const target = (ev.state && ev.state.screen) || 'home';
+      const target = (ev.state && ev.state.screen) || START_SCREEN;
       if (target === 'splash') return;
       navigateTo(phoneEl, target, { fromHistory: true });
     });
@@ -2085,7 +2088,7 @@ function afterLoginTarget() {
     return 'verify-identity';
   }
   if (pending === 'publish-step1') resetPublishDraft();
-  return pending || 'home';
+  return pending || START_SCREEN;
 }
 
 /* V1.36: Android a veces cierra el navegador o la app mientras la cámara está
