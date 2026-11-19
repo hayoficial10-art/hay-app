@@ -31,17 +31,28 @@ function setZona(nombre) {
   } catch (e) {}
 }
 /* Punto desde donde se mide la cercanía: la zona elegida o tu ubicación. */
+const CENTRO_PAIS = { lat: 10.4806, lng: -66.9036, zone: 'Venezuela', pais: true }; // mientras no haya GPS ni zona
 function motoCenter() {
   const z = getZona();
   if (z) return { lat: z.lat, lng: z.lng, zone: z.nombre };
-  return getSavedLocation();
+  return getSavedLocation() || CENTRO_PAIS;
+}
+/* La app busca sola tu ubicación (una vez por visita). Si no se puede,
+   igual muestra todo el país y puedes elegir una zona. */
+let AUTO_GPS_TRIED = false;
+function autoUbicar(phoneEl, screenId) {
+  if (AUTO_GPS_TRIED || getZona() || getSavedLocation() || !HAY_APP_MODE) return;
+  AUTO_GPS_TRIED = true;
+  getGpsLocation().then(() => {
+    if (phoneEl.dataset.currentScreen === screenId) navigateTo(phoneEl, screenId, { skipFetch: true });
+  }).catch(() => {});
 }
 function zonaSelect() {
   const z = getZona();
   return `<label class="zona-select" data-testid="zona-select">
     ${icon('pin')}
     <select data-action="zona" aria-label="Zona">
-      <option value="">Cerca de mí${!z && getSavedLocation() && getSavedLocation().zone ? ' (' + motoEsc(getSavedLocation().zone) + ')' : ''}</option>
+      <option value="">${getSavedLocation() ? 'Cerca de mí' + (!z && getSavedLocation().zone ? ' (' + motoEsc(getSavedLocation().zone) + ')' : '') : 'Todo el país'}</option>
       ${ZONAS_VE.map(([n]) => `<option value="${n}" ${z && z.nombre === n ? 'selected' : ''}>${n}</option>`).join('')}
     </select>
   </label>`;
@@ -132,7 +143,10 @@ function waLink(phone) {
 /* Tarjeta única del marketplace (mismo tamaño para la web y para HAY):
    foto real con el precio encima, título, negocio y dónde está. */
 function marketCard(it) {
-  const where = typeof it.distKm === 'number'
+  const noKm = motoCenter().pais; // sin GPS ni zona: no se dan km (serían desde Caracas)
+  const where = noKm
+    ? `${icon('pin')}<span${it.place ? '' : ' class="is-unknown"'}>${motoEsc(it.place || 'Venezuela')}</span>`
+    : typeof it.distKm === 'number'
     ? `${icon('pin')}<span>${motoEsc(it.place ? it.place + ' · ' : '')}${kmText(it.distKm)}</span>`
     : `${icon('pin')}<span class="is-unknown">Ubicación sin confirmar</span>`;
   const nav = it.kind === 'hay' ? `data-nav="product-detail" data-listing-id="${motoEsc(it.id)}"` : `data-nav="moto-nueva" data-web-idx="${it.idx}"`;
@@ -381,6 +395,7 @@ function wireMotos(phoneEl, screenId) {
     setZona(zona.value);
     navigateTo(phoneEl, screenId, { skipFetch: true });
   });
+  if (['home', 'nuevas', 'repuestos', 'negocios'].includes(screenId)) autoUbicar(phoneEl, screenId);
   if (screenId === 'nuevas' || screenId === 'repuestos') return wireMarket(phoneEl, screenId);
   if (screenId === 'negocios') return wireNegocios(phoneEl);
   if (screenId === 'moto-nueva') return loadDonde(phoneEl);
@@ -419,7 +434,8 @@ async function loadMarket(phoneEl, screenId) {
   const tipoLabel = isNuevas && st.tipo ? (TIPOS_MOTO.find((t) => t.v === st.tipo) || {}).l : '';
   const reqKey = [screenId, st.q, st.tipo || '', cond, c ? c.lat + ',' + c.lng : ''].join('|');
   phoneEl.dataset.marketKey = reqKey;
-  grid.innerHTML = '<p class="motos-msg">Buscando' + (st.q ? ' «' + motoEsc(st.q) + '»' : '') + ' cerca' + (c && c.zone ? ' de ' + motoEsc(c.zone) : ' de ti') + '…</p>';
+  const dondeTxt = c.pais ? ' en todo el país' : ' cerca' + (c.zone ? ' de ' + motoEsc(c.zone) : ' de ti');
+  grid.innerHTML = '<p class="motos-msg">Buscando' + (st.q ? ' «' + motoEsc(st.q) + '»' : '') + dondeTxt + '…</p>';
 
   // 1) HAY: nuevas → solo negocios; usados → personas y negocios
   const hayCalls = [];
@@ -443,10 +459,9 @@ async function loadMarket(phoneEl, screenId) {
   all.sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9));
 
   const msgs = [];
-  if (cond !== 'usados' && !c) msgs.push('Elige una zona o toca <strong>Ubicación</strong> para ver también lo nuevo de los negocios.');
-  else if (web && web.configured === false) msgs.push('La búsqueda automática en la web todavía no está activada (falta SERPAPI_KEY en el servidor).');
+  if (web && web.configured === false) msgs.push('La búsqueda automática en la web todavía no está activada (falta SERPAPI_KEY en el servidor).');
   else if (web && web.error) msgs.push(motoEsc(web.error));
-  if (note) note.innerHTML = all.length ? `${all.length} resultado${all.length === 1 ? '' : 's'} · más cerca${c && c.zone ? ' de ' + motoEsc(c.zone) : ' de ti'} primero${web && web.demo ? ' · datos de ejemplo' : ''}` : '';
+  if (note) note.innerHTML = all.length ? `${all.length} resultado${all.length === 1 ? '' : 's'} · ${c.pais ? 'todo el país (elige tu zona para ver lo más cerca)' : 'más cerca' + (c.zone ? ' de ' + motoEsc(c.zone) : ' de ti') + ' primero'}${web && web.demo ? ' · datos de ejemplo' : ''}` : '';
   grid.innerHTML = (msgs.length ? msgs.map(motosMsg).join('') : '')
     + (all.length ? all.map(marketCard).join('') : (msgs.length ? '' : motosMsg('No encontramos resultados' + (st.q ? ' para «' + motoEsc(st.q) + '»' : '') + '. Prueba con otra búsqueda o zona.')));
   MOTOS_STATE.currentBack = screenId;

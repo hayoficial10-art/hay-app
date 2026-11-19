@@ -282,6 +282,7 @@ function distanceKm(a, b) {
 }
 function distanceLabel(p) {
   const me = typeof motoCenter === 'function' ? motoCenter() : getSavedLocation(); // V2.0: zona elegida
+  if (me && me.pais) return ''; // sin GPS ni zona: no se inventan distancias
   if (!me || p.lat === null || p.lat === undefined) return '';
   const km = distanceKm(me, { lat: p.lat, lng: p.lng });
   if (km === null) return '';
