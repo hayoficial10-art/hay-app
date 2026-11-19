@@ -14,9 +14,12 @@
     (concesionarios de esa marca con mapa, dirección, Llamar, WhatsApp, Mapa y Web).
   - «Negocios»: venta de motos, repuestos, talleres y accesorios, AUTOMÁTICO desde Google Maps, cerca de ti o en la ciudad que escribas (todo el país).
     Aviso «¿Tienes un negocio de motos?» para la futura suscripción de negocios.
+  - Ficha de negocio (al tocar un negocio o «Fotos»): fotos de Google Maps (las suben el negocio y sus clientes;
+    en los concesionarios suelen verse las motos en exhibición), Llamar, WhatsApp, Cómo llegar, Web y mapa.
+    Cada ficha abierta gasta una búsqueda de SerpApi (se guarda 1 hora para no repetir).
 - Categorías nuevas: Motos, Repuestos, Accesorios y cascos, Cauchos y baterías, Talleres y servicios, Otros.
 - Publicar: si la categoría es «Motos», se piden marca, modelo, año, cilindrada y kilometraje. Se ven como ficha en el detalle y entran en la búsqueda.
-- Servidor: nuevas rutas /api/motos/nuevas, /api/motos/negocios y /api/motos/donde (backend/motos.js). Usan la misma SERPAPI_KEY de la 1.67.
+- Servidor: nuevas rutas /api/motos/nuevas, /api/motos/negocios, /api/motos/donde y /api/motos/fotos (backend/motos.js). Usan la misma SERPAPI_KEY de la 1.67.
   Para probar en una computadora sin clave: MOTOS_DEMO=1 (datos de ejemplo; nunca en el servidor real).
 - Textos, ícono de moto, nombre de la app y versión 2.0 (app, servidor, service worker).
 

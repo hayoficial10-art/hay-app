@@ -696,6 +696,16 @@ async function handle(req, res) {
   //   GET /api/motos/nuevas?q=&tipo=&lat=&lng=        → { motos, configured }
   //   GET /api/motos/negocios?tipo=&ciudad=&lat=&lng= → { negocios, configured }
   //   GET /api/motos/donde?marca=&lat=&lng=           → { negocios, configured }
+  //   GET /api/motos/fotos?data_id=                   → { fotos: [{ thumb, image }] }
+  if (M === 'GET' && api('motos', 'fotos')) {
+    if (!motos.configured()) return sendJSON(res, 200, { configured: false, fotos: [] });
+    if (rateLimited(req, 'motos-fotos', 60)) return sendJSON(res, 429, { error: 'Demasiadas consultas seguidas. Espera unos minutos.' });
+    try {
+      return sendJSON(res, 200, await motos.fotos({ dataId: url.searchParams.get('data_id') || '' }));
+    } catch (e) {
+      return sendJSON(res, 502, { error: 'No se pudieron traer las fotos ahora.' });
+    }
+  }
   if (M === 'GET' && (api('motos', 'nuevas') || api('motos', 'negocios') || api('motos', 'donde'))) {
     const sp = url.searchParams;
     const which = parts[2];

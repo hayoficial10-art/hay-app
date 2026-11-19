@@ -113,6 +113,11 @@ function mountNavigation() {
     if (targetId === 'moto-nueva' && trigger.hasAttribute('data-moto-idx') && typeof MOTOS_STATE !== 'undefined') {
       MOTOS_STATE.current = MOTOS_STATE.list[Number(trigger.getAttribute('data-moto-idx'))] || MOTOS_STATE.current;
     }
+    if (targetId === 'negocio' && trigger.hasAttribute('data-biz-idx') && typeof MOTOS_STATE !== 'undefined') {
+      MOTOS_STATE.biz = MOTOS_STATE.bizShown[Number(trigger.getAttribute('data-biz-idx'))] || MOTOS_STATE.biz;
+      const from = trigger.closest('.phone') && trigger.closest('.phone').dataset.currentScreen;
+      if (from && from !== 'negocio') MOTOS_STATE.bizBack = from;
+    }
     if (targetId === 'product-detail' && trigger.hasAttribute('data-listing-id')) {
       CURRENT_PRODUCT_ID = trigger.getAttribute('data-listing-id');
     }

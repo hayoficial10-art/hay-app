@@ -104,6 +104,7 @@ async function maps(q, { lat, lng, zoom = 12 } = {}) {
       website: t.httpUrl(r.website),
       mapsLink: r.place_id ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(r.place_id)}` : '',
       thumb: t.httpUrl(r.thumbnail),
+      dataId: /^0x[0-9a-f]+:0x[0-9a-f]+$/i.test(r.data_id || '') ? r.data_id : null, // para pedir sus fotos
       lat: blat,
       lng: blng,
       distKm: d !== null ? Math.round(d * 10) / 10 : null,
@@ -181,6 +182,22 @@ async function donde({ marca = '', lat, lng, appVersion }) {
   });
 }
 
+/* ------------- Fotos de un negocio (las de Google Maps) ------------- */
+async function fotos({ dataId }) {
+  if (DEMO) return { configured: true, demo: true, fotos: [] };
+  if (!SERPAPI_KEY) return { configured: false, fotos: [] };
+  if (!/^0x[0-9a-f]+:0x[0-9a-f]+$/i.test(String(dataId || ''))) return { configured: true, fotos: [] };
+  return cached('f|' + dataId, async () => {
+    const sp = new URLSearchParams({ engine: 'google_maps_photos', data_id: dataId, hl: 'es', api_key: SERPAPI_KEY });
+    const j = await t.getJSON('https://serpapi.com/search.json?' + sp);
+    const list = (j.photos || [])
+      .map((p) => ({ thumb: t.httpUrl(p.thumbnail), image: t.httpUrl(p.image) || t.httpUrl(p.thumbnail) }))
+      .filter((p) => p.image)
+      .slice(0, 24);
+    return { configured: true, fotos: list };
+  });
+}
+
 /* ------------- Datos de ejemplo (solo para probar, MOTOS_DEMO=1) ------------- */
 function demoNuevas(q, tipo) {
   const all = [
@@ -219,10 +236,10 @@ function demoNegocios(tipo, ciudad, lat, lng, marca) {
     address: `Av. Principal ${i + 1}, ${ciudad || 'Caracas'}`,
     phone: '+58 412-555-01' + (10 + i),
     rating: 4 + (i % 10) / 10, reviews: 20 + i * 13, openState: i % 2 ? 'Cerrado · Abre a las 8:00' : 'Abierto · Cierra a las 6:00 p. m.',
-    website: i === 0 ? 'https://example.com' : '', mapsLink: 'https://www.google.com/maps', thumb: '',
+    website: i === 0 ? 'https://example.com' : '', mapsLink: 'https://www.google.com/maps', thumb: '', dataId: '0x8c2a58:0x' + (100 + i),
     lat: base + 0.01 * (i + 1), lng: baseLng + 0.012 * (i + 1), distKm: Math.round((1.2 + i * 2.3) * 10) / 10, source: 'web',
   }));
   return Promise.resolve({ configured: true, demo: true, ciudad: ciudad || null, marca: marca || null, negocios });
 }
 
-module.exports = { nuevas, negocios, donde, marcaDe, configured: () => DEMO || Boolean(SERPAPI_KEY), TIPOS, NEGOCIOS };
+module.exports = { nuevas, negocios, donde, fotos, marcaDe, configured: () => DEMO || Boolean(SERPAPI_KEY), TIPOS, NEGOCIOS };

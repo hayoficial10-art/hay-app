@@ -33,6 +33,10 @@ const MOTOS_STATE = {
   list: [], // motos de la web que se ven ahora en «Nuevas»
   current: null, // moto de la web abierta en su ficha
   donde: { key: null, data: null },
+  bizShown: [], // negocios que se ven ahora en pantalla
+  biz: null, // negocio abierto en su ficha
+  bizBack: 'negocios',
+  fotos: new Map(), // dataId → fotos
 };
 
 /* ------------------------------- API -------------------------------- */
@@ -94,22 +98,25 @@ function waLink(phone) {
   return `https://wa.me/${d}`;
 }
 
-function negocioCard(n, i) {
+function negocioCard(n) {
+  const idx = MOTOS_STATE.bizShown.push(n) - 1;
   const stars = n.rating ? `★ ${String(n.rating).replace('.', ',')}${n.reviews ? ` (${n.reviews})` : ''}` : '';
   const open = n.openState ? `<span class="biz-card__open ${/abierto|open/i.test(n.openState) && !/cerrado|closed/i.test(n.openState) ? 'is-open' : ''}">${motoEsc(n.openState)}</span>` : '';
   const btn = (href, ic, label, cls = '') => href ? `<a class="biz-btn ${cls}" href="${motoEsc(href)}" target="_blank" rel="noopener noreferrer">${icon(ic)}<span>${label}</span></a>` : '';
   const mapHref = n.mapsLink || (n.lat !== null && n.lat !== undefined ? `https://www.google.com/maps/search/?api=1&query=${n.lat},${n.lng}` : '');
   return `<article class="biz-card" data-testid="biz-card">
-    <div class="biz-card__top">
+    <button class="biz-card__top" data-nav="negocio" data-biz-idx="${idx}" aria-label="Ver ${motoEsc(n.name)}">
       ${n.thumb ? `<img class="biz-card__img" src="${motoEsc(n.thumb)}" alt="" loading="lazy" referrerpolicy="no-referrer" />` : `<span class="biz-card__img biz-card__img--ph">${icon('store')}</span>`}
       <div class="biz-card__who">
         <p class="biz-card__name">${motoEsc(n.name)}</p>
         <span class="biz-card__meta">${[n.type, stars, n.distKm !== null && n.distKm !== undefined ? n.distKm.toString().replace('.', ',') + ' km' : ''].filter(Boolean).map(motoEsc).join(' · ')}</span>
         ${open}
       </div>
-    </div>
+      ${icon('chevronRight', 'biz-card__go')}
+    </button>
     ${n.address ? `<p class="biz-card__addr">${icon('pin')}<span>${motoEsc(n.address)}</span></p>` : ''}
     <div class="biz-card__btns">
+      ${n.dataId ? `<button class="biz-btn biz-btn--fotos" data-nav="negocio" data-biz-idx="${idx}">${icon('gallery')}<span>Fotos</span></button>` : ''}
       ${n.phone ? `<a class="biz-btn biz-btn--call" href="${motoEsc(telHref(n.phone))}">${icon('phoneCall')}<span>Llamar</span></a>` : ''}
       ${n.phone ? btn(waLink(n.phone), 'chat', 'WhatsApp', 'biz-btn--wa') : ''}
       ${btn(mapHref, 'pin', 'Mapa')}
@@ -252,6 +259,51 @@ const SCREENS_MOTOS = [
     </div>`;
     },
   },
+
+  {
+    id: 'negocio',
+    block: 'main',
+    label: 'Ficha de negocio',
+    html: () => {
+      const n = MOTOS_STATE.biz;
+      const back = MOTOS_STATE.bizBack || 'negocios';
+      if (!n) return `<div class="phone__screen">${statusBar()}${topBar({ back, title: 'Negocio', testid: 'negocio' })}<div class="screen-body"><p class="empty-msg">Vuelve y elige un negocio.</p></div>${tabBar('home')}</div>`;
+      const stars = n.rating ? `★ ${String(n.rating).replace('.', ',')}${n.reviews ? ` (${n.reviews} opiniones)` : ''}` : '';
+      const mapHref = n.mapsLink || (typeof n.lat === 'number' ? `https://www.google.com/maps/search/?api=1&query=${n.lat},${n.lng}` : '');
+      const a = (href, ic, label, cls = '', blank = true) => href ? `<a class="biz-btn ${cls}" href="${motoEsc(href)}"${blank ? ' target="_blank" rel="noopener noreferrer"' : ''}>${icon(ic)}<span>${label}</span></a>` : '';
+      return `
+    <div class="phone__screen">
+      ${statusBar()}
+      ${topBar({ back, title: 'Negocio', testid: 'negocio' })}
+      <div class="screen-body">
+        <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-negocio">
+          <div class="biz-hero">
+            ${n.thumb ? `<img class="biz-hero__img" src="${motoEsc(n.thumb)}" alt="" referrerpolicy="no-referrer" />` : `<span class="biz-hero__img biz-card__img--ph">${icon('store')}</span>`}
+            <div>
+              <h2 class="biz-hero__name">${motoEsc(n.name)}</h2>
+              <p class="biz-card__meta">${[n.type, stars, typeof n.distKm === 'number' ? 'a ' + String(n.distKm).replace('.', ',') + ' km' : ''].filter(Boolean).map(motoEsc).join(' · ')}</p>
+              ${n.openState ? `<span class="biz-card__open ${/abierto|open/i.test(n.openState) && !/cerrado|closed/i.test(n.openState) ? 'is-open' : ''}">${motoEsc(n.openState)}</span>` : ''}
+            </div>
+          </div>
+          <div class="biz-card__btns">
+            ${n.phone ? a(telHref(n.phone), 'phoneCall', 'Llamar', 'biz-btn--call', false) : ''}
+            ${n.phone ? a(waLink(n.phone), 'chat', 'WhatsApp', 'biz-btn--wa') : ''}
+            ${a(mapHref, 'pin', 'Cómo llegar')}
+            ${a(n.website, 'globe', 'Web')}
+          </div>
+          <section>
+            <div class="motos-head"><h2>Fotos</h2><span>Google Maps</span></div>
+            <div class="biz-fotos" id="bizFotos" data-testid="biz-fotos"><p class="motos-msg">Cargando fotos…</p></div>
+          </section>
+          ${n.address ? `<p class="biz-card__addr">${icon('pin')}<span>${motoEsc(n.address)}</span></p>` : ''}
+          ${typeof n.lat === 'number' ? osmMap(n.lat, n.lng, 'negocio-map') : ''}
+          <p class="motos-note">Fotos e información tomadas automáticamente de Google Maps (las suben el negocio y sus clientes). Confirma disponibilidad y precios con el negocio.</p>
+        </div>
+      </div>
+      ${tabBar('home')}
+    </div>`;
+    },
+  },
 ];
 
 /* --------------------------- Comportamiento --------------------------- */
@@ -259,6 +311,26 @@ function wireMotos(phoneEl, screenId) {
   if (screenId === 'nuevas') return wireNuevas(phoneEl);
   if (screenId === 'negocios') return wireNegocios(phoneEl);
   if (screenId === 'moto-nueva') return loadDonde(phoneEl);
+  if (screenId === 'negocio') return loadFotos(phoneEl);
+}
+
+async function loadFotos(phoneEl) {
+  const n = MOTOS_STATE.biz;
+  const box = phoneEl.querySelector('#bizFotos');
+  if (!n || !box) return;
+  if (!n.dataId) { box.innerHTML = motosMsg('Este negocio no tiene fotos disponibles.'); return; }
+  let data = MOTOS_STATE.fotos.get(n.dataId);
+  if (!data) {
+    data = await apiMotos('fotos', { data_id: n.dataId });
+    if (!data.error) MOTOS_STATE.fotos.set(n.dataId, data);
+  }
+  if (phoneEl.dataset.currentScreen !== 'negocio' || MOTOS_STATE.biz !== n) return;
+  if (data.error) { box.innerHTML = motosMsg(motoEsc(data.error)); return; }
+  if (data.configured === false) { box.innerHTML = notConfiguredMsg(); return; }
+  const list = data.fotos || [];
+  box.innerHTML = list.length
+    ? list.map((f) => `<a class="biz-foto" href="${motoEsc(f.image)}" target="_blank" rel="noopener noreferrer"><img src="${motoEsc(f.thumb || f.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" /></a>`).join('')
+    : motosMsg('Este negocio todavía no tiene fotos en Google Maps.' + (data.demo ? ' (datos de ejemplo)' : ''));
 }
 
 let NUEVAS_TIMER = null;
@@ -353,10 +425,11 @@ async function loadDonde(phoneEl) {
   if (data.error) { box.innerHTML = motosMsg(motoEsc(data.error)); return; }
   if (data.configured === false) { box.innerHTML = notConfiguredMsg(); return; }
   const list = data.negocios || [];
+  MOTOS_STATE.bizShown = [];
   const first = list.find((n) => typeof n.lat === 'number');
   box.innerHTML = list.length
     ? (first ? `<div class="moto-map">${osmMap(first.lat, first.lng, 'moto-donde-map')}<p class="motos-sub">${icon('pin')} El más cercano: <strong>${motoEsc(first.name)}</strong></p></div>` : '')
-      + `<div class="biz-list">${list.map(negocioCard).join('')}</div>`
+      + `<div class="biz-list">${list.map((n) => negocioCard(n)).join('')}</div>`
     : '<p class="motos-msg">No encontramos concesionarios cerca. Mira la sección <button class="link-btn" data-nav="negocios">Negocios</button>.</p>';
 }
 
@@ -404,7 +477,8 @@ function renderNegocios(box, data) {
   if (data.error) { box.innerHTML = motosMsg(motoEsc(data.error)); return; }
   if (data.configured === false) { box.innerHTML = notConfiguredMsg(); return; }
   const list = data.negocios || [];
+  MOTOS_STATE.bizShown = [];
   box.innerHTML = list.length
-    ? list.map(negocioCard).join('')
+    ? list.map((n) => negocioCard(n)).join('')
     : '<p class="motos-msg">No encontramos negocios para esta búsqueda. Prueba con otra ciudad.</p>';
 }
