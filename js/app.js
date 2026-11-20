@@ -116,6 +116,10 @@ function mountNavigation() {
     if (targetId === 'moto-nueva' && trigger.hasAttribute('data-web-idx') && typeof MOTOS_STATE !== 'undefined') {
       MOTOS_STATE.current = MOTOS_STATE.items[Number(trigger.getAttribute('data-web-idx'))] || MOTOS_STATE.current;
     }
+    if (targetId === 'moto-nueva' && trigger.hasAttribute('data-usada-idx') && typeof MOTOS_STATE !== 'undefined') {
+      MOTOS_STATE.current = MOTOS_STATE.usadas[Number(trigger.getAttribute('data-usada-idx'))] || MOTOS_STATE.current;
+      MOTOS_STATE.currentBack = 'home';
+    }
     if (targetId === 'negocio' && trigger.hasAttribute('data-biz-idx') && typeof MOTOS_STATE !== 'undefined') {
       MOTOS_STATE.biz = MOTOS_STATE.bizShown[Number(trigger.getAttribute('data-biz-idx'))] || MOTOS_STATE.biz;
       const from = trigger.closest('.phone') && trigger.closest('.phone').dataset.currentScreen;

@@ -707,7 +707,7 @@ async function handle(req, res) {
       return sendJSON(res, 502, { error: 'No se pudieron traer las fotos ahora.' });
     }
   }
-  if (M === 'GET' && (api('motos', 'nuevas') || api('motos', 'repuestos') || api('motos', 'negocios') || api('motos', 'donde'))) {
+  if (M === 'GET' && (api('motos', 'nuevas') || api('motos', 'repuestos') || api('motos', 'usadas') || api('motos', 'negocios') || api('motos', 'donde'))) {
     const sp = url.searchParams;
     const which = parts[2];
     const lat = roundCoord(sp.get('lat'), -90, 90);
@@ -719,6 +719,7 @@ async function handle(req, res) {
     if (rateLimited(req, 'motos', 90)) return sendJSON(res, 429, { error: 'Demasiadas búsquedas seguidas. Espera unos minutos.' });
     const clean = (v, n) => String(v || '').replace(/[^\p{L}\p{N} .\-]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
     try {
+      if (which === 'usadas') return sendJSON(res, 200, await motos.usadas({ q: clean(sp.get('q'), 60), zona: clean(sp.get('zona'), 60), lat, lng, appVersion: APP_VERSION }));
       if (which === 'nuevas' || which === 'repuestos') return sendJSON(res, 200, await motos.catalogo({ rubro: which === 'nuevas' ? 'motos' : 'repuestos', q: clean(sp.get('q'), 60), tipo: sp.get('tipo') || '', lat, lng, appVersion: APP_VERSION }));
       if (which === 'negocios') return sendJSON(res, 200, await motos.negocios({ tipo: sp.get('tipo') || 'venta', ciudad: clean(ciudad, 60), lat, lng, appVersion: APP_VERSION }));
       return sendJSON(res, 200, await motos.donde({ marca: clean(sp.get('marca'), 40), lat, lng, appVersion: APP_VERSION }));

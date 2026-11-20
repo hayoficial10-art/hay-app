@@ -79,23 +79,28 @@
     }, 1000);
   }
 
+  // V2.0 (HAY Motos): anuncios en Nuevas, Usadas, Repuestos y Negocios.
+  // Banner 320x50 debajo de las 4 secciones; 300x250 cada 8 tarjetas de cada lista.
+  const PANTALLAS = ['screen-nuevas', 'screen-home', 'screen-repuestos', 'screen-negocios'];
+  const LISTAS = '[data-testid="home-product-grid"], [data-market-grid], [data-web-usadas-grid], #negociosList';
   function colocar() {
     if (!LISTO) return;
-    const home = document.querySelector('[data-testid="screen-home"]');
-    if (!home) return;
-    if (!home.querySelector('[data-ad-slot="b320"]')) {
-      // V1.58: sin el bloque «Publica gratis», el anuncio va debajo de las categorías
-      const ancla = home.querySelector('[data-testid="home-categories"]');
-      if (ancla) ancla.after(crearSlot('b320'));
-    }
-    const grid = home.querySelector('[data-testid="home-product-grid"]');
-    if (!grid) return;
-    const cards = grid.querySelectorAll(':scope > .product-card');
-    cards.forEach((c, i) => {
-      if ((i + 1) % CADA === 0 && !c.hasAttribute('data-ad-after')) {
-        c.setAttribute('data-ad-after', '1');
-        c.after(crearSlot('b300'));
+    PANTALLAS.forEach((id) => {
+      const scr = document.querySelector('[data-testid="' + id + '"]');
+      if (!scr) return;
+      if (!scr.querySelector('[data-ad-slot="b320"]')) {
+        const ancla = scr.querySelector('[data-testid="moto-sections"]');
+        if (ancla) ancla.after(crearSlot('b320'));
       }
+      scr.querySelectorAll(LISTAS).forEach((grid) => {
+        const cards = grid.querySelectorAll(':scope > .product-card, :scope > .mk-card, :scope > .biz-card');
+        cards.forEach((c, i) => {
+          if ((i + 1) % CADA === 0 && !c.hasAttribute('data-ad-after')) {
+            c.setAttribute('data-ad-after', '1');
+            c.after(crearSlot('b300'));
+          }
+        });
+      });
     });
   }
 

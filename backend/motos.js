@@ -277,6 +277,71 @@ async function donde({ marca = '', lat, lng, appVersion }) {
   });
 }
 
+/* ------------------- Motos USADAS en venta en la web -------------------
+   Google Imágenes (sirve en Venezuela) con «moto usada en venta» + la zona.
+   De cada anuncio se toma la foto real, el título, el sitio y el enlace al
+   anuncio original. Si el título nombra una ciudad, se calcula la distancia;
+   si trae precio ($ / USD), se muestra. No se copian como publicaciones de
+   HAY: siempre llevan al anuncio original. */
+const CIUDADES_VE = [
+  ['caracas', 10.48, -66.9], ['petare', 10.48, -66.81], ['catia', 10.51, -66.94], ['maracaibo', 10.64, -71.61], ['valencia', 10.16, -68.0],
+  ['barquisimeto', 10.07, -69.35], ['maracay', 10.25, -67.6], ['puerto ordaz', 8.29, -62.73], ['ciudad guayana', 8.29, -62.73], ['san félix', 8.37, -62.65],
+  ['ciudad bolívar', 8.12, -63.55], ['maturín', 9.75, -63.18], ['barcelona', 10.13, -64.69], ['puerto la cruz', 10.21, -64.63], ['lechería', 10.19, -64.69],
+  ['el tigre', 8.89, -64.25], ['anaco', 9.44, -64.47], ['cumaná', 10.46, -64.17], ['carúpano', 10.67, -63.25], ['cumanacoa', 10.25, -63.92],
+  ['porlamar', 10.96, -63.85], ['margarita', 11.0, -63.9], ['mérida', 8.59, -71.16], ['san cristóbal', 7.77, -72.23], ['barinas', 8.62, -70.21],
+  ['valera', 9.32, -70.6], ['coro', 11.4, -69.67], ['punto fijo', 11.7, -70.2], ['acarigua', 9.56, -69.2], ['guanare', 9.04, -69.74],
+  ['san juan de los morros', 9.91, -67.35], ['calabozo', 8.92, -67.43], ['los teques', 10.34, -67.04], ['guarenas', 10.47, -66.61], ['guatire', 10.47, -66.54],
+  ['charallave', 10.24, -66.86], ['cabimas', 10.4, -71.45], ['ciudad ojeda', 10.2, -71.31], ['san fernando de apure', 7.89, -67.47], ['tucupita', 9.06, -62.05],
+  ['puerto ayacucho', 5.66, -67.62], ['san felipe', 10.34, -68.74], ['san carlos', 9.66, -68.58], ['la guaira', 10.6, -66.93], ['puerto cabello', 10.47, -68.01],
+  ['anzoátegui', 10.21, -64.63], ['monagas', 9.75, -63.18], ['sucre', 10.46, -64.17], ['carabobo', 10.16, -68.0], ['aragua', 10.25, -67.6], ['lara', 10.07, -69.35],
+  ['zulia', 10.64, -71.61], ['táchira', 7.77, -72.23], ['bolívar', 8.29, -62.73], ['falcón', 11.4, -69.67], ['portuguesa', 9.56, -69.2], ['miranda', 10.34, -67.04],
+  ['guárico', 9.91, -67.35], ['nueva esparta', 10.96, -63.85], ['trujillo', 9.32, -70.6], ['yaracuy', 10.34, -68.74], ['cojedes', 9.66, -68.58],
+].sort((a, b) => b[0].length - a[0].length);
+const titleCase = (x) => x.replace(/\b\w/g, (c) => c.toUpperCase());
+function ciudadDe(texto) {
+  const n = ' ' + norm(texto).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  for (const c of CIUDADES_VE) if (n.includes(' ' + norm(c[0]) + ' ')) return { nombre: titleCase(c[0]), lat: c[1], lng: c[2] };
+  return null;
+}
+function precioDe(texto) {
+  const m = /(?:\$|usd|us\$)\s?(\d{1,3}(?:[.,]\d{3})+|\d{3,5})|(\d{1,3}(?:[.,]\d{3})+|\d{3,5})\s?(?:\$|usd|dolares|dólares)/i.exec(texto || '');
+  if (!m) return null;
+  const n = Number(String(m[1] || m[2]).replace(/[.,]/g, ''));
+  return n >= 100 && n <= 30000 ? n : null;
+}
+
+async function usadas({ q = '', zona = '', lat, lng, appVersion }) {
+  if (DEMO) return demoCatalogo('motos', q, lat, lng).then((d) => ({ ...d, items: d.items.map((x) => ({ ...x, kind: 'usada' })) }));
+  if (!SERPAPI_KEY) return { configured: false, items: [] };
+  const pais = await t.paisDe(lat, lng, appVersion);
+  const z = String(zona || '').replace(/\(.*?\)/g, '').trim().slice(0, 60);
+  const query = ['moto', q, 'usada en venta', z, (t.PAISES[pais] || {}).nombre || 'Venezuela'].filter(Boolean).join(' ').replace(/\s+/g, ' ');
+  return cached(['u', norm(query), lat.toFixed(1), lng.toFixed(1)].join('|'), async () => {
+    const imgs = await imagenes(query, pais);
+    const vistos = new Set();
+    const items = [];
+    for (const r of imgs) {
+      const title = t.str(r.title, 140);
+      const thumb = t.httpUrl(r.thumbnail);
+      const link = t.httpUrl(r.link);
+      if (!title || !thumb || !link || vistos.has(link) || NO_MOTO.test(norm(title))) continue;
+      if (!/\b(moto|motos|motocicleta|scooter)\b/.test(norm(title)) && !marcaDe(title)) continue;
+      vistos.add(link);
+      const c = ciudadDe(title + ' ' + (r.source || ''));
+      const price = precioDe(title);
+      items.push({
+        id: 'u' + Buffer.from(link).toString('base64url').slice(-24), kind: 'usada',
+        title, marca: titulo(marcaDe(title)), cc: cc(title), price, priceText: price ? '$' + price.toLocaleString('en-US') : '',
+        store: t.str(r.source, 60), link, thumb, photos: [t.httpUrl(r.original) || thumb], delivery: '', source: 'web',
+        negocio: null, place: c ? c.nombre : '', distKm: c ? Math.round(t.km(lat, lng, c.lat, c.lng) * 10) / 10 : null,
+      });
+      if (items.length >= 36) break;
+    }
+    items.sort((a, b) => (a.distKm ?? 1e9) - (b.distKm ?? 1e9));
+    return { configured: true, country: pais, items };
+  });
+}
+
 /* ------------- Fotos de un negocio (las de Google Maps) ------------- */
 async function fotos({ dataId }) {
   if (DEMO) return { configured: true, demo: true, fotos: [] };
@@ -323,4 +388,4 @@ function demoNegocios(tipo, ciudad, lat, lng, marca) {
   return Promise.resolve({ configured: true, demo: true, ciudad: ciudad || null, marca: marca || null, negocios });
 }
 
-module.exports = { catalogo, negocios, donde, fotos, marcaDe, configured: () => DEMO || Boolean(SERPAPI_KEY), TIPOS, NEGOCIOS };
+module.exports = { catalogo, usadas, negocios, donde, fotos, marcaDe, configured: () => DEMO || Boolean(SERPAPI_KEY), TIPOS, NEGOCIOS };

@@ -74,6 +74,7 @@ const MOTOS_STATE = {
   negocios: { tipo: 'venta', key: null, data: null },
   web: new Map(), // caché de búsquedas en la web
   items: [], // artículos de la web que se ven ahora (Nuevas / Repuestos)
+  usadas: [], // motos usadas de la web que se ven ahora en «Usadas»
   current: null, // artículo de la web abierto en su ficha
   currentBack: 'nuevas',
   donde: { key: null, data: null },
@@ -149,7 +150,8 @@ function marketCard(it) {
     : typeof it.distKm === 'number'
     ? `${icon('pin')}<span>${motoEsc(it.place ? it.place + ' · ' : '')}${kmText(it.distKm)}</span>`
     : `${icon('pin')}<span class="is-unknown">Ubicación sin confirmar</span>`;
-  const nav = it.kind === 'hay' ? `data-nav="product-detail" data-listing-id="${motoEsc(it.id)}"` : `data-nav="moto-nueva" data-web-idx="${it.idx}"`;
+  const nav = it.kind === 'hay' ? `data-nav="product-detail" data-listing-id="${motoEsc(it.id)}"`
+    : it.kind === 'usada' ? `data-nav="moto-nueva" data-usada-idx="${it.idx}"` : `data-nav="moto-nueva" data-web-idx="${it.idx}"`;
   return `<button class="mk-card" ${nav} data-testid="mk-card">
     <span class="mk-card__img">
       <img src="${motoEsc(it.photo)}" alt="" loading="lazy" referrerpolicy="no-referrer" />
@@ -178,8 +180,8 @@ function hayToMarket(l, badge) {
 }
 function webToMarket(w, idx) {
   return {
-    kind: 'web', idx, title: w.title, priceText: w.priceText, photo: w.thumb, store: w.store,
-    place: w.negocio && w.negocio.address ? lastPlace(w.negocio.address) : '', distKm: typeof w.distKm === 'number' ? w.distKm : null,
+    kind: w.kind === 'usada' ? 'usada' : 'web', idx, title: w.title, priceText: w.priceText, photo: w.thumb, store: w.store,
+    place: w.place || (w.negocio && w.negocio.address ? lastPlace(w.negocio.address) : ''), distKm: typeof w.distKm === 'number' ? w.distKm : null,
   };
 }
 // «Av. X, Puerto La Cruz 6023, Anzoátegui» → «Puerto La Cruz»
@@ -272,6 +274,7 @@ const SCREENS_MOTOS = [
       const m = MOTOS_STATE.current;
       const back = MOTOS_STATE.currentBack || 'nuevas';
       const esMoto = back !== 'repuestos';
+      const esUsada = Boolean(m && m.kind === 'usada');
       if (!m) {
         return `<div class="phone__screen">${statusBar()}${topBar({ back, title: 'Nuevo', testid: 'moto-nueva' })}<div class="screen-body"><p class="empty-msg">Vuelve y elige una publicación.</p></div>${tabBar('home')}</div>`;
       }
@@ -280,7 +283,7 @@ const SCREENS_MOTOS = [
       return `
     <div class="phone__screen">
       ${statusBar()}
-      ${topBar({ back, title: esMoto ? 'Moto nueva' : 'Repuesto nuevo', testid: 'moto-nueva' })}
+      ${topBar({ back, title: esUsada ? 'Moto usada' : esMoto ? 'Moto nueva' : 'Repuesto nuevo', testid: 'moto-nueva' })}
       <div class="screen-body">
         <div class="screen-content" style="gap:var(--space-4)" data-testid="screen-moto-nueva">
           <div class="moto-gallery">${photos.map((u) => `<img src="${motoEsc(u)}" alt="" referrerpolicy="no-referrer" />`).join('')}</div>
@@ -290,21 +293,21 @@ const SCREENS_MOTOS = [
             <div class="moto-info__tags">
               ${m.marca ? `<span class="badge badge--cyan">${motoEsc(m.marca)}</span>` : ''}
               ${m.cc ? `<span class="badge badge--paused">${m.cc} cc</span>` : ''}
-              <span class="badge badge--paused">Nuevo</span>
+              <span class="badge badge--paused">${esUsada ? 'Usada' : 'Nuevo'}</span>
             </div>
-            <p class="moto-info__store">${icon('store')} <strong>${motoEsc(m.store || 'Tienda')}</strong>${typeof m.distKm === 'number' ? ' · ' + kmText(m.distKm) : ' · ubicación sin confirmar'}</p>
-            ${m.link ? `<a class="btn btn--yellow" href="${motoEsc(m.link)}" target="_blank" rel="noopener noreferrer" data-testid="btn-moto-tienda">${icon('globe')} Ver publicación original</a>` : ''}
+            <p class="moto-info__store">${icon('store')} <strong>${motoEsc(m.store || 'Tienda')}</strong>${typeof m.distKm === 'number' ? ' · ' + (m.place ? motoEsc(m.place) + ', ' : '') + kmText(m.distKm) : ' · ubicación sin confirmar'}</p>
+            ${m.link ? `<a class="btn btn--yellow" href="${motoEsc(m.link)}" target="_blank" rel="noopener noreferrer" data-testid="btn-moto-tienda">${icon('globe')} ${esUsada ? 'Ver anuncio original' : 'Ver publicación original'}</a>` : ''}
           </div>
           ${n ? `<section>
             <div class="motos-head"><h2>Dónde está</h2><span>Google Maps</span></div>
             <div class="biz-list">${(MOTOS_STATE.bizShown = [], negocioCard(n))}</div>
             ${typeof n.lat === 'number' ? osmMap(n.lat, n.lng, 'moto-nueva-map') : ''}
           </section>` : ''}
-          ${esMoto ? `<section>
+          ${esMoto && !esUsada ? `<section>
             <div class="motos-head"><h2>${n ? 'Otros concesionarios cerca' : 'Dónde comprarla cerca de ti'}</h2><span>${m.marca ? motoEsc(m.marca) : ''}</span></div>
             <div id="motoDonde" data-testid="moto-donde"><p class="motos-msg">Buscando negocios cerca…</p></div>
           </section>` : ''}
-          <p class="motos-note">Información tomada automáticamente de la web. Confirma precio y disponibilidad con el negocio antes de pagar.</p>
+          <p class="motos-note">${esUsada ? 'Anuncio encontrado automáticamente en la web. HAY no verifica al vendedor: revisa la moto y sus papeles en persona antes de pagar.' : 'Información tomada automáticamente de la web. Confirma precio y disponibilidad con el negocio antes de pagar.'}</p>
         </div>
       </div>
       ${tabBar('home')}
@@ -396,6 +399,7 @@ function wireMotos(phoneEl, screenId) {
     navigateTo(phoneEl, screenId, { skipFetch: true });
   });
   if (['home', 'nuevas', 'repuestos', 'negocios'].includes(screenId)) autoUbicar(phoneEl, screenId);
+  if (screenId === 'home') return loadUsadasWeb(phoneEl);
   if (screenId === 'nuevas' || screenId === 'repuestos') return wireMarket(phoneEl, screenId);
   if (screenId === 'negocios') return wireNegocios(phoneEl);
   if (screenId === 'moto-nueva') return loadDonde(phoneEl);
@@ -465,6 +469,29 @@ async function loadMarket(phoneEl, screenId) {
   grid.innerHTML = (msgs.length ? msgs.map(motosMsg).join('') : '')
     + (all.length ? all.map(marketCard).join('') : (msgs.length ? '' : motosMsg('No encontramos resultados' + (st.q ? ' para «' + motoEsc(st.q) + '»' : '') + '. Prueba con otra búsqueda o zona.')));
   MOTOS_STATE.currentBack = screenId;
+}
+
+/* Usadas: motos usadas en venta en la web, por cercanía (debajo de las de HAY) */
+async function loadUsadasWeb(phoneEl) {
+  const grid = phoneEl.querySelector('[data-web-usadas-grid]');
+  const note = phoneEl.querySelector('[data-web-usadas-note]');
+  if (!grid) return;
+  const c = motoCenter();
+  const key = ['u', c.lat, c.lng].join('|');
+  let data = MOTOS_STATE.web.get(key);
+  if (!data) {
+    data = await apiMotos('usadas', { zona: c.pais ? '' : c.zone || '', lat: c.lat, lng: c.lng });
+    if (!data.error) MOTOS_STATE.web.set(key, data);
+  }
+  if (phoneEl.dataset.currentScreen !== 'home') return;
+  MOTOS_STATE.currentBack = 'home';
+  if (data.error) { grid.innerHTML = motosMsg(motoEsc(data.error)); return; }
+  if (data.configured === false) { grid.innerHTML = notConfiguredMsg(); return; }
+  MOTOS_STATE.usadas = data.items || [];
+  if (note) note.textContent = MOTOS_STATE.usadas.length ? `${MOTOS_STATE.usadas.length} anuncios · ${c.pais ? 'todo el país' : 'más cerca' + (c.zone ? ' de ' + c.zone : ' de ti') + ' primero'}${data.demo ? ' · datos de ejemplo' : ''}` : '';
+  grid.innerHTML = MOTOS_STATE.usadas.length
+    ? MOTOS_STATE.usadas.map((w, i) => marketCard(webToMarket(w, i))).join('')
+    : motosMsg('No encontramos motos usadas en venta en la web para esta zona.');
 }
 
 async function loadDonde(phoneEl) {

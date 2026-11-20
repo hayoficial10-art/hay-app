@@ -182,6 +182,12 @@ const SCREENS_MAIN = [
           <div class="product-grid" data-testid="home-product-grid">
             ${HAY_APP_MODE && !PRODUCTS.length ? `<p class="empty-msg" style="grid-column:1/-1;">Cargando publicaciones…</p>` : PRODUCTS.length ? PRODUCTS.slice(0, HAY_APP_MODE ? 60 : 8).map((p) => productCard(p)).join('') : `<div class="empty-state" style="grid-column:1/-1; padding:var(--space-6) 0;">${heroIcon('boxOpen', 'cyan', { size: 120 })}<p class="empty-msg" style="margin-top:0;">Todavía no hay motos usadas publicadas.<br/>¡Publica la tuya con el botón +!</p></div>`}
           </div>
+          <!-- V2.0: motos usadas en venta en la web (automático, por cercanía) -->
+          <section data-testid="usadas-web">
+            <div class="motos-head"><h2>En venta en la web</h2><span>Automático</span></div>
+            <p class="motos-sub" data-web-usadas-note></p>
+            <div class="mk-grid" data-web-usadas-grid data-testid="usadas-web-grid"><p class="motos-msg">Buscando motos usadas en la web…</p></div>
+          </section>
         </div>
       </div>
       ${tabBar('home', { labels: true })}
