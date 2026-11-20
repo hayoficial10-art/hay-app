@@ -7,7 +7,7 @@
      la segunda vez aparecen al instante. Máx. 300 fotos guardadas.
    - Al tocar una notificación de mensaje, abre la app en ese chat.
    Nunca guarda respuestas de la API (datos privados). */
-const VERSION = '2.0';
+const VERSION = '2.0.1';
 const CACHE = 'hay-v' + VERSION;
 const PHOTOS = 'hay-fotos-v1';
 const MAX_PHOTOS = 300;
@@ -79,6 +79,12 @@ self.addEventListener('fetch', (e) => {
           return res;
         })
         .catch(() => null);
+      // V2.0.1: la página de la app primero se pide al servidor (así cada versión
+      // nueva se ve al abrir); la copia guardada solo se usa si no hay internet.
+      if (cached && isPage) {
+        const fresh = await Promise.race([network, new Promise((r) => setTimeout(() => r(null), 4000))]);
+        return fresh || cached;
+      }
       if (cached) {
         e.waitUntil(network);
         return cached;

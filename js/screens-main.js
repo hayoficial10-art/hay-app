@@ -207,6 +207,7 @@ const SCREENS_MAIN = [
             <div class="searchbar grow">
               ${icon('search')}
               <input type="search" enterkeyhint="search" placeholder="Ej.: Bera 150 usada Valencia" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
+              <button class="search-go" type="button" aria-label="Buscar" data-action="search-go" data-testid="btn-search-go">${icon('search')}</button>
             </div>
           </div>
           <span class="text-xs text-muted" data-testid="search-results-count">${PRODUCTS.length} resultados</span>

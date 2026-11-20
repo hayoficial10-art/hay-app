@@ -549,6 +549,11 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
   const searchBox = phoneEl.querySelector('[data-testid="input-search"]');
   if (searchBox) {
     searchBox.addEventListener('input', () => { syncConditionFromText(phoneEl, searchBox.value); applyProductFilters(phoneEl); });
+    // V2.0: botón de buscar al final de la barra y tecla «Buscar» del teclado
+    const go = () => { syncConditionFromText(phoneEl, searchBox.value); applyProductFilters(phoneEl); searchBox.blur(); };
+    searchBox.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
+    const goBtn = phoneEl.querySelector('[data-action="search-go"]');
+    if (goBtn) goBtn.addEventListener('click', (e) => { e.stopPropagation(); go(); });
     if (searchBox.value && !HAY_APP_MODE) applyProductFilters(phoneEl);
   }
   // V1.29: feed paginado del servidor + más al llegar al final
