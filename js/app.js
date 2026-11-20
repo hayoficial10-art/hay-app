@@ -416,7 +416,9 @@ async function loadFeed(phoneEl, { append = false } = {}) {
   if (append) grid.insertAdjacentHTML('beforeend', withHeads(mapped, prevNearby));
   else grid.innerHTML = mapped.length
     ? withHeads(mapped, null)
-    : `<p class="empty-msg" style="grid-column:1/-1; padding:var(--space-4) 0;">${filters.q || filters.category || filters.sellerType || filters.condition ? 'No hay publicaciones con estos filtros todavía.' : 'Todavía no hay publicaciones. ¡Sé el primero en publicar con el botón +!'}</p>`;
+    : grid.getAttribute('data-testid') === 'home-product-grid'
+      ? `<p class="empty-msg" style="grid-column:1/-1; padding:var(--space-2) 0;">Todavía nadie publica su moto usada. ¡Publica la tuya con el botón +!</p>` // V2.0
+      : `<p class="empty-msg" style="grid-column:1/-1; padding:var(--space-4) 0;">No encontramos resultados${filters.q ? ' para «' + escapeText(filters.q) + '»' : ''}.</p>`;
   wireFavButtons(phoneEl); // V1.32: favoritos reales
   const countEl = phoneEl.querySelector('[data-testid="search-results-count"]');
   if (countEl) countEl.textContent = `${APP_FEED.items.length}${APP_FEED.nextCursor ? '+' : ''} resultado${APP_FEED.items.length === 1 ? '' : 's'}`;

@@ -155,7 +155,7 @@ const SCREENS_MAIN = [
         <header class="alegre-header home-header" data-testid="home-header">
           <div class="alegre-header__row">
             ${HAY_APP_MODE
-              ? `<button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home" data-testid="btn-home-gps">${icon('pin')}<span>${(getSavedLocation() && getSavedLocation().zone) || (getSavedLocation() ? 'Mi ubicación' : 'Ubicación')}</span></button>`
+              ? `<span class="hdr-spacer" aria-hidden="true"></span>`
               : `<span class="home-location" title="Ubicación actual">${icon('pin')}<span>Miami, FL</span></span>`}
             ${hayMotosBrand()}
             <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" data-testid="btn-notifications" style="flex-shrink:0;">${icon('bell')}${unreadBadgeHtml()}</button>
@@ -172,12 +172,7 @@ const SCREENS_MAIN = [
           <!-- V2.0: HAY Motos — Usadas / Nuevas / Repuestos / Negocios -->
           ${motoSections('usadas')}
           ${zonaSelect()}
-          <div class="feed-head">
-            <span class="section-label">${icon('moto')}Motos usadas</span>
-            <div class="pill-row pill-row--mini" data-testid="home-seller-type">
-              ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
-            </div>
-          </div>
+          <div class="motos-head" data-hay-usadas-head><h2>Publicadas en HAY</h2></div>
           <div class="product-grid" data-testid="home-product-grid">
             ${HAY_APP_MODE && !PRODUCTS.length ? `<p class="empty-msg" style="grid-column:1/-1;">Cargando publicaciones…</p>` : PRODUCTS.length ? PRODUCTS.slice(0, HAY_APP_MODE ? 60 : 8).map((p) => productCard(p)).join('') : `<div class="empty-state" style="grid-column:1/-1; padding:var(--space-6) 0;">${heroIcon('boxOpen', 'cyan', { size: 120 })}<p class="empty-msg" style="margin-top:0;">Todavía no hay motos usadas publicadas.<br/>¡Publica la tuya con el botón +!</p></div>`}
           </div>

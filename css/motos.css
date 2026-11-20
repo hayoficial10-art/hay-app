@@ -164,3 +164,6 @@ button.biz-btn { border: none; font: inherit; font-size: 11.5px; font-weight: 80
 .search-go svg { width: 20px; height: 20px; stroke: currentColor; }
 /* sin la «x» del navegador: al final va el botón de buscar */
 .searchbar input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+/* V2.0.3: cabecera sin píldora de ubicación (la zona está en «Cerca de mí») */
+.hdr-spacer { width: 44px; height: 44px; flex-shrink: 0; }
+.home-header .alegre-header__row { justify-content: space-between; }

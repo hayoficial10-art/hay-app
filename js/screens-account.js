@@ -307,7 +307,7 @@ const SCREENS_ACCOUNT = [
           </div>
 
           ${CURRENT_USER ? `<button class="btn--ghost" style="color:var(--color-error); align-self:center; min-height:auto; font-size:var(--text-sm);" data-nav="delete-account" data-testid="btn-go-delete-account">Eliminar mi cuenta</button>` : ''}
-          <p class="app-version" data-testid="app-version">HAY · versión ${HAY_VERSION}</p>
+          <p class="app-version" data-testid="app-version">HAY Motos · versión ${HAY_VERSION}</p>
         </div>
       </div>
     </div>`,

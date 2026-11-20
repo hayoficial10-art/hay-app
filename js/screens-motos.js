@@ -106,16 +106,15 @@ function motoSections(active) {
   return `<nav class="moto-secs" aria-label="Secciones de HAY Motos" data-testid="moto-sections">
     ${tile('nuevas', 'nuevas', 'sparkle', 'Nuevas')}
     ${tile('usadas', 'home', 'moto', 'Usadas')}
-    ${tile('repuestos', 'repuestos', 'tools', 'Repuestos y accesorios')}
+    ${tile('repuestos', 'repuestos', 'tools', 'Repuestos')}
     ${tile('negocios', 'negocios', 'store', 'Negocios')}
   </nav>`;
 }
 
 function motosHeader(title) {
-  const loc = HAY_APP_MODE ? getSavedLocation() : null;
   return `<header class="alegre-header home-header">
     <div class="alegre-header__row">
-      <button class="home-location" title="Usar mi ubicación (GPS)" data-action="gps-home">${icon('pin')}<span>${(loc && loc.zone) || (loc ? 'Mi ubicación' : 'Ubicación')}</span></button>
+      <span class="hdr-spacer" aria-hidden="true"></span>
       <h1 class="motos-title">${hayMotosBrand()}<span class="sr-only">${title}</span></h1>
       <button class="icon-btn icon-btn--white" data-nav="notifications" aria-label="Notificaciones" style="flex-shrink:0;">${icon('bell')}${unreadBadgeHtml()}</button>
     </div>
@@ -397,6 +396,10 @@ function wireMotos(phoneEl, screenId) {
   const zona = phoneEl.querySelector('[data-action="zona"]');
   if (zona) zona.addEventListener('change', () => {
     setZona(zona.value);
+    if (!zona.value && HAY_APP_MODE) { // «Cerca de mí»: ubicarte de nuevo con el GPS
+      getGpsLocation().catch(() => null).then(() => navigateTo(phoneEl, screenId, { skipFetch: true }));
+      return;
+    }
     navigateTo(phoneEl, screenId, { skipFetch: true });
   });
   if (['home', 'nuevas', 'repuestos', 'negocios'].includes(screenId)) autoUbicar(phoneEl, screenId);
