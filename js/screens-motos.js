@@ -233,6 +233,7 @@ function marketScreen({ id, title, placeholder, query, filtersHtml }) {
           <div class="searchbar searchbar--white">
             ${icon('search')}
             <input type="search" enterkeyhint="search" placeholder="${placeholder}" value="${motoEsc(query)}" data-testid="input-${id}" data-market-search />
+            <button class="search-go" type="button" aria-label="Buscar" data-market-go>${icon('search')}</button>
           </div>
           ${zonaSelect()}
           ${filtersHtml}
@@ -415,6 +416,11 @@ function wireMarket(phoneEl, screenId) {
     clearTimeout(MARKET_TIMER);
     MARKET_TIMER = setTimeout(() => loadMarket(phoneEl, screenId), 600);
   });
+  // V2.0.1: botón de buscar al final de la barra y tecla «Buscar» del teclado
+  const goNow = () => { if (!input) return; st.q = input.value.trim(); clearTimeout(MARKET_TIMER); input.blur(); loadMarket(phoneEl, screenId); };
+  if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goNow(); } });
+  const goBtn = phoneEl.querySelector('[data-market-go]');
+  if (goBtn) goBtn.addEventListener('click', (e) => { e.stopPropagation(); goNow(); });
   phoneEl.querySelectorAll('.moto-chips .chip').forEach((chip) => chip.addEventListener('click', (e) => {
     e.stopPropagation();
     phoneEl.querySelectorAll('.moto-chips .chip').forEach((c) => c.classList.remove('is-active'));
