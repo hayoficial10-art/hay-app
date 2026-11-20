@@ -1614,6 +1614,12 @@ server.headersTimeout = 66000;
 async function start() {
   await store.init();
   await store.sessions.purgeOlderThan(new Date(Date.now() - SESSION_TTL_MS).toISOString());
+  // V2.0: HAY Motos — se borran las publicaciones de versiones anteriores que no son de motos
+  try {
+    const viejas = await store.listings.removeNotMoto();
+    for (const l of viejas) for (const u of [...(l.photoUrls || []), ...Object.values(l.photoThumbs || {})]) removeLocalPhoto(u);
+    if (viejas.length) console.log(`[HAY backend] V2.0: ${viejas.length} publicaciones viejas (no de motos) eliminadas.`);
+  } catch (e) { console.error('[HAY backend] No se pudieron borrar las publicaciones viejas:', e.message); }
   runSweep();
   setInterval(runSweep, 3600 * 1000).unref(); // V1.55: cada hora
   server.listen(PORT, () => {

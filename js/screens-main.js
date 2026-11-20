@@ -120,7 +120,6 @@ const CATEGORY_ICONS = [
   { label: 'Motos', icon: 'moto' },
   { label: 'Repuestos y accesorios', icon: 'tools' },
   { label: 'Talleres y servicios', icon: 'briefcase' },
-  { label: 'Otros', icon: 'tag' },
 ];
 
 /* V1.23: filtro Todos / Personas / Negocios, independiente de la
@@ -209,16 +208,6 @@ const SCREENS_MAIN = [
               ${icon('search')}
               <input type="search" enterkeyhint="search" placeholder="Ej.: Bera 150 usada Valencia" value="${HAY_APP_MODE ? '' : 'silla'}" data-testid="input-search" />
             </div>
-          </div>
-          <div class="pill-row pill-row--mini" data-testid="search-seller-type">
-            ${SELLER_TYPE_FILTERS.map((s, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-seller-type="${s.value}">${s.label}</span>`).join('')}
-          </div>
-          <!-- V1.66: nuevo / usado (se marca solo si escribes «nuevo» o «usado») -->
-          <div class="pill-row pill-row--mini" data-testid="search-condition">
-            ${CONDITION_FILTERS.map((c, i) => `<span class="pill ${i === 0 ? 'is-selected' : ''}" data-condition="${c.value}">${c.label}</span>`).join('')}
-          </div>
-          <div class="chip-row chip-row--color" data-testid="search-categories" style="overflow-x:auto; flex-wrap:nowrap;">
-            ${categoryChips()}
           </div>
           <span class="text-xs text-muted" data-testid="search-results-count">${PRODUCTS.length} resultados</span>
           <div class="product-grid" data-testid="search-results-grid">

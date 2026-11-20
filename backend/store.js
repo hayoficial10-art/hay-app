@@ -16,6 +16,8 @@
  * Todas las funciones son async.
  */
 'use strict';
+// V2.0: HAY Motos — categorías que se muestran en la app (las viejas siguen en «Mis publicaciones»)
+const MOTO_CATS = ['Motos', 'Repuestos y accesorios', 'Talleres y servicios', 'Repuestos', 'Accesorios y cascos', 'Cauchos y baterías'];
 
 const fs = require('fs');
 const path = require('path');
@@ -168,6 +170,12 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
       async activeBySeller(sellerId, limit = 20) {
         return clone(data.listings.filter((l) => l.sellerId === sellerId && isActive(l)).sort(feedCompare).slice(0, limit));
       },
+      // V2.0: borra las publicaciones que no son de motos (versiones anteriores de HAY)
+      async removeNotMoto() {
+        const gone = data.listings.filter((l) => !MOTO_CATS.includes(l.category));
+        if (gone.length) { data.listings = data.listings.filter((l) => MOTO_CATS.includes(l.category)); markDirty('listings'); }
+        return clone(gone);
+      },
       async removeBySeller(sellerId) {
         const gone = data.listings.filter((l) => l.sellerId === sellerId);
         data.listings = data.listings.filter((l) => l.sellerId !== sellerId);
@@ -199,6 +207,7 @@ function createJsonStore({ dataDir, seedListings, seedEmergency }) {
         }
         if (Array.isArray(conditions) && conditions.length) list = list.filter((l) => conditions.includes(l.condition));
         if (category) list = list.filter((l) => l.category === category);
+        else if (!sellerId) list = list.filter((l) => MOTO_CATS.includes(l.category)); // V2.0: solo cosas de motos
         if (sellerType) list = list.filter((l) => (l.sellerType || 'persona') === sellerType);
         if (sellerId) list = list.filter((l) => l.sellerId === sellerId);
         if (q) {
@@ -516,6 +525,9 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
       async activeBySeller(sellerId, limit = 20) {
         return rowsData(await q("SELECT data FROM listings WHERE seller_id = $1 AND status = 'active' ORDER BY created_at DESC, id DESC LIMIT $2", [sellerId, limit]));
       },
+      async removeNotMoto() {
+        return rowsData(await q('DELETE FROM listings WHERE category IS NULL OR NOT (category = ANY($1::text[])) RETURNING data', [MOTO_CATS]));
+      },
       async removeBySeller(sellerId) {
         return rowsData(await q('DELETE FROM listings WHERE seller_id = $1 RETURNING data', [sellerId]));
       },
@@ -551,6 +563,7 @@ function createPgStore({ databaseUrl, seedListings, seedEmergency, dataDir, pool
         }
         if (Array.isArray(conditions) && conditions.length) add("data->>'condition' = ANY(?::text[])", conditions);
         if (category) add('category = ?', category);
+        else if (!sellerId) add('category = ANY(?::text[])', MOTO_CATS); // V2.0: solo cosas de motos
         if (sellerType) add('seller_type = ?', sellerType);
         if (sellerId) add('seller_id = ?', sellerId);
         if (text) {
