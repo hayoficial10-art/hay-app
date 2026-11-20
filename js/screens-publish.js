@@ -97,7 +97,7 @@ function publishSinglePage() {
 
           <section class="pub-card" data-testid="publish-photos">
             <div class="pub-card__head"><h2><span class="pub-dot pub-dot--cyan"></span>Fotos</h2><span class="pub-count" data-testid="photo-count">${photos.length}/${MAX_LISTING_PHOTOS}</span></div>
-            <p class="photo-rules" data-testid="photo-rules">Solo fotos del artículo, sin personas.</p>
+            <p class="photo-rules" data-testid="photo-rules">Solo fotos de la moto o del repuesto, sin personas.</p>
             <div class="photo-actions">
               <label class="btn btn--turquoise btn--sm" style="cursor:pointer;" data-testid="btn-open-camera">
                 ${icon('camera')} Tomar foto

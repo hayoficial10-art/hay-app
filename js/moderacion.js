@@ -83,7 +83,7 @@ const HAY_MODERACION = (() => {
   }
 
   const MENSAJES = {
-    persona: 'Esta foto no se puede usar: parece que se ve una persona. En HAY solo van fotos del artículo, sin personas. Si es un error, tómala de nuevo solo al artículo, con un fondo liso.',
+    persona: 'Esta foto no se puede usar: parece que se ve una persona. En HAY Motos solo van fotos de la moto o del repuesto, sin personas. Si es un error, tómala de nuevo solo a la moto o al repuesto, con un fondo liso.',
     sexual: 'Esta foto no se puede usar: parece tener contenido sexual. HAY no permite ese tipo de fotos.',
   };
 

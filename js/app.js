@@ -440,7 +440,7 @@ function scheduleWebOffers(phoneEl, filters) {
   if (WEB_OFFERS.key === key && WEB_OFFERS.data) return renderWebOffers(phoneEl, WEB_OFFERS.data);
   renderWebOffers(phoneEl, { loading: true });
   WEB_OFFERS.timer = setTimeout(async () => {
-    const data = await apiFetchTiendas(q, loc);
+    const data = await apiFetchTiendas(/\b(moto|motos|repuesto|repuestos|casco|caucho|bater)/i.test(q) ? q : 'moto ' + q, loc); // V2.0.3: solo cosas de motos
     const input = phoneEl.querySelector('[data-testid="input-search"]');
     if (!input || input.value.trim().toLowerCase() !== q.toLowerCase()) return; // ya escribió otra cosa
     if (data) WEB_OFFERS = { key, data, timer: null };
@@ -1805,8 +1805,8 @@ function wireInteractiveBehaviors(phoneEl, screenId) {
       if (errEl) errEl.style.display = 'none';
       const isEditing = Boolean(EDITING_LISTING_ID);
       // V1.45: en la página única se revisa aquí lo mínimo antes de enviar
-      const falta = HAY_APP_MODE && !draftPhotoList().length ? 'Agrega al menos una foto del artículo.'
-        : !String(PUBLISH_DRAFT.title || '').trim() ? 'Escribe el título del artículo.'
+      const falta = HAY_APP_MODE && !draftPhotoList().length ? 'Agrega al menos una foto de la moto o del repuesto.'
+        : !String(PUBLISH_DRAFT.title || '').trim() ? 'Escribe el título (ej. Bera SBR 150 2022).'
         : !(Number(PUBLISH_DRAFT.price) > 0) ? 'Escribe el precio en dólares.'
         : '';
       if (falta) {
